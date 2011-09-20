@@ -8,19 +8,29 @@
  remove-old-clients
  close-all-clients)
 
+;; Every person connected to the server ends up in one of these.
+;; Right now, does not prevent multiple users from having this
+;; same name. This isn't an issue since users aren't addressable,
+;; but will eventually be a problem.
 (struct client (in 
                 out 
                 name 
                 [current-room-id #:mutable]))
 
+;; This function is garbage. I can't figure out what the junk
+;; is that PuTTy sends to the server on connection, so I'm just
+;; substringing it away.
 (define (trim-name name)
-  (display (format "User entered \"~a\" for name\n" name))
-  (substring name 21 (sub1 (string-length name))))
+  (if (> (string-length name) 21)
+      (substring name 21 (sub1 (string-length name)))
+      #f))
 
+;; Checks to see if there are any new connection attempts and
+;; creates a new client object for them.
 (define (connect-new-client listener)
   (display "accepting new connection\n")
   (define-values (in out) (tcp-accept listener))
-  (display 
+  (display ;; welcome message
    "Welcome to a very simple, Multi-User Dungeon that I have created. This MUD
 is almost completely useless at this time. However, you can run around in
 the few rooms that exist and try to get a feel for things! So, without further
@@ -28,14 +38,22 @@ ado...
 
 ENTER YOUR NAME, MOTHERFUCKER: " out)
   (flush-output out)
-  (let ([new-client (client in out (trim-name (read-line in)) 0)])
-    (cmd-view new-client empty)
-    (print-prompt new-client)
-    new-client))
+  (let* ([input (read-line in)]
+         [name (if (eof-object? input) #f (trim-name input))] ;; try to parse the name, or fail if the user disconnected
+         [new-client (if name (client in out name 0) #f)]) ;; create the user with their name, or fail
+    (if new-client
+        (begin
+          (cmd-view new-client empty) ;; show the new user where they are
+          (print-prompt new-client) ;; give them the :> prompt
+          new-client) ;; return the user to the managing thread
+        #f))) ;; or fail
 
 (define (accept-new-clients clients listener)
   (if (tcp-accept-ready? listener)
-      (cons (connect-new-client listener) clients)
+      (let ([new-user (connect-new-client listener)])
+        (if new-user
+            (cons new-user clients)
+            client))
       clients))
 
 (define (remove-old-clients clients)
@@ -125,6 +143,8 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
 
 
 (define (cmd-quit client parts)
+  (display "Goodbye!\r\n" (client-out client))
+  (flush-output (client-out client))
   (close-client client))
 
 (define (cmd-bad-word client parts)
