@@ -30,6 +30,7 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
   (flush-output out)
   (let ([new-client (client in out (trim-name (read-line in)) 0)])
     (cmd-view new-client empty)
+    (print-prompt new-client)
     new-client))
 
 (define (accept-new-clients clients listener)
@@ -63,10 +64,12 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
 (define (process client line)
   (let* ([parts (regexp-split #rx" " line)]
          [command (first parts)]
-         [func (assoc command commands)])
+         [func (assoc command commands)]
+         [out (client-out client)])
     (if func
         ((cdr func) client (rest parts))
-        (display "I don't understand what you mean\r\n" (client-out client)))))
+        (display "I don't understand what you mean\r\n" out))
+    (unless (port-closed? out) (print-prompt client))))
 
 (define (do-client-input client)
   (when (char-ready? (client-in client))
@@ -78,16 +81,26 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
         (process client (substring line 0 (sub1 (string-length line)))))))
 
 (define (do-client-output client)
-  (let _send ([msgs msg-queue])
-    (when (cons? _send)
-      (display (first msgs) (client-out client))
-      (_send (rest msgs)))))
+  (define out (client-out client))
+  (when (and (cons? msg-queue)
+             (not (port-closed? out)))
+    (display "\r\n" out)
+    (let _send ([msgs msg-queue])
+      (when (cons? _send)
+        (display (first msgs) (client-out client))
+        (_send (rest msgs))))
+    (print-prompt client)))
+
+(define (print-prompt client)    
+  (display (format "~a :> " (client-name client)) (client-out client)))
 
 (define (process-all-clients clients)
   (if (cons? clients)
-      (let ([client (first clients)])
+      (let* ([client (first clients)]
+             [out (client-out client)])
         (do-client-input client)
         (do-client-output client)
+        (unless (port-closed? out) (flush-output out))
         (process-all-clients (rest clients)))
       (set! msg-queue empty)))
 
@@ -99,7 +112,9 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
            (let* ([room-id (client-current-room-id client)]
                   [dir (first parts)]
                   [new-room-id (get-room-exit-id room-id dir)])
-             (new-room-id . > . -1)))
+             (begin
+               (display new-room-id)
+               (new-room-id . > . -1))))
       (cmd-view client parts)
       (display "You can't go that direction\r\n" (client-out client))))
 
@@ -118,6 +133,14 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
 
 (define commands (list (cons "view" cmd-view)
                        (cons "move" cmd-move)
+                       (cons "north" (λ (client parts) (cmd-move client (cons "north" parts))))
+                       (cons "east" (λ (client parts) (cmd-move client (cons "east" parts))))
+                       (cons "south" (λ (client parts) (cmd-move client (cons "south" parts))))
+                       (cons "west" (λ (client parts) (cmd-move client (cons "west" parts))))
+                       (cons "up" (λ (client parts) (cmd-move client (cons "up" parts))))
+                       (cons "down" (λ (client parts) (cmd-move client (cons "down" parts))))
+                       (cons "in" (λ (client parts) (cmd-move client (cons "in" parts))))
+                       (cons "out" (λ (client parts) (cmd-move client (cons "out" parts))))
                        (cons "quit" cmd-quit)
                        (cons "say" cmd-say)
                        (cons "fuck" cmd-bad-word)
