@@ -7,7 +7,8 @@
 
 (let listen-more ([clients empty])
   (process-all-clients clients)
-  (let ([current-clients (remove-old-clients (accept-new-clients clients listener))])
-       (listen-more current-clients)))
+  (listen-more 
+   (remove-old-clients 
+    (accept-new-clients clients listener))))
 
 (tcp-close listener)
