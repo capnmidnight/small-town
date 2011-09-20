@@ -1,0 +1,21 @@
+PROJECT: philly_mud
+AUTHOR: Sean T. McBeth (sean.mcbeth@gmail.com)
+DATE: 9/20/2011		
+
+DESCRIPTION:
+philly_mud is a basic Multi-User Dungeon/Dimension/Domain
+written in PLT Racket, a dialect of Scheme. It serves as
+a test-bed project for me to learn Scheme in a more directed
+and meaningful way. I hate how programming tutorials always
+show these ridiculous examples that are completely devoid
+of context. It's all "foo" this and "bar" that, disconnecting
+concept from context. I believe this to be both unnecessary
+and foolish.
+
+GOALS:
+1. Learn Scheme
+2. Bring the MUD form to a new generation
+3. Let other people participate in its creation
+4. Make something about the things I love about Philadelphia
+
+
