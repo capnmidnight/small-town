@@ -108,15 +108,21 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
   (display (make-room-desc (client-current-room-id client)) (client-out client)))
 
 (define (cmd-move client parts)
-  (if (and (= 1 (length parts))
-           (let* ([room-id (client-current-room-id client)]
-                  [dir (first parts)]
-                  [new-room-id (get-room-exit-id room-id dir)])
-             (begin
-               (display new-room-id)
-               (new-room-id . > . -1))))
-      (cmd-view client parts)
-      (display "You can't go that direction\r\n" (client-out client))))
+  (define out (client-out client))
+  (cond
+    [(= 1 (length parts))
+     (let* ([room-id (client-current-room-id client)]
+            [dir (first parts)]
+            [new-room-id (get-room-exit-id room-id dir)])
+       (cond
+         [(new-room-id . > . -1)
+          (set-client-current-room-id! client new-room-id)
+          (cmd-view client parts)]
+         [else
+          (display "You can't go that direction\r\n" (client-out client))]))]
+    [else
+     (display "Please provide 1 and only 1 move direction\r\n" out)]))
+
 
 (define (cmd-quit client parts)
   (close-client client))
