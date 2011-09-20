@@ -47,7 +47,6 @@ DESC: ~a
 
 PEOPLE HERE:
 ~a
-
 EXITS:
 ~a"
               (room-name room)
