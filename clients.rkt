@@ -25,7 +25,7 @@
       (substring name 21 (sub1 (string-length name)))
       #f))
 ;; Prompts a newly connected user for their name
-(define (connect-new-client listener)
+(define (connect-new-client listener clients)
   (display "accepting new connection\n")
   (define-values (in out) (tcp-accept listener))
   (send ;; welcome message
@@ -38,8 +38,7 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
          [new-client (if name (client in out name 0) #f)]) ;; create the user with their name, or fail
     (if new-client
         (begin
-          (cmd-view new-client empty) ;; show the new user where they are
-          (print-prompt new-client) ;; give them the :> prompt
+          (process new-client "view" clients) ;; show the user where they are
           new-client) ;; return the user to the managing thread
         #f))) ;; or fail
 
@@ -47,7 +46,7 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
 ;; creates a new client object for them.
 (define (accept-new-clients clients listener)
   (if (tcp-accept-ready? listener)
-      (let ([new-user (connect-new-client listener)])
+      (let ([new-user (connect-new-client listener clients)])
         (if new-user
             (cons new-user clients)
             clients))
@@ -82,37 +81,43 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
     (close-all-clients (rest clients))))
 
 
-(define (process client line)
+(define (process client line clients)
   (let* ([parts (regexp-split #rx" " line)]
          [command (first parts)]
          [func (assoc command commands)]
          [result (if func 
-                     ((cdr func) client (rest parts)) 
+                     ((cdr func) client (rest parts) clients) 
                      #f)])
     (unless func (send "I don't understand what you mean\r\n" (client-out client)))
+    (print-prompt client)
     result))
-
-(define (do-client-input client msg-queue)
-  (cond
-    [(char-ready? (client-in client))
-     (define line (read-line (client-in client)))
-     (display (format "INCOMING! ~a [~a]\n" (client-name client) line))
-     (newline)
-     (if (eof-object? line)
-         (close-client client)
-         (let* ([trimmed-line (substring line 0 (sub1 (string-length line)))]
-                [result (process client trimmed-line)])
-           (print-prompt client)
-           (if result 
-               (cons result msg-queue) 
-               msg-queue)))]
-    [else
-     msg-queue]))
 
 (define (send msg out)
   (unless (port-closed? out)
     (display msg out)
     (flush-output out)))
+
+(define (print-prompt client)    
+  (send (format "~a :> " (client-name client)) (client-out client)))
+
+(define (process-all-clients clients)
+  (define msg-queue (filter-map (λ (client) (do-client-input client clients)) 
+                                clients))
+  (when (cons? msg-queue)
+    (for ([client clients])
+      (do-client-output client msg-queue))))
+
+(define (do-client-input client clients)
+  (cond [(char-ready? (client-in client))
+         (define line (read-line (client-in client)))
+         (display (format "INCOMING! ~a [~a]\n" (client-name client) line))
+         (cond [(eof-object? line)
+                (close-client client)
+                #f]
+               [else 
+                (let ([trimmed-line (substring line 0 (sub1 (string-length line)))])
+                  (process client trimmed-line clients))])]
+        [else #f]))
 
 (define (do-client-output client msg-queue)
   (when (cons? msg-queue)
@@ -122,28 +127,15 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
       (when (cons? msgs)
         (send (first msgs) out)
         (_msg-send (rest msgs))))
-    (print-prompt client))
-  msg-queue)
+    (print-prompt client)))
 
-(define (print-prompt client)    
-  (send (format "~a :> " (client-name client)) (client-out client)))
-
-(define (process-for-all-clients clients proc msg-queue)
-  (if (cons? clients)
-      (let* ([client (first clients)]
-             [out (client-out client)]
-             [new-queue (proc client msg-queue)])
-        (process-for-all-clients (rest clients) proc new-queue))
-      msg-queue))
-
-(define (process-all-clients clients)
-  (process-for-all-clients clients do-client-output (reverse (process-for-all-clients clients do-client-input empty))))
-
-(define (cmd-view client parts)
-  (send (make-room-desc (client-current-room-id client)) (client-out client))
+(define (cmd-view client parts clients)
+  (define room-id (client-current-room-id client))
+  (define also-here (map client-name (filter (λ (c) (= room-id (client-current-room-id c))) clients)))
+  (send (make-room-desc room-id also-here) (client-out client))
   #f)
 
-(define (cmd-move client parts)
+(define (cmd-move client parts clients)
   (define out (client-out client))
   (cond [(= 1 (length parts))
          (let* ([room-id (client-current-room-id client)]
@@ -151,24 +143,27 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
                 [new-room-id (get-room-exit-id room-id dir)])
            (cond [(new-room-id . > . -1)
                   (set-client-current-room-id! client new-room-id)
-                  (cmd-view client parts)]
+                  (cmd-view client parts clients)]
                  [else
                   (send "You can't go that direction\r\n" (client-out client))]))]
         [else
          (send "Please provide 1 and only 1 move direction\r\n" out)])
   #f)
 
+(define (alias-move dir)
+  (cons dir (λ (client parts clients)
+              (cmd-move client (cons dir parts) clients))))
 
-(define (cmd-quit client parts)
+(define (cmd-quit client parts clients)
   (send "Goodbye!\r\n" (client-out client))
   (close-client client)
   (format "~a has quit.\r\n" (client-name client)))
 
-(define (cmd-bad-word client parts)
+(define (cmd-bad-word client parts clients)
   (send "Hey now, that was a bad word. Only I'm allowed to cuss here.\r\n" (client-out client))
   #f)
 
-(define (cmd-say client parts)
+(define (cmd-say client parts clients)
   (cond [(cons? parts)
          (format "[~a]: \"~a\"\r\n" (client-name client) (string-join parts " "))]
         [else
@@ -177,14 +172,15 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
 
 (define commands (list (cons "view" cmd-view)
                        (cons "move" cmd-move)
-                       (cons "north" (λ (client parts) (cmd-move client (cons "north" parts))))
-                       (cons "east" (λ (client parts) (cmd-move client (cons "east" parts))))
-                       (cons "south" (λ (client parts) (cmd-move client (cons "south" parts))))
-                       (cons "west" (λ (client parts) (cmd-move client (cons "west" parts))))
-                       (cons "up" (λ (client parts) (cmd-move client (cons "up" parts))))
-                       (cons "down" (λ (client parts) (cmd-move client (cons "down" parts))))
-                       (cons "in" (λ (client parts) (cmd-move client (cons "in" parts))))
-                       (cons "out" (λ (client parts) (cmd-move client (cons "out" parts))))
+                       (alias-move "north")
+                       (alias-move "east")
+                       (alias-move "south")
+                       (alias-move "west")
+                       (alias-move "up")
+                       (alias-move "down")
+                       (alias-move "in")
+                       (alias-move "out")
+                       (cons "exit" cmd-quit)
                        (cons "quit" cmd-quit)
                        (cons "say" cmd-say)
                        (cons "fuck" cmd-bad-word)
