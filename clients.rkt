@@ -60,7 +60,9 @@
 (define (connect-new-client listener)
   (DEBUG "connect-new-client" "accepting new connection")
   (define-values (in out) (tcp-accept listener))
+  (send #"\e[1;31;41m" out)
   (send (regexp-replace* #rx"\n" (regexp-replace* #rx"\r\n" (call-with-input-file* "welcome.txt" port->string) "\n") "\r\n") out) ;; this little rigamorole is to correct for the bullshit newline situation between OS X and everybody else
+  (send #"\e[0m" out)
   (let* ([input (read-line in 'any)]
          [name (parse-name input)] ;; try to parse the name, or fail if the user disconnected
          [new-client (and name (client in out name 0))]) ;; create the user with their name, or fail
