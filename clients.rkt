@@ -3,10 +3,19 @@
 (require "rooms.rkt")
 
 (provide
- process-all-clients
- accept-new-clients
- remove-old-clients
- close-all-clients)
+ server-cycle
+ close-all-clients
+ DEBUG)
+
+(define (DEBUG . str)
+  (when #t 
+    (let _x ([p str])
+      (when (cons? p)
+        (display (first p))
+        (when (cons? (rest p))
+          (display ": "))
+        (_x (rest p))))
+    (newline)))
 
 ;; Every person connected to the server ends up in one of these.
 ;; Right now, does not prevent multiple users from having this
@@ -14,110 +23,123 @@
 ;; but will eventually be a problem.
 (struct client (in 
                 out 
-                name 
-                [current-room-id #:mutable]))
+                [name #:mutable]
+                [current-room-id #:mutable])
+        #:transparent)
 
-;; This function is garbage. I can't figure out what the junk
-;; is that PuTTy sends to the server on connection, so I'm just
-;; substringing it away.
-(define (trim-name name)
-  (if (> (string-length name) 21)
-      (substring name 21 (sub1 (string-length name)))
-      #f))
-;; Prompts a newly connected user for their name
-(define (connect-new-client listener clients)
-  (display "accepting new connection\n")
-  (define-values (in out) (tcp-accept listener))
-  (send ;; welcome message
-   "Welcome to a very simple, Multi-User Dungeon that I have created. This MUD is almost completely useless at this time. However, you can run around in\r
-the few rooms that exist and try to get a feel for things! So, without further ado...\r
+(define (server-cycle clients listener)
+  ; (sleep 1)
+  (process-all-clients clients)
+  (remove-old-clients (accept-new-clients clients listener)))
 
-ENTER YOUR NAME, MOTHERFUCKER: " out)
-  (let* ([input (read-line in)]
-         [name (if (eof-object? input) #f (trim-name input))] ;; try to parse the name, or fail if the user disconnected
-         [new-client (if name (client in out name 0) #f)]) ;; create the user with their name, or fail
-    (if new-client
-        (begin
-          (process new-client "view" clients) ;; show the user where they are
-          new-client) ;; return the user to the managing thread
-        #f))) ;; or fail
-
-;; Checks to see if there are any new connection attempts and
-;; creates a new client object for them.
-(define (accept-new-clients clients listener)
-  (if (tcp-accept-ready? listener)
-      (let ([new-user (connect-new-client listener clients)])
-        (if new-user
-            (cons new-user clients)
-            clients))
-      clients))
-
-;; looks for any closed client connections--closed either because the user
-;; disconnected or the server forcefully shut them off--and removes them
-;; from the list of clients.
-(define (remove-old-clients clients)
-  (let _remove ([good empty]
-                [left clients])
-    (if (cons? left)
-        (let* ([client (first left)]
-               [in (client-in client)]
-               [out (client-out client)])
-          (if (or (port-closed? in)
-                  (port-closed? out))
-              (_remove good (rest left))
-              (_remove (cons client good) (rest left))))
-        good)))
-
-;; Forcefully close a client connection
-(define (close-client client)
-  (display (format "Closing client: ~a\n" (client-name client)))
-  (close-input-port (client-in client))
-  (close-output-port (client-out client)))
-
-;; Kill everyone
-(define (close-all-clients clients)
-  (when (cons? clients)
-    (close-client (first clients))
-    (close-all-clients (rest clients))))
-
-
-(define (process client line clients)
-  (let* ([parts (regexp-split #rx" " line)]
-         [command (first parts)]
-         [func (assoc command commands)]
-         [result (if func 
-                     ((cdr func) client (rest parts) clients) 
-                     #f)])
-    (unless func (send "I don't understand what you mean\r\n" (client-out client)))
-    (print-prompt client)
-    result))
+;; this will have to do different things depending on the type of terminal that connects
+(define (parse-name input)
+  (and (not (eof-object? input))
+       input))
 
 (define (send msg out)
   (unless (port-closed? out)
     (display msg out)
     (flush-output out)))
 
-(define (print-prompt client)    
-  (send (format "~a :> " (client-name client)) (client-out client)))
+(define (recv in)
+  (unless (port-closed? in)
+    (DEBUG "recv" "reading...")
+    (define line (read-line in 'any))
+    (DEBUG "recv" line)
+    (define match (regexp-match #rx"[^\r\n]+" line))
+    (and match (first match))))
+
+(define (print-prompt client)
+  (send (string-append (client-name client) " :> ") (client-out client)))
+
+(define (X str) (substring str 0 (sub1 (string-length str))))
+
+;; Prompts a newly connected user for their name
+(define (connect-new-client listener)
+  (DEBUG "connect-new-client" "accepting new connection")
+  (define-values (in out) (tcp-accept listener))
+  (send (X (call-with-input-file* "welcome.txt" port->string)) out)
+  (let* ([input (recv in)]
+         [name (parse-name input)] ;; try to parse the name, or fail if the user disconnected
+         [new-client (and name (client in out name 0))]) ;; create the user with their name, or fail
+    (DEBUG "connect-new-client" "input" input)
+    (DEBUG "connect-new-client" "name recognized" name)
+    (DEBUG "connect-new-client" new-client)
+    (unless new-client (close-client (client in out #f 0)))
+    new-client)) ;; will return #f if the user was not initialized properly
+
+;; Checks to see if there are any new connection attempts and
+;; creates a new client object for them.
+(define (accept-new-clients clients listener)
+  (if (tcp-accept-ready? listener)
+      (let* ([new-user (connect-new-client listener)]
+             [new-clients-list (if new-user (cons new-user clients) clients)])
+        (when new-user (process new-user "view" new-clients-list))
+        new-clients-list)
+      clients))
+
+;; looks for any closed client connections--closed either because the user
+;; disconnected or the server forcefully shut them off--and removes them
+;; from the list of clients.
+(define (remove-old-clients clients)
+  (filter (λ (client) (and (not (port-closed? (client-in client)))
+                           (not (port-closed? (client-out client)))
+                           client))
+          clients))
+
+;; Forcefully close a client connection
+(define (close-client client)
+  (DEBUG "close-client" client)
+  (define name (client-name client))
+  (when name (DEBUG "close-client" name))
+  (close-input-port (client-in client))
+  (close-output-port (client-out client)))
+
+;; Kill everyone
+(define (close-all-clients clients)
+  (when (cons? clients)
+    (for ([client clients])
+      (close-client client))))
+
+(define (process client line clients)
+  (DEBUG "process" "client" client)
+  (DEBUG "process" "line" line)
+  (let* ([parts (regexp-split #rx" " line)]
+         [command (first parts)]
+         [func (assoc command commands)]
+         [result (and func ((cdr func) client (rest parts) clients))])
+    (DEBUG "process" "parts" parts)
+    (DEBUG "process" "command key" command)
+    (DEBUG "process" "command pair" func)
+    (DEBUG "process" "result" result)
+    (unless func (send "I don't understand what you mean\r\n" (client-out client)))
+    (print-prompt client)
+    result))
 
 (define (process-all-clients clients)
-  (define msg-queue (filter-map (λ (client) (do-client-input client clients)) 
-                                clients))
-  (when (cons? msg-queue)
-    (for ([client clients])
-      (do-client-output client msg-queue))))
+  (when (cons? clients)
+    (define msg-queue (filter-map (λ (client)
+                                    (do-client-input client clients)) 
+                                  clients))
+    (when (cons? msg-queue)
+      (for ([client clients])
+        (do-client-output client msg-queue)))))
 
 (define (do-client-input client clients)
-  (cond [(char-ready? (client-in client))
-         (define line (read-line (client-in client)))
-         (display (format "INCOMING! ~a [~a]\n" (client-name client) line))
-         (cond [(eof-object? line)
-                (close-client client)
-                #f]
-               [else 
-                (let ([trimmed-line (substring line 0 (sub1 (string-length line)))])
-                  (process client trimmed-line clients))])]
-        [else #f]))
+  (let ([in (client-in client)]
+        [name (client-name client)])
+    (cond [(char-ready? in)
+           (DEBUG "do-client-input" "reading")
+           (define line (recv in))
+           (DEBUG "do-client-input" line)
+           (DEBUG "do-client-input" (string-append name ": " line))
+           (cond [(eof-object? line)
+                  (close-client client)
+                  #f]
+                 [else 
+                  (process client line clients)])]
+          [else #f])))
 
 (define (do-client-output client msg-queue)
   (when (cons? msg-queue)
@@ -129,11 +151,21 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
         (_msg-send (rest msgs))))
     (print-prompt client)))
 
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; command processors ;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+
 (define (cmd-view client parts clients)
   (define room-id (client-current-room-id client))
-  (define also-here (map client-name (filter (λ (c) (= room-id (client-current-room-id c))) clients)))
+  (define also-here (filter-map (λ (c) (and (= room-id (client-current-room-id c))
+                                            (client-name c)))
+                                clients))
   (send (make-room-desc room-id also-here) (client-out client))
   #f)
+
 
 (define (cmd-move client parts clients)
   (define out (client-out client))
@@ -170,6 +202,9 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
          (send "You have to say something to be heard\r\n" (client-out client))
          #f]))
 
+(define (cmd-shutdown-server client parts clients)
+  (raise (exn "SHUTDOWN")))
+
 (define commands (list (cons "view" cmd-view)
                        (cons "move" cmd-move)
                        (alias-move "north")
@@ -187,4 +222,5 @@ ENTER YOUR NAME, MOTHERFUCKER: " out)
                        (cons "shit" cmd-bad-word)
                        (cons "damn" cmd-bad-word)
                        (cons "dammit" cmd-bad-word)
-                       (cons "damnit" cmd-bad-word)))
+                       (cons "damnit" cmd-bad-word)
+                       (cons "XXX_SHUTDOWN_XXX" cmd-shutdown-server)))

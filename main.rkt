@@ -7,9 +7,9 @@
 (display "Server started. Listening on port 1337\n")
 
 (let listen-more ([clients empty])
-  (process-all-clients clients)
   (listen-more 
-   (remove-old-clients 
-    (accept-new-clients clients listener))))
-
-(tcp-close listener)
+   (with-handlers ([(or/c exn:fail? string?)
+                    (λ (v) 
+                      (DEBUG "main" "exn" v)
+                      (close-all-clients clients))])
+     (server-cycle clients listener))))
