@@ -34,8 +34,11 @@
 
 ;; this will have to do different things depending on the type of terminal that connects
 (define (parse-name input)
+  (DEBUG "parse-name" input)
   (and (not (eof-object? input))
-       input))
+       ;; this regexp is different from the next one because spaces in the first line of text are an issue with PuTTY that I haven't figured out how to solve yet.
+       (let ([nlist (regexp-match #rx"[a-zA-Z0-9~!@#$%^&*()_=+{}|\\:;<,>.?/]+" input)])
+         (and nlist (first nlist)))))
 
 (define (send msg out)
   (unless (port-closed? out)
@@ -47,20 +50,18 @@
     (DEBUG "recv" "reading...")
     (define line (read-line in 'any))
     (DEBUG "recv" line)
-    (define match (regexp-match #rx"[^\r\n]+" line))
+    (define match (regexp-match #rx"[a-zA-Z0-9 ~!@#$%^&*()_=+{}|\\:;<,>.?/]+" line))
     (and match (first match))))
 
 (define (print-prompt client)
   (send (string-append (client-name client) " :> ") (client-out client)))
 
-(define (X str) (substring str 0 (sub1 (string-length str))))
-
 ;; Prompts a newly connected user for their name
 (define (connect-new-client listener)
   (DEBUG "connect-new-client" "accepting new connection")
   (define-values (in out) (tcp-accept listener))
-  (send (X (call-with-input-file* "welcome.txt" port->string)) out)
-  (let* ([input (recv in)]
+  (send (regexp-replace* #rx"\n" (regexp-replace* #rx"\r\n" (call-with-input-file* "welcome.txt" port->string) "\n") "\r\n") out) ;; this little rigamorole is to correct for the bullshit newline situation between OS X and everybody else
+  (let* ([input (read-line in 'any)]
          [name (parse-name input)] ;; try to parse the name, or fail if the user disconnected
          [new-client (and name (client in out name 0))]) ;; create the user with their name, or fail
     (DEBUG "connect-new-client" "input" input)
@@ -160,10 +161,11 @@
 
 (define (cmd-view client parts clients)
   (define room-id (client-current-room-id client))
-  (define also-here (filter-map (λ (c) (and (= room-id (client-current-room-id c))
-                                            (client-name c)))
-                                clients))
-  (send (make-room-desc room-id also-here) (client-out client))
+  (when (cons? clients)
+    (define also-here (filter-map (λ (c) (and (= room-id (client-current-room-id c))
+                                              (client-name c)))
+                                  clients))
+    (send (make-room-desc room-id also-here) (client-out client)))
   #f)
 
 
@@ -203,7 +205,7 @@
          #f]))
 
 (define (cmd-shutdown-server client parts clients)
-  (raise (exn "SHUTDOWN")))
+  (raise "XXX_SHUTDOWN_XXX"))
 
 (define commands (list (cons "view" cmd-view)
                        (cons "move" cmd-move)

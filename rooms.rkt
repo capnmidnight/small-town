@@ -42,12 +42,12 @@
   (when (id . < . (length rooms))
     (define room (list-ref rooms id))
     (when (room? room)
-      (format "ROOM: ~a
-DESC: ~a
+      (format "ROOM: ~a\r
+DESC: ~a\r
 
-PEOPLE HERE:
-~a
-EXITS:
+PEOPLE HERE:\r
+~a\r
+EXITS:\r
 ~a"
               (room-name room)
               (room-descrip room)
