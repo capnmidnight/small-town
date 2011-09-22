@@ -40,7 +40,7 @@ This didn't happen here, it was just an awesome scene, so I thought I would shar
                     (room "Elevator, 1st floor"
 "You are on the ground floor, in the Elevator. You can't go further in to the building, as the door is locked, but you can go outside to the wonderful, magical world of Philadelphia!" '(("up" . 7) ("west" . 9)))
                     (room "Outside Hive76"
-"The sweet smell of paper, tumbleweeding through the street, wafts to your nose. Nope, wait, that's a hobo. Definitely hobo poop" '(("east" . 8)))))
+"The sweet smell of paper, tumbleweeding through the street, wafts to your nose. Nope, wait, that's a hobo. Definitely hobo poop." '(("east" . 8)))))
 
 
 ;; returns an index into the rooms list on success, -1 on failure.
@@ -69,7 +69,7 @@ This didn't happen here, it was just an awesome scene, so I thought I would shar
     (define room (list-ref rooms id))
     (when (room? room)
       (format "
-
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-\r
 ROOM: ~a\r
 
 ~a\r
