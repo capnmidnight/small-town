@@ -155,9 +155,9 @@
 (define (cmd-view client parts clients)
   (define room-id (client-current-room-id client))
   (when (cons? clients)
-    (define also-here (filter-map (λ (c) (and (= room-id (client-current-room-id c))
-                                              (client-name c)))
-                                  clients))
+    (define also-here (for/list ([c clients]
+                                 #:when (= room-id (client-current-room-id c)))
+                        (client-name c)))
     (send (make-room-desc room-id also-here) (client-out client)))
   #f)
 
