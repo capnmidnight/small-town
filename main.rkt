@@ -1,6 +1,6 @@
 #lang racket
 
-(require "clients.rkt")
+(require "server.rkt")
 
 (define listener (tcp-listen 1337))
 (display "Server started. Listening on port 1337\n")
