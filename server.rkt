@@ -115,10 +115,10 @@
          (let* ([room-id (client-current-room-id client)]
                 [dir (string-downcase (first parts))]
                 [new-room-id (get-room-exit-id room-id dir)])
-           (cond [(new-room-id . > . -1)
+           (cond [new-room-id
                   (cmd-view (move-room client new-room-id) parts clients)]
                  [else
-                  (send "You can't go that direction" (client-out client))
+                  (send "You can't go that direction" out)
                   client]))]
         [else
          (send "Please provide 1 and only 1 move direction" out)

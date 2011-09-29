@@ -77,7 +77,7 @@ Nope, wait, that's a hobo. Definitely hobo poop." '(("east" . 8)))))
            (let ([exits (assoc dir (room-exits (list-ref rooms id)))])
              (and (cons? exits)
                   (cdr exits))))
-      -1))  
+      #f))  
 
 (define (make-exits named-ids)
   (apply string-append (map (λ (named-id)
