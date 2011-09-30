@@ -58,6 +58,9 @@
 (define ((cmd-name input) client clients)
   (cond [(equal? "new" input)
          (change-state client 'setup)]
+        [(findf (λ (c) (equal? (client-name c) input)) clients)
+         (send "That name is already taken" (client-out client))
+         client]
         [else
          (define new-user (change-state (change-name client input) 'ready))
          ((cmd-view empty) new-user clients)
@@ -82,13 +85,9 @@
         "XXX_SHUTDOWN_XXX" cmd-shutdown-server))
 
 (define (standard-dispatcher input)
-  (DEBUG "standard-dispatcher" "input" input)
   (let* ([parts (regexp-split #rx" " input)]
          [command (first parts)]
          [proc (hash-ref standard-commands command #f)])
-    (DEBUG "standard-dispatcher" "parts" parts)
-    (DEBUG "standard-dispatcher" "command" command)
-    (DEBUG "standard-dispatcher" "proc" proc)
     (and proc (proc parts))))
 
 (define dispatchers
