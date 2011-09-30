@@ -5,6 +5,7 @@
 (provide
  client
  change-state
+ change-name
  move-room
  client-in
  client-out
@@ -33,6 +34,9 @@
 
 (define (move-room user new-room-id)
   (struct-copy client user [current-room-id new-room-id]))
+
+(define (change-name user new-name)
+ (struct-copy client user [name new-name]))
 
 ;; Forcefully close a client connection
 (define (close-client client)
