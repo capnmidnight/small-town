@@ -12,6 +12,7 @@
  client-name
  client-state
  client-current-room-id
+ client-inventory
  close-client
  close-all-clients)
 
@@ -26,7 +27,8 @@
                 out 
                 name
                 state
-                [current-room-id #:mutable])
+                current-room-id
+                inventory)
   #:transparent)
 
 (define (change-state user new-state)

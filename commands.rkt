@@ -6,24 +6,24 @@
 
 (provide dispatchers)
 
-(define ((cmd-view parts) client clients)
+(define ((cmd-view parts) client clients rooms)
   (define room-id (client-current-room-id client))
   (when (cons? clients)
     (define also-here 
       (for/list ([c clients]
                  #:when (= room-id (client-current-room-id c)))
         (client-name c)))
-    (send (make-room-desc room-id also-here) (client-out client)))
+    (send (make-room-desc rooms room-id also-here) (client-out client)))
   client)
 
-(define ((cmd-move parts) client clients)
+(define ((cmd-move parts) client clients rooms)
   (define out (client-out client))
   (cond [(= 2 (length parts))
          (let* ([room-id (client-current-room-id client)]
                 [dir (string-downcase (second parts))]
-                [new-room-id (get-room-exit-id room-id dir)])
+                [new-room-id (get-room-exit-id rooms room-id dir)])
            (cond [new-room-id
-                  ((cmd-view parts) (move-room client new-room-id) clients)]
+                  ((cmd-view parts) (move-room client new-room-id) clients rooms)]
                  [else
                   (send "You can't go that direction" out)
                   client]))]
@@ -34,13 +34,13 @@
 (define (alias-move dir)
   (λ (parts) (cmd-move (cons dir parts))))
 
-(define ((cmd-quit parts) client clients)
+(define ((cmd-quit parts) client clients rooms)
   (for ([c clients])
     (send (format "~a has quit." (client-name client)) (client-out c)))
   (close-client client)
   #f)
 
-(define ((cmd-say parts) client clients)
+(define ((cmd-say parts) client clients rooms)
   (define msg (rest parts))
   (cond [(cons? msg)
          (for ([c clients])
@@ -52,10 +52,10 @@
          (send "You have to say something to be heard" (client-out client))])
   client)
 
-(define ((cmd-shutdown-server parts) client clients)
+(define ((cmd-shutdown-server parts) client clients rooms)
   (raise "KILL KILL KILL KILL"))
 
-(define ((cmd-name input) client clients)
+(define ((cmd-name input) client clients rooms)
   (cond [(equal? "new" input)
          (change-state client 'setup)]
         [(findf (λ (c) (equal? (client-name c) input)) clients)
@@ -63,7 +63,7 @@
          client]
         [else
          (define new-user (change-state (change-name client input) 'ready))
-         ((cmd-view empty) new-user clients)
+         ((cmd-view empty) new-user clients rooms)
          new-user]))
 
 (define standard-commands 

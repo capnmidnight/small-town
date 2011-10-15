@@ -7,10 +7,13 @@
 
 (provide server-cycle)
 
-(define (server-cycle clients listener)
-  (remove-old-clients 
-   (accept-new-clients 
-    (process-all-clients clients) listener)))
+(define (server-cycle listener clients rooms items mobs)
+  (values 
+   (remove-old-clients (process-all-clients (accept-new-clients listener clients) rooms))
+   rooms
+   items
+   mobs
+   #f))
 
 ;; Prompts a newly connected user for their name
 (define (connect-new-client listener)
@@ -21,11 +24,11 @@
                   (call-with-input-file* "welcome.txt" port->string)
                   "\e[0m")
    out)
-  (client in out "noname" 'connected 0))
+  (client in out "noname" 'connected 0 empty))
 
 ;; Checks to see if there are any new connection attempts and
 ;; creates a new client object for them.
-(define (accept-new-clients clients listener)
+(define (accept-new-clients listener clients)
   (if (tcp-accept-ready? listener)
       (cons (connect-new-client listener) clients)
       clients))
@@ -39,14 +42,14 @@
                            client))
           clients))
 
-(define (process-all-clients clients)
+(define (process-all-clients clients rooms)
   (if (cons? clients)
       (filter-map (λ (client)
-                    (do-client-input client clients)) 
+                    (do-client-input client clients rooms)) 
                   clients)
       clients))
 
-(define (do-client-input client clients)
+(define (do-client-input client clients rooms)
   (let ([in (client-in client)]
         [name (client-name client)])
     (cond [(char-ready? in)
@@ -57,16 +60,16 @@
                   (close-client client)
                   #f]
                  [else 
-                  (process client clients line)])]
+                  (process client clients rooms line)])]
           [else client])))
 
-(define (process client clients line)
+(define (process client clients rooms line)
   (DEBUG "process" "client" client)
   (define dispatcher (hash-ref dispatchers (client-state client)))
   (DEBUG "process" "dispatcher" dispatcher)
   (define func (dispatcher line))
   (DEBUG "process" "func" func)
-  (define result (and func (func client clients)))
+  (define result (and func (func client clients rooms)))
   (DEBUG "process" "result" result)
   (unless func (send "I don't understand what you mean" (client-out client)))
   result)
