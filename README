@@ -34,10 +34,11 @@ GOALS:
 4. Make something about the things I love about Philadelphia
 
 LINKS:
-You can get PLT Racket here:
+You can get the Racket programming language and the DrRacket
+editor here:
 	http://racket-lang.org/
 
-It's very thorough, if somewhat obtuse, documentation starts here:
+Its very thorough, if somewhat obtuse, documentation starts here:
 	http://docs.racket-lang.org/
 
 If you're new to programming, you probably want to start here:
