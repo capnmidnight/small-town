@@ -6,7 +6,7 @@
 (require "mobs.rkt")
 
 (define listener (tcp-listen 1337))
-(display "Server started. Listening on port 1337\n")
+(displayln "Server started. Listening on port 1337")
 
 (let listen-more ([clients empty]
                   [rooms (load-rooms)]
