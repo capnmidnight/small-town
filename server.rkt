@@ -8,12 +8,15 @@
 (provide server-cycle)
 
 (define (server-cycle listener clients rooms items mobs)
-  (values 
-   (remove-old-clients (process-all-clients (accept-new-clients listener clients) rooms))
-   rooms
-   items
-   mobs
-   #f))
+  (let* ([with-new (accept-new-clients listener clients)]
+         [still-connected (process-all-clients with-new rooms)]
+         [cleaned-up (remove-old-clients still-connected)])
+    (values 
+     cleaned-up
+     rooms
+     items
+     mobs
+     #f)))
 
 ;; Prompts a newly connected user for their name
 (define (connect-new-client listener)
