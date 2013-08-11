@@ -9,14 +9,14 @@
 (define DEBUGGING (make-parameter #f))
 (define (DEBUG . str)
   (when (DEBUGGING)
-    (for ([part str]
-          [seperator (reverse (cons "\n" (make-list (sub1 (length str)) ": ")))])
-      (display part)
-      (display seperator))))
+    (displayln (string-join str ": "))))
 
 (define (send msg out)
   (unless (port-closed? out)
-    (display (string-append "\r\n" msg "\r\n :> ") out)
+    (displayln "" out)
+    (displayln msg out)
+    (displayln "" out)
+    (display " :> " out)
     (flush-output out)))
 
 (define (recv in)
