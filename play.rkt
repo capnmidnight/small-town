@@ -2,6 +2,7 @@
 (struct exit (name id key lock-msg) #:transparent)
 (struct item (name descrip) #:transparent)
 (struct room (name descrip items exits) #:transparent)
+(struct body (name location items) #:transparent #:mutable)
 
 (define (item-description itm)
   (format "~n\t~a - ~a" 
@@ -17,10 +18,10 @@
             extra)))
 
 (define (name-list f lst)
-  (let* ([strs (and lst (map f lst))])
+  (let ([strs (and lst (map f lst))])
     (or (and strs (string-join strs)) "\n\tnone")))
 
-(define (format-room rm)
+(define (room-description rm)
   (format "ROOM: ~a
 
 ~a
@@ -39,6 +40,14 @@ EXITS:~a"
       (λ ()
         (eval (read))))))
 
+(define (with-room rm-id thunk)
+  (let* ([filename (string-append (symbol->string rm-id) ".room")]
+         [exists (file-exists? filename)]
+         [rm (and exists (read-room rm-id))])
+    (if rm
+        (thunk rm)
+        (display (format "Room \"~a\" doesn't exist" rm-id)))))
+
 (define (write-room id rm)
   (let ([filename (string-append (symbol->string id) ".room")])
     (with-output-to-file
@@ -48,7 +57,7 @@ EXITS:~a"
       #:exists 'replace)))
 
 (define (show-room id)
-  (display (format-room (read-room id))))
+  (with-room id (λ (rm) (display (room-description rm)))))
 
 (define current-location 'test)
 (define current-items '())
@@ -57,18 +66,19 @@ EXITS:~a"
   (show-room current-location))
 
 (define (move dir)
-  (let* ([rm (read-room current-location)]
-         [exits (room-exits rm)]
-         [xs (and exits (memf (λ (y) (eq? (exit-name y) dir)) exits))]
-         [x (and xs (car xs))]
-         [exists (and x (file-exists? (format "~a.room" (exit-id x))))]
-         [key (and exists (exit-key x))]
-         [good (or (not key) (and key (member key current-items)))])
-    (if good
-        (begin (set! current-location (exit-id x)) (look))
-        (if key
-            (display (exit-lock-msg x))
-            (display "You can't go that way")))))
+  (with-room current-location
+             (λ (rm)
+               (let* ([exits (room-exits rm)]
+                      [xs (and exits (memf (λ (y) (eq? (exit-name y) dir)) exits))]
+                      [x (and xs (car xs))]
+                      [exists (and x (file-exists? (format "~a.room" (exit-id x))))]
+                      [key (and exists (exit-key x))]
+                      [good (or (not key) (and key (member key current-items)))])
+                 (if good
+                     (begin (set! current-location (exit-id x)) (look))
+                     (if key
+                         (display (exit-lock-msg x))
+                         (display "You can't go that way")))))))
 
 (define (north) (move 'north))
 (define (east) (move 'east))
@@ -76,45 +86,48 @@ EXITS:~a"
 (define (west) (move 'west))
 
 (define (take itm)
-  (let* ([rm (read-room current-location)]
-         [items (room-items rm)]
-         [is (and items (memf (λ (y) (eq? (item-name y) itm)) items))]
-         [i (and is (car is))])
-    (if i 
-        (set! current-items (cons itm current-items))
-        (display "there is nothing here like that"))))
+  (with-room current-location
+             (λ (rm)
+               (let* ([items (room-items rm)]
+                      [is (and items (memf (λ (y) (eq? (item-name y) itm)) items))]
+                      [i (and is (car is))])
+                 (if i 
+                     (begin (set! current-items (cons itm current-items))
+                            (display (format "You picked up the ~a" itm)))
+                     (display "there is nothing here like that"))))))
 
-(write-room 'test (room "a test room"
-                        "There is not a lot to see here.
+
+(define (create-test-rooms)
+  (write-room 'test (room "a test room"
+                          "There is not a lot to see here.
 This is just a test room.
 It's meant for testing.
 Nothing more.
 Goodbye."
-                        (list (item 'sword "a rusty sword")
-                              (item 'bird "definitely a bird")
-                              (item 'rock "definitely not a bird")
-                              (item 'garbage "some junk"))
-                        (list (exit 'north 'test2 #f #f)
-                              (exit 'east 'test3 #f #f)
-                              (exit 'south 'test4 'bird "don't forget the bird"))))
-
-
-(write-room 'test2 (room "another test room"
-                         "Keep moving along"
-                         #f
-                         (list (exit 'south 'test #f #f))))
-
-(write-room 'test3 (room "a loop room"
-                         "it's probably going to work"
-                         #f
-                         (list (exit 'south 'test5 #f #f))))
-
-(write-room 'test4 (room "locked room"
-                         "This room was locked with the bird"
-                         #f
-                         (list (exit 'north 'test #f #f))))
-
-(write-room 'test5 (room "a loop room, 2"
-                         "it's probably going to work"
-                         #f
-                         (list (exit 'west 'test4 #f #f))))
+                          (list (item 'sword "a rusty sword")
+                                (item 'bird "definitely a bird")
+                                (item 'rock "definitely not a bird")
+                                (item 'garbage "some junk"))
+                          (list (exit 'north 'test2 #f #f)
+                                (exit 'east 'test3 #f #f)
+                                (exit 'south 'test4 'bird "don't forget the bird"))))
+  
+  (write-room 'test2 (room "another test room"
+                           "Keep moving along"
+                           #f
+                           (list (exit 'south 'test #f #f))))
+  
+  (write-room 'test3 (room "a loop room"
+                           "it's probably going to work"
+                           #f
+                           (list (exit 'south 'test5 #f #f))))
+  
+  (write-room 'test4 (room "locked room"
+                           "This room was locked with the bird"
+                           #f
+                           (list (exit 'north 'test #f #f))))
+  
+  (write-room 'test5 (room "a loop room, 2"
+                           "it's probably going to work"
+                           #f
+                           (list (exit 'west 'test4 #f #f)))))
