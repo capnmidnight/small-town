@@ -1,0 +1,1 @@
+(room "a test room" "There is not a lot to see here.\nThis is just a test room.\nIt's meant for testing.\nNothing more.\nGoodbye." (list (item 'sword "a rusty sword") (item 'bird "definitely a bird") (item 'rock "definitely not a bird") (item 'garbage "some junk")) (list (exit 'north 'test2 #f #f) (exit 'east 'test3 #f #f) (exit 'south 'test4 'bird "don't forget the bird")))

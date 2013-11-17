@@ -1,0 +1,1 @@
+(room "a loop room" "it's probably going to work" #f (list (exit 'south 'test5 #f #f)))

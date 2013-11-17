@@ -1,0 +1,1 @@
+(room "another test room" "Keep moving along" #f (list (exit 'south 'test #f #f)))
