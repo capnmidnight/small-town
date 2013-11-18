@@ -25,12 +25,16 @@
 
 ;; CORE ===========================================================================
 
+(define (where hsh getter comparer val)
+  (and hsh 
+       (make-hash 
+        (filter 
+         (compose (curryr comparer val)
+                  (compose getter cdr))
+         (hash->list hsh)))))
+
 (define (get-people-in id)
-  (make-hash (filter 
-              (compose (curry equal? id)
-                       body-room-id
-                       cdr) 
-              (hash->list npcs))))
+  (where npcs body-room-id equal? id))
 
 (define (room-item-description k v)
   (let* ([i (hash-ref item-catalogue k #f)]
@@ -72,9 +76,7 @@ EXITS:
 
 (define (prepare-room)
   (let* ([rm (deserialize (read))]
-         [itms (room-items rm)]
-         [non-zero (and itms (filter (compose positive? cdr) (hash->list itms)))]
-         [mitms (and non-zero (make-hash non-zero))])
+         [mitms (where (room-items rm) identity > 0)])
     (set-room-items! rm (or mitms (make-hash)))
     rm))
 
