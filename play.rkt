@@ -1,14 +1,22 @@
 #lang racket
-(struct exit (name room-id key lock-msg) #:transparent)
-(struct item (name descrip count) #:transparent #:mutable)
-(struct room (name descrip items exits) #:transparent #:mutable)
+(struct exit (room-id key lock-msg) #:transparent)
+(struct item (descrip) #:transparent)
+(struct room (descrip items exits) #:transparent #:mutable)
 (struct body (name location items pc?) #:transparent #:mutable)
 
-(define (item-description itm)
-  (format "~n\t~a ~a - ~a"
-          (item-count itm)
-          (item-name itm) 
-          (item-descrip itm)))
+(define item-catalogue
+  (hash 'sword (item "a rusty sword")
+        'bird (item "definitely a bird")
+        'rock (item "definitely not a bird")
+        'garbage (item "some junk")))
+
+(define (item-description k v)
+  (let ([i (hash-ref item-catalogue k #f)])
+    (format "~n\t~a ~a - ~a"
+            v
+            k
+            (or (and i (item-descrip i))
+                "(UNKNOWN)"))))
 
 (define (room-filename x)
   (format "~a.room" (exit-room-id x)))
@@ -16,43 +24,50 @@
 (define (room-full-items rm)
   (let ([items (room-items rm)])
     (and items 
-         (filter (compose positive? item-count) 
-                 items))))
+         (make-hash 
+          (filter identity 
+                  (hash-map items 
+                            (λ (k v) 
+                              (if (positive? v)
+                                  (cons k v)
+                                  #f))))))))
 
-(define (exit-description x)
-  (let* ([filename (room-filename x)]
-         [exists (file-exists? filename)]
+(define (exit-description k v)
+  (let* ([filename (and v (room-filename v))]
+         [exists (and filename (file-exists? filename))]
          [extra (if exists "" " (UNDER CONSTRUCTION)")])
     (format "~n\t~a~a" 
-            (exit-name x) 
+            k
             extra)))
 
 (define (list-descriptions f lst)
-  (let ([strs (and lst (map f lst))])
+  (let ([strs (and lst (hash-map lst f))])
     (or (and strs (string-join strs)) "\n\tnone")))
 
 (define (room-description rm)
   (format "ROOM: ~a
 
-~a
-
 ITEMS:~a
 
 EXITS:~a" 
-          (room-name rm) 
           (room-descrip rm)
           (list-descriptions item-description (room-full-items rm))
           (list-descriptions exit-description (room-exits rm))))
 
 (define current-rooms (make-hash))
 
+(define (make-room)
+  (let* ([rm (eval (read))]
+         [itms (room-items rm)]
+         [mitms (and itms (make-hash (hash->list itms)))])
+    (set-room-items! rm mitms)
+    rm))
+
 (define (read-room id)
   (hash-ref! current-rooms id
              (λ ()
                (let ([filename (string-append (symbol->string id) ".room")])
-                 (with-input-from-file filename
-                   (λ ()
-                     (eval (read))))))))
+                 (with-input-from-file filename make-room)))))
 
 
 
@@ -91,7 +106,7 @@ EXITS:~a"
    current-location
    (λ (rm)
      (let* ([exits (room-exits rm)]
-            [x (and exits (findf (λ (y) (equal? (exit-name y) dir)) exits))]
+            [x (and exits (hash-ref exits dir #f))]
             [exists (and x (file-exists? (room-filename x)))]
             [key (and exists (exit-key x))]
             [good (and x (or (not key) (and key (member key current-items))))])
@@ -113,13 +128,13 @@ EXITS:~a"
    current-location
    (λ (rm)
      (let* ([items (room-full-items rm)]
-            [i (and items (findf (λ (y) (eq? (item-name y) itm)) items))])
+            [i (and items (hash-ref items itm #f))])
        (if i 
            (begin
-             (set-item-count! i (sub1 (item-count i)))
+             (hash-update! (room-items rm) itm sub1)
              (set! current-items (cons itm current-items))
              (displayln (format "You picked up the ~a" itm)))
-           (displayln "there is nothing here like that"))))))
+           (displayln (format "there is no \"~a\" here" itm)))))))
 
 (define (do-command str)
   (let* ([parts (map string->symbol (string-split str " "))]
@@ -137,43 +152,66 @@ EXITS:~a"
         (displayln (format "I do not understand \"~a\"." cmd)))))
 
 (define (create-test-rooms)
-  (write-room 'test (room "a test room"
-                          "There is not a lot to see here.
+  (write-room 'test (room "a test room
+
+There is not a lot to see here.
 This is just a test room.
 It's meant for testing.
 Nothing more.
 Goodbye."
-                          (list (item 'sword "a rusty sword" 1)
-                                (item 'bird "definitely a bird" 1)
-                                (item 'rock "definitely not a bird" 5)
-                                (item 'garbage "some junk" 0))
-                          (list (exit 'north 'test2 #f #f)
-                                (exit 'east 'test3 #f #f)
-                                (exit 'south 'test4 'bird "don't forget the bird"))))
+                          (hash 'sword 1
+                                'bird 1
+                                'rock 5
+                                'garbage 0
+                                'orb 1
+                                'hidden 0)
+                          (hash 'north (exit 'test2 #f #f)
+                                'east (exit 'test3 #f #f)
+                                'south (exit 'test4 'bird "don't forget the bird")
+                                'west #f)))
   
-  (write-room 'test2 (room "another test room"
-                           "Keep moving along"
+  (write-room 'test2 (room "another test room
+
+Keep moving along"
                            #f
-                           (list (exit 'south 'test #f #f))))
+                           (hash 'south (exit 'test #f #f))))
   
-  (write-room 'test3 (room "a loop room"
-                           "it's probably going to work"
+  (write-room 'test3 (room "a loop room
+
+it's probably going to work"
                            #f
-                           (list (exit 'south 'test5 #f #f))))
+                           (hash 'south (exit 'test5 #f #f))))
   
-  (write-room 'test4 (room "locked room"
-                           "This room was locked with the bird"
+  (write-room 'test4 (room "locked room
+
+This room was locked with the bird"
                            #f
-                           (list (exit 'north 'test #f #f))))
+                           (hash 'north (exit 'test #f #f))))
   
-  (write-room 'test5 (room "a loop room, 2"
-                           "it's probably going to work"
+  (write-room 'test5 (room "a loop room, 2
+
+it's probably going to work"
                            #f
-                           (list (exit 'west 'test4 #f #f)))))
+                           (hash 'west (exit 'test4 #f #f)))))
 
 
 (define (run)
   (set! done #f)
+  (look)
   (let loop ([str (read-line)])
     (do-command str)
     (unless done (loop (read-line)))))
+
+(define (test)
+  (look)
+  (take 'something)
+  (take 'garbage)
+  (take 'orb)
+  (take 'hidden)
+  (north)
+  (south)
+  (west)
+  (south)
+  (take 'bird)
+  (look)
+  (south))

@@ -1,1 +1,1 @@
-(room "locked room" "This room was locked with the bird" #f (list (exit 'north 'test #f #f)))
+(room "locked room\n\nThis room was locked with the bird" #f (hash 'north (exit 'test #f #f)))
