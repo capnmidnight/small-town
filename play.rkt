@@ -1,21 +1,44 @@
 #lang racket
-(struct exit (room-id key lock-msg) #:transparent)
-(struct item (descrip) #:transparent)
-(struct room (descrip items exits) #:transparent #:mutable)
-(struct body (name location items pc?) #:transparent #:mutable)
 
+(require racket/serialize)
+
+;; SCHEMA =========================================================================
+(serializable-struct exit (room-id key lock-msg))
+(serializable-struct item (descrip))
+(serializable-struct room (descrip items exits) #:mutable)
+(struct body (room-id items) #:transparent #:mutable)
+
+;; STATE ==========================================================================
+(define current-location 'test)
+(define current-items (make-hash))
+(define current-rooms (make-hash))
+(define current-cmds '(quit look take drop north south east west))
 (define item-catalogue
   (hash 'sword (item "a rusty sword")
         'bird (item "definitely a bird")
         'rock (item "definitely not a bird")
         'garbage (item "some junk")))
+(define npcs (hash 'dave (body 'test (make-hash))
+                   'mark (body 'test2 (make-hash))
+                   'carl (body 'test3 (make-hash))))
+(define done #f)
+
+;; CORE ===========================================================================
+
+(define (get-people-in id)
+  (make-hash (filter 
+              (compose (curry equal? id)
+                       body-room-id
+                       cdr) 
+              (hash->list npcs))))
 
 (define (room-item-description k v)
   (let* ([i (hash-ref item-catalogue k #f)]
-         [desc (or 
-                (and i (item-descrip i))
-                "(UNKNOWN)")])
-    (format "~n\t~a ~a - ~a" v k desc)))
+         [desc (and i (item-descrip i))])
+    (format "~a ~a - ~a" v k (or desc "(UNKNOWN)"))))
+
+(define (room-people-description k v)
+  (symbol->string k))
 
 (define (room-filename x)
   (format "~a.room" (exit-room-id x)))
@@ -24,26 +47,31 @@
   (let* ([filename (and v (room-filename v))]
          [exists (and filename (file-exists? filename))]
          [extra (if exists "" " (UNDER CONSTRUCTION)")])
-    (format "~n\t~a~a" 
-            k
-            extra)))
+    (format "~a~a" k extra)))
 
-(define (list-descriptions f lst)
-  (let ([strs (and lst (hash-map lst f))])
-    (or (and strs (string-join strs)) "\n\tnone")))
+(define (format-hash formatter objs)
+  (let ([strs (and objs (< 0 (hash-count objs)) (hash-map objs formatter))])
+    (or (and strs (string-join strs "\n\t")) "\n\tnone")))
 
 (define (room-description rm)
   (format "ROOM: ~a
 
-ITEMS:~a
+ITEMS:
+\t~a
 
-EXITS:~a" 
+PEOPLE:
+\t~a
+
+EXITS:
+\t~a
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-" 
           (room-descrip rm)
-          (list-descriptions room-item-description (room-items rm))
-          (list-descriptions exit-description (room-exits rm))))
+          (format-hash room-item-description (room-items rm))
+          (format-hash room-people-description (get-people-in current-location))
+          (format-hash exit-description (room-exits rm))))
 
 (define (prepare-room)
-  (let* ([rm (eval (read))]
+  (let* ([rm (deserialize (read))]
          [itms (room-items rm)]
          [non-zero (and itms (filter (compose positive? cdr) (hash->list itms)))]
          [mitms (and non-zero (make-hash non-zero))])
@@ -69,16 +97,12 @@ EXITS:~a"
   (let ([filename (string-append (symbol->string id) ".room")])
     (with-output-to-file
         filename
-      (curry print rm)
+      (curry write (serialize rm))
       #:mode 'text
       #:exists 'replace)))
 
-(define current-location 'test)
-(define current-items (make-hash))
-(define current-rooms (make-hash))
-(define current-cmds '(quit look take drop north south east west))
-(define done #f)
 
+;; COMMANDS =======================================================================
 (define (quit rm)
   (set! done #t))
 
@@ -120,13 +144,15 @@ EXITS:~a"
              "here"))
 
 (define (drop rm itm)
-   (move-item itm
-              current-items
-              (room-items rm)
-              "dropped"
-              "in your inventory"))
+  (move-item itm
+             current-items
+             (room-items rm)
+             "dropped"
+             "in your inventory"))
 
+;; INPUT AND TOKENIZING ===========================================================
 (define (do-command rm str)
+  (displayln str)
   (when (positive? (string-length str))
     (let* ([tokens (map string->symbol (string-split str " "))]
            [params (rest tokens)]
@@ -142,15 +168,19 @@ EXITS:~a"
                   (displayln "too many parameters")))
           (displayln (format "I do not understand \"~a\"." cmd))))))
 
+(define (prompt)
+  (display ":> ")
+  (read-line))
 
 (define (run)
   (set! done #f)
   (with-room current-location look)
-  (let loop ([str (read-line)])
+  (let loop ([str (prompt)])
     (with-room current-location 
                (curryr do-command (string-downcase str)))
-    (unless done (loop (read-line)))))
+    (unless done (loop (prompt)))))
 
+;; TESTING ========================================================================
 (define (create-test-rooms)
   (write-room 'test (room "a test room
 
@@ -195,6 +225,7 @@ it's probably going to work"
                            (hash 'west (exit 'test4 #f #f)))))
 
 (define (test)
+  (create-test-rooms)
   (let-values ([(in out) (make-pipe)])
     (parameterize ([current-input-port in])
       (displayln "
@@ -203,6 +234,12 @@ take something
 take garbage
 take orb
 take hidden
+take rock
+take rock
+take rock
+take rock
+take rock
+take sword
 look
 north
 look
@@ -218,5 +255,10 @@ south
 look
 drop orb
 look
+drop bird
+look
+drop bird
+north
+south
 quit" out)
       (run))))

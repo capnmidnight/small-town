@@ -1,1 +1,1 @@
-(room "a loop room, 2\n\nit's probably going to work" #f (hash 'west (exit 'test4 #f #f)))
+((3) 2 ((#"D:\\Sean\\Projects\\philly_mud\\play.rkt" . deserialize-info:room-v0) (#"D:\\Sean\\Projects\\philly_mud\\play.rkt" . deserialize-info:exit-v0)) 0 () () (0 "a loop room, 2\n\nit's probably going to work" #f (h - (equal) (west 1 test4 #f #f))))

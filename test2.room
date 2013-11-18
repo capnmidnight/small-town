@@ -1,1 +1,1 @@
-(room "another test room\n\nKeep moving along" #f (hash 'south (exit 'test #f #f)))
+((3) 2 ((#"D:\\Sean\\Projects\\philly_mud\\play.rkt" . deserialize-info:room-v0) (#"D:\\Sean\\Projects\\philly_mud\\play.rkt" . deserialize-info:exit-v0)) 0 () () (0 "another test room\n\nKeep moving along" #f (h - (equal) (south 1 test #f #f))))
