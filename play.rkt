@@ -87,62 +87,53 @@ EXITS:~a"
       #:mode 'text
       #:exists 'replace)))
 
-(define (show-room id)
-  (with-room id (λ (rm) (displayln (room-description rm)))))
-
 (define current-location 'test)
 (define current-items '())
 (define current-cmds '(quit look take north south east west))
 (define done #f)
 
-(define (quit)
+(define (quit rm)
   (set! done #t))
 
-(define (look)
-  (show-room current-location))
+(define (look rm)
+  (displayln (room-description rm)))
 
-(define (move dir)
-  (with-room 
-   current-location
-   (λ (rm)
-     (let* ([exits (room-exits rm)]
-            [x (and exits (hash-ref exits dir #f))]
-            [exists (and x (file-exists? (room-filename x)))]
-            [key (and exists (exit-key x))]
-            [good (and x (or (not key) (and key (member key current-items))))])
-       (if good
-           (begin 
-             (set! current-location (exit-room-id x)) 
-             (look))
-           (if key
-               (displayln (exit-lock-msg x))
-               (displayln "You can't go that way")))))))
+(define (move rm dir)
+  (let* ([exits (room-exits rm)]
+         [x (and exits (hash-ref exits dir #f))]
+         [exists (and x (file-exists? (room-filename x)))]
+         [key (and exists (exit-key x))]
+         [good (and x (or (not key) (and key (member key current-items))))])
+    (if good
+        (begin 
+          (set! current-location (exit-room-id x)) 
+          (look))
+        (if key
+            (displayln (exit-lock-msg x))
+            (displayln "You can't go that way")))))
 
-(define (north) (move 'north))
-(define (east) (move 'east))
-(define (south) (move 'south))
-(define (west) (move 'west))
+(define (north rm) (move rm 'north))
+(define (east rm) (move rm 'east))
+(define (south rm) (move rm 'south))
+(define (west rm) (move rm 'west))
 
-(define (take itm)
-  (with-room 
-   current-location
-   (λ (rm)
-     (let* ([items (room-full-items rm)]
-            [i (and items (hash-ref items itm #f))])
-       (if i 
-           (begin
-             (hash-update! (room-items rm) itm sub1)
-             (set! current-items (cons itm current-items))
-             (displayln (format "You picked up the ~a" itm)))
-           (displayln (format "there is no \"~a\" here" itm)))))))
+(define (take rm itm)
+  (let* ([items (room-full-items rm)]
+         [i (and items (hash-ref items itm #f))])
+    (if i 
+        (begin
+          (hash-update! (room-items rm) itm sub1)
+          (set! current-items (cons itm current-items))
+          (displayln (format "You picked up the ~a" itm)))
+        (displayln (format "there is no \"~a\" here" itm)))))
 
-(define (do-command str)
+(define (do-command rm str)
   (let* ([parts (map string->symbol (string-split str " "))]
          [cmd (first parts)]
          [pms (rest parts)]
          [exists (member cmd current-cmds)]
          [proc (and exists (eval cmd))]
-         [arg-count (or (and proc (procedure-arity proc)) 0)])
+         [arg-count (or (and proc (sub1 (procedure-arity proc))) 0)])
     (if exists
         (if (= (length pms) arg-count)
             (apply proc pms)
@@ -197,21 +188,25 @@ it's probably going to work"
 
 (define (run)
   (set! done #f)
-  (look)
+  (with-room current-location look)
   (let loop ([str (read-line)])
-    (do-command str)
+    (with-room current-location 
+               (curry do-command (string-downcase str)))
     (unless done (loop (read-line)))))
 
 (define (test)
-  (look)
-  (take 'something)
-  (take 'garbage)
-  (take 'orb)
-  (take 'hidden)
-  (north)
-  (south)
-  (west)
-  (south)
-  (take 'bird)
-  (look)
-  (south))
+  (with-room 
+   current-location
+   (λ (rm)
+     (look rm)
+     (take rm 'something)
+     (take rm 'garbage)
+     (take rm 'orb)
+     (take rm 'hidden)
+     (north rm)
+     (south rm)
+     (west rm)
+     (south rm)
+     (take rm 'bird)
+     (look rm)
+     (south rm))))
