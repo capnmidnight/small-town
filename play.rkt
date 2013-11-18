@@ -12,7 +12,7 @@
 (define current-location 'test)
 (define current-items (make-hash))
 (define current-rooms (make-hash))
-(define current-cmds '(quit look take drop north south east west))
+(define current-cmds '(quit look take drop give north south east west))
 (define item-catalogue
   (hash 'sword (item "a rusty sword")
         'bird (item "definitely a bird")
@@ -151,6 +151,17 @@ EXITS:
              (room-items rm)
              "dropped"
              "in your inventory"))
+
+(define (give rm person itm)
+  (let* ([people-here (get-people-in current-location)]
+         [target (hash-ref people-here person #f)])
+    (if target
+        (move-item itm
+                   current-items
+                   (body-items target)
+                   (format "gave to ~a" person)
+                   "in your inventory")
+        (displayln (format "~a is not here" person)))))
 
 ;; INPUT AND TOKENIZING ===========================================================
 (define (do-command rm str)
