@@ -6,13 +6,13 @@
 (serializable-struct exit (room-id key lock-msg))
 (serializable-struct item (descrip))
 (serializable-struct room (descrip items exits) #:mutable)
-(struct body (room-id items) #:transparent #:mutable)
+(serializable-struct body (room-id items) #:transparent #:mutable)
 
 ;; STATE ==========================================================================
 (define current-location 'test)
 (define current-items (make-hash))
 (define current-rooms (make-hash))
-(define current-cmds '(quit look take drop give north south east west))
+(define current-cmds '(quit help look take drop give north south east west))
 (define item-catalogue
   (hash 'sword (item "a rusty sword")
         'bird (item "definitely a bird")
@@ -103,10 +103,25 @@ EXITS:
       #:mode 'text
       #:exists 'replace)))
 
+(define (help-description sym)
+  (let* ([exists (findf (curry equal? sym) current-cmds)]
+         [cmd (and exists (eval sym))]
+         [arity (and cmd (sub1 (procedure-arity cmd)))]
+         [params (and arity (sequence-map (curry format "p~a") (in-range 0 arity)))])
+    (string-join (cons (symbol->string sym) 
+                       (if params
+                           (sequence->list params)
+                           " - (UNKOWN)")))))
+
 
 ;; COMMANDS =======================================================================
+
 (define (quit rm)
   (set! done #t))
+
+(define (help rm)
+  (displayln (format "Available commands:
+\t~a" (string-join (map help-description current-cmds) "\n\t"))))
 
 (define (look rm)
   (displayln (room-description rm)))
@@ -253,6 +268,10 @@ take rock
 take rock
 take rock
 take sword
+give tom sword
+give dave sword
+give dave something
+give tom something
 look
 north
 look
