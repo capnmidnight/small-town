@@ -5,10 +5,10 @@
 ;; MODEL ==========================================================================
 
 (serializable-struct exit (room-id key lock-msg))
-(serializable-struct item (descrip equip-type))
+(serializable-struct item (descrip equip-type strength))
 (serializable-struct recp (ingredients tools results))
 (serializable-struct room (descrip items exits) #:mutable)
-(serializable-struct body (room-id items equip pc?) #:transparent #:mutable)
+(serializable-struct body (room-id items equip pc? hp) #:transparent #:mutable)
 
 ;; CORE ===========================================================================
 
@@ -43,7 +43,10 @@
     (format "(~a) ~a - ~a" k v (or desc "(UNKNOWN)"))))
 
 (define (room-people-description k v)
-  (symbol->string k))
+  (let* ([bdy (and k (hash-ref bodies k #f))]
+         [hp (and bdy (body-hp bdy))]
+         [extra (and hp (if (> hp 0) "" " (KNOCKED OUT)"))])
+  (format "~a~a" k extra)))
 
 (define (room-filename id)
   (format "~a.room" id))
@@ -148,7 +151,9 @@ EXITS:
          [items (and bdy (body-items bdy))]
          [good (and items x (or (not key) (and key (hash-ref items key #f))))])
     (if good
+        (begin
         (set-body-room-id! bdy (exit-room-id x)) 
+        (look bdy-id))
         (if key
             (displayln (exit-lock-msg x))
             (displayln "You can't go that way")))))
@@ -272,6 +277,22 @@ EXITS:
           (displayln (format "You removed the ~a from the ~a slot." item-id itm-qpt)))
         (displayln (format "You don't have the ~a equipped." item-id)))))
 
+(define (attack bdy-id target-id)
+  (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
+         [eqp (and bdy (body-equip bdy))]
+         [wpn-id (and eqp (hash-ref eqp 'tool #f))]
+         [wpn (and wpn-id (hash-ref item-catalogue wpn-id #f))]
+         [wpn-desc (or (and wpn (format "the ~a" wpn-id)) "nothing")]
+         [atk (or (and wpn (item-strength wpn)) 1)]
+         [loc (and bdy (body-room-id bdy))]
+         [people (and loc (get-people-in loc))]
+         [trg (and target-id (hash-ref people target-id #f))])
+    (if trg
+        (begin 
+          (set-body-hp! trg (- (body-hp trg) atk))
+          (displayln (format "You attack ~a with ~a for ~a dmg." target-id wpn-desc atk)))
+        (displayln (format "There is no ~a to attack." target-id)))))
+
 ;; INPUT AND TOKENIZING ===========================================================
 
 (define (do-command bdy-id str)
@@ -291,8 +312,8 @@ EXITS:
                   (displayln "too many parameters")))
           (displayln (format "I do not understand \"~a\"." cmd))))))
 
-(define (prompt)
-  (display ":> ")
+(define (prompt bdy)
+  (display (format "~a :> " (body-hp bdy)))
   (read-line))
 
 (define (run)
@@ -301,108 +322,110 @@ EXITS:
     (for ([kv (hash->list bodies)]
           #:break done)
       (let ([bdy-id (car kv)]
-            [c (cdr kv)])
+            [bdy (cdr kv)])
         (displayln bdy-id)
-        (do-command bdy-id 
-                    (if (body-pc? c) 
-                        (string-downcase (prompt))
-                        (random-command)))))
-    (unless done (loop))))
-
-;; STATE ==========================================================================
-
-(define current-rooms (make-hash))
-(define current-cmds (sort '(quit 
-                             help
-                             look 
-                             take drop give inv
-                             make 
-                             equip remove 
-                             north south east west) symbol<?))
-(define equip-types '(none
-                      head
-                      eyes
-                      shoulders 
-                      torso
-                      pants belt shirt
-                      biceps forearms hands
-                      thighs calves feet
-                      tool
-                      necklace 
-                      left-bracelet right-bracelet))
-(define item-catalogue
-  (hash 'sword (item "a rusty sword" 'tool)
-        'bird (item "definitely a bird" 'none)
-        'dead-bird (item "maybe he's pining for the fjords?" 'none)
-        'feather (item "bird-hair" 'none)
-        'rock (item "definitely not a bird" 'none)
-        'garbage (item "some junk" 'none)
-        'shovel (item "used to butter bread" 'tool)))
-(define recipes
-  (hash 'dead-bird (recp (hash 'bird 1)
-                         (hash 'sword 1)
-                         (hash 'dead-bird 1 'feather 5))))
-(define bodies (hash 'player (body 'test (make-hash) (make-hash '((tool . shovel))) #t)
-                     ; 'dave (body 'test (make-hash) #f)
-                     ; 'mark (body 'test2 (make-hash) #f)
-                     ; 'carl (body 'test3 (make-hash) #f)
-                     ))
-(define done #f)
-
-(define (random-command)
-  (define cmds '("north" "south" "east" "west" "take rock" "drop rock"))
-  (list-ref cmds (random (length cmds))))
-
-;; TESTING ========================================================================
-
-(define (create-test-rooms)
-  (write-room 'test (room "a test room
+        (if (> (body-hp bdy) 0)
+            (do-command bdy-id 
+                        (if (body-pc? bdy) 
+                            (string-downcase (prompt bdy))
+                            (random-command)))
+            (displayln "Knocked out!"))))
+        (unless done (loop))))
+    
+    ;; STATE ==========================================================================
+    
+    (define current-rooms (make-hash))
+    (define current-cmds (sort '(quit 
+                                 help
+                                 look 
+                                 take drop give inv
+                                 make 
+                                 equip remove 
+                                 attack
+                                 north south east west) symbol<?))
+    (define equip-types '(none
+                          head
+                          eyes
+                          shoulders 
+                          torso
+                          pants belt shirt
+                          biceps forearms hands
+                          thighs calves feet
+                          tool
+                          necklace 
+                          left-bracelet right-bracelet))
+    (define item-catalogue
+      (hash 'sword (item "a rusty sword" 'tool 10)
+            'bird (item "definitely a bird" 'none 0)
+            'dead-bird (item "maybe he's pining for the fjords?" 'none 0)
+            'feather (item "bird-hair" 'none 0)
+            'rock (item "definitely not a bird" 'none 2)
+            'garbage (item "some junk" 'none 0)
+            'shovel (item "used to butter bread" 'tool 5)))
+    (define recipes
+      (hash 'dead-bird (recp (hash 'bird 1)
+                             (hash 'sword 1)
+                             (hash 'dead-bird 1 'feather 5))))
+    (define bodies (hash 'player (body 'test (make-hash) (make-hash) #t 10)
+                         'dave (body 'test (make-hash) (make-hash) #f 10)
+                         'mark (body 'test2 (make-hash) (make-hash) #f 10)
+                         'carl (body 'test3 (make-hash) (make-hash) #f 10)))
+    (define done #f)
+    
+    (define (random-command)
+      (define cmds '("north" "south" "east" "west" "attack player"))
+      (list-ref cmds (random (length cmds))))
+    
+    ;; TESTING ========================================================================
+    
+    (define (create-test-rooms)
+      (write-room 'test (room "a test room
 
 There is not a lot to see here.
 This is just a test room.
 It's meant for testing.
 Nothing more.
 Goodbye."
-                          (hash 'sword 1
-                                'bird 1
-                                'rock 5
-                                'garbage 0
-                                'orb 1
-                                'hidden 0)
-                          (hash 'north (exit 'test2 #f #f)
-                                'east (exit 'test3 #f #f)
-                                'south (exit 'test4 'feather "you need a feather")
-                                'west #f)))
-  
-  (write-room 'test2 (room "another test room
+                              (hash 'sword 1
+                                    'bird 1
+                                    'rock 5
+                                    'garbage 0
+                                    'orb 1
+                                    'hidden 0)
+                              (hash 'north (exit 'test2 #f #f)
+                                    'east (exit 'test3 #f #f)
+                                    'south (exit 'test4 'feather "you need a feather")
+                                    'west #f)))
+      
+      (write-room 'test2 (room "another test room
 
 Keep moving along"
-                           #f
-                           (hash 'south (exit 'test #f #f))))
-  
-  (write-room 'test3 (room "a loop room
+                               #f
+                               (hash 'south (exit 'test #f #f))))
+      
+      (write-room 'test3 (room "a loop room
 
 it's probably going to work"
-                           #f
-                           (hash 'south (exit 'test5 #f #f))))
-  
-  (write-room 'test4 (room "locked room
+                               #f
+                               (hash 'south (exit 'test5 #f #f))))
+      
+      (write-room 'test4 (room "locked room
 
 This room was locked with the bird"
-                           #f
-                           (hash 'north (exit 'test #f #f))))
-  
-  (write-room 'test5 (room "a loop room, 2
+                               #f
+                               (hash 'north (exit 'test #f #f))))
+      
+      (write-room 'test5 (room "a loop room, 2
 
 it's probably going to work"
-                           #f
-                           (hash 'west (exit 'test4 #f #f)))))
-
-(define (test)
-  (create-test-rooms)
-  (let-values ([(in out) (make-pipe)])
-    (parameterize ([current-input-port in])
-      (displayln "
+                               #f
+                               (hash 'west (exit 'test4 #f #f)))))
+    
+    (define (test)
+      (create-test-rooms)
+      (let-values ([(in out) (make-pipe)])
+        (parameterize ([current-input-port in])
+          (displayln "
 look
 take something
 take garbage
@@ -442,13 +465,13 @@ look
 north
 south
 quit" out)
-      (run))))
-
-(define (test-equip)
-  (take 'player 'sword)
-  (equip 'player 'sword)
-  (inv 'player)
-  (equip 'player 'shovel)
-  (inv 'player)
-  (remove 'player 'shovel)
-  (inv 'player))
+          (run))))
+    
+    (define (test-equip)
+      (take 'player 'sword)
+      (equip 'player 'sword)
+      (inv 'player)
+      (equip 'player 'shovel)
+      (inv 'player)
+      (remove 'player 'shovel)
+      (inv 'player))
