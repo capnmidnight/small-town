@@ -19,11 +19,11 @@
        (make-hash 
         (filter 
          (compose (curryr comparer val)
-                  (compose getter cdr))
+                  getter)
          (hash->list hsh)))))
 
 (define (get-people-in id)
-  (where npcs body-room-id equal? id))
+  (where npcs (compose body-room-id cdr) equal? id))
 
 (define (room-item-description k v)
   (let* ([i (hash-ref item-catalogue k #f)]
@@ -33,11 +33,14 @@
 (define (room-people-description k v)
   (symbol->string k))
 
-(define (room-filename x)
-  (format "~a.room" (exit-room-id x)))
+(define (room-filename id)
+  (format "~a.room" id))
+
+(define (room-exit-filename x)
+  (room-filename (exit-room-id x)))
 
 (define (exit-description k v)
-  (let* ([filename (and v (room-filename v))]
+  (let* ([filename (and v (room-exit-filename v))]
          [exists (and filename (file-exists? filename))]
          [extra (if exists "" " (UNDER CONSTRUCTION)")])
     (format "~a~a" k extra)))
@@ -48,7 +51,7 @@
 
 (define (prepare-room)
   (let* ([rm (deserialize (read))]
-         [mitms (where (room-items rm) identity > 0)])
+         [mitms (where (room-items rm) cdr > 0)])
     (set-room-items! rm (or mitms (make-hash)))
     rm))
 
@@ -64,7 +67,7 @@
     rm))
 
 (define (write-room id rm)
-  (let ([filename (and id rm (string-append (symbol->string id) ".room"))])
+  (let ([filename (and id rm (room-filename id))])
     (when filename 
       (with-output-to-file
           filename
@@ -95,15 +98,16 @@
 
 ;; COMMANDS =======================================================================
 
-(define (quit bdy)
+(define (quit bdy-id)
   (set! done #t))
 
-(define (help bdy)
+(define (help bdy-id)
   (displayln (format "Available commands:
 \t~a" (string-join (map help-description current-cmds) "\n\t"))))
 
-(define (look bdy)
-  (let* ([id (and bdy (body-room-id bdy))]
+(define (look bdy-id)
+  (let* ([bdy (and bdy-id (hash-ref npcs bdy-id #f))]
+         [id (and bdy (body-room-id bdy))]
          [rm (and id (get-room id))]
          [items (and rm (room-items rm))]
          [people (and id (get-people-in id))]
@@ -122,15 +126,16 @@ EXITS:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-" 
                          (room-descrip rm)
                          (format-hash room-item-description items)
-                         (format-hash room-people-description (get-people-in id))
+                         (format-hash room-people-description (where people car (compose not equal?) bdy-id))
                          (format-hash exit-description exits))))))
 
-(define (move bdy dir)
-  (let* ([id (and bdy (body-room-id bdy))]
+(define (move bdy-id dir)
+  (let* ([bdy (and bdy-id (hash-ref npcs bdy-id #f))]
+         [id (and bdy (body-room-id bdy))]
          [rm (and id (get-room id))]
          [exits (room-exits rm)]
          [x (and exits (hash-ref exits dir #f))]
-         [exists (and x (file-exists? (room-filename x)))]
+         [exists (and x (file-exists? (room-exit-filename x)))]
          [key (and exists (exit-key x))]
          [current-items (and bdy (body-items bdy))]
          [good (and current-items x (or (not key) (and key (hash-ref current-items key #f))))])
@@ -140,13 +145,14 @@ EXITS:
             (displayln (exit-lock-msg x))
             (displayln "You can't go that way")))))
 
-(define (north bdy) (move bdy 'north))
-(define (east bdy) (move bdy 'east))
-(define (south bdy) (move bdy 'south))
-(define (west bdy) (move bdy 'west))
+(define (north bdy-id) (move bdy-id 'north))
+(define (east bdy-id) (move bdy-id 'east))
+(define (south bdy-id) (move bdy-id 'south))
+(define (west bdy-id) (move bdy-id 'west))
 
-(define (take bdy itm) 
-  (let* ([id (and bdy (body-room-id bdy))]
+(define (take bdy-id itm)
+  (let* ([bdy (and bdy-id (hash-ref npcs bdy-id #f))]
+         [id (and bdy (body-room-id bdy))]
          [rm (and id (get-room id))]
          [current-items (and bdy (body-items bdy))])
     (when rm
@@ -156,8 +162,9 @@ EXITS:
                  "picked up"
                  "here"))))
 
-(define (drop bdy itm)
-  (let* ([id (and bdy (body-room-id bdy))]
+(define (drop bdy-id itm)
+  (let* ([bdy (and bdy-id (hash-ref npcs bdy-id #f))]
+         [id (and bdy (body-room-id bdy))]
          [rm (and id (get-room id))]
          [current-items (and bdy (body-items bdy))])
     (when rm 
@@ -167,8 +174,9 @@ EXITS:
                  "dropped"
                  "in your inventory"))))
 
-(define (give bdy person itm)
-  (let* ([id (and bdy (body-room-id bdy))]
+(define (give bdy-id person itm)
+  (let* ([bdy (and bdy-id (hash-ref npcs bdy-id #f))]
+         [id (and bdy (body-room-id bdy))]
          [rm (and id (get-room id))]
          [people-here (get-people-in id)]
          [target (hash-ref people-here person #f)]
@@ -183,7 +191,7 @@ EXITS:
 
 ;; INPUT AND TOKENIZING ===========================================================
 
-(define (do-command bdy str)
+(define (do-command bdy-id str)
   (displayln str)
   (when (positive? (string-length str))
     (let* ([tokens (map string->symbol (string-split str " "))]
@@ -194,7 +202,7 @@ EXITS:
            [arg-count (or (and proc (sub1 (procedure-arity proc))) 0)])
       (if exists
           (if (= (length params) arg-count)
-              (apply proc (cons bdy params))
+              (apply proc (cons bdy-id params))
               (if (< (length params) arg-count)
                   (displayln "not enough parameters")
                   (displayln "too many parameters")))
@@ -209,10 +217,10 @@ EXITS:
   (let loop ()
     (for ([kv (hash->list npcs)]
           #:break done)
-      (let ([id (car kv)]
+      (let ([bdy-id (car kv)]
             [c (cdr kv)])
-        (displayln id)
-        (do-command c 
+        (displayln bdy-id)
+        (do-command bdy-id 
                     (if (body-pc? c) 
                         (string-downcase (prompt))
                         (random-command)))))
@@ -234,7 +242,7 @@ EXITS:
 (define done #f)
 
 (define (random-command)
-  (define cmds '("north" "south" "east" "west"))
+  (define cmds '("north" "south" "east" "west" "take rock" "drop rock"))
   (list-ref cmds (random (length cmds))))
 ;; TESTING ========================================================================
 
