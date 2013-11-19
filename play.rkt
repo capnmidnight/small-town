@@ -3,12 +3,14 @@
 (require racket/serialize)
 
 ;; SCHEMA =========================================================================
+
 (serializable-struct exit (room-id key lock-msg))
 (serializable-struct item (descrip))
 (serializable-struct room (descrip items exits) #:mutable)
 (serializable-struct body (room-id items) #:transparent #:mutable)
 
 ;; CORE ===========================================================================
+
 (define (symbol<? s1 s2)
   (string<? (symbol->string s1) (symbol->string s2)))
 
@@ -58,7 +60,7 @@ EXITS:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-" 
           (room-descrip rm)
           (format-hash room-item-description (room-items rm))
-          (format-hash room-people-description (get-people-in current-location))
+          (format-hash room-people-description (get-people-in (body-room-id pc)))
           (format-hash exit-description (room-exits rm))))
 
 (define (prepare-room)
@@ -68,27 +70,24 @@ EXITS:
     rm))
 
 (define (read-room id)
-  (let ([filename (string-append (symbol->string id) ".room")])
-    (with-input-from-file filename prepare-room)))
+  (let* ([filename (string-append (symbol->string id) ".room")]
+         [exists (file-exists? filename)])
+    (and exists
+         (with-input-from-file filename prepare-room))))
 
 (define (get-room id)
-  (hash-ref! current-rooms id (curry read-room id)))
-
-(define (with-room rm-id thunk)
-  (let* ([filename (string-append (symbol->string rm-id) ".room")]
-         [exists (file-exists? filename)]
-         [rm (and exists (get-room rm-id))])
-    (if rm
-        (thunk rm)
-        (displayln (format "Room \"~a\" doesn't exist" rm-id)))))
+  (let ([rm (hash-ref! current-rooms id (curry read-room id))])
+    (unless rm (displayln (format "room \"~a\" does not exist." id)))
+    rm))
 
 (define (write-room id rm)
-  (let ([filename (string-append (symbol->string id) ".room")])
-    (with-output-to-file
-        filename
-      (curry write (serialize rm))
-      #:mode 'text
-      #:exists 'replace)))
+  (let ([filename (and id rm (string-append (symbol->string id) ".room"))])
+    (when filename 
+      (with-output-to-file
+          filename
+        (curry write (serialize rm))
+        #:mode 'text
+        #:exists 'replace))))
 
 (define (help-description sym)
   (let* ([exists (findf (curry equal? sym) current-cmds)]
@@ -100,36 +99,6 @@ EXITS:
                            (sequence->list params)
                            '(" - (UNKOWN)"))))))
 
-
-;; COMMANDS =======================================================================
-
-(define (quit rm)
-  (set! done #t))
-
-(define (help rm)
-  (displayln (format "Available commands:
-\t~a" (string-join (map help-description current-cmds) "\n\t"))))
-
-(define (look rm)
-  (displayln (room-description rm)))
-
-(define (move rm dir)
-  (let* ([exits (room-exits rm)]
-         [x (and exits (hash-ref exits dir #f))]
-         [exists (and x (file-exists? (room-filename x)))]
-         [key (and exists (exit-key x))]
-         [good (and x (or (not key) (and key (hash-ref current-items key #f))))])
-    (if good
-        (set! current-location (exit-room-id x)) 
-        (if key
-            (displayln (exit-lock-msg x))
-            (displayln "You can't go that way")))))
-
-(define (north rm) (move rm 'north))
-(define (east rm) (move rm 'east))
-(define (south rm) (move rm 'south))
-(define (west rm) (move rm 'west))
-
 (define (move-item itm from to act-name loc-name)
   (if (hash-ref from itm #f)
       (begin
@@ -140,23 +109,69 @@ EXITS:
         (displayln (format "You ~a the ~a" act-name itm)))
       (displayln (format "There is no ~a ~a" itm loc-name))))
 
-(define (take rm itm)
-  (move-item itm 
-             (room-items rm)
-             current-items
-             "picked up"
-             "here"))
 
-(define (drop rm itm)
-  (move-item itm
-             current-items
-             (room-items rm)
-             "dropped"
-             "in your inventory"))
+;; COMMANDS =======================================================================
 
-(define (give rm person itm)
-  (let* ([people-here (get-people-in current-location)]
-         [target (hash-ref people-here person #f)])
+(define (quit bdy)
+  (set! done #t))
+
+(define (help bdy)
+  (displayln (format "Available commands:
+\t~a" (string-join (map help-description current-cmds) "\n\t"))))
+
+(define (look bdy)
+  (let* ([id (and bdy (body-room-id bdy))]
+         [rm (and id (get-room id))])
+    (displayln (room-description rm))))
+
+(define (move bdy dir)
+  (let* ([id (and bdy (body-room-id bdy))]
+         [rm (and id (get-room id))]
+         [exits (room-exits rm)]
+         [x (and exits (hash-ref exits dir #f))]
+         [exists (and x (file-exists? (room-filename x)))]
+         [key (and exists (exit-key x))]
+         [current-items (and bdy (body-items bdy))]
+         [good (and current-items x (or (not key) (and key (hash-ref current-items key #f))))])
+    (if good
+        (set-body-room-id! bdy (exit-room-id x)) 
+        (if key
+            (displayln (exit-lock-msg x))
+            (displayln "You can't go that way")))))
+
+(define (north bdy) (move bdy 'north))
+(define (east bdy) (move bdy 'east))
+(define (south bdy) (move bdy 'south))
+(define (west bdy) (move bdy 'west))
+
+(define (take bdy itm) 
+  (let* ([id (and bdy (body-room-id bdy))]
+         [rm (and id (get-room id))]
+         [current-items (and bdy (body-items bdy))])
+    (when rm
+      (move-item itm 
+                 (room-items rm)
+                 current-items
+                 "picked up"
+                 "here"))))
+
+(define (drop bdy itm)
+  (let* ([id (and bdy (body-room-id bdy))]
+         [rm (and id (get-room id))]
+         [current-items (and bdy (body-items bdy))])
+    (when rm 
+      (move-item itm
+                 current-items
+                 (room-items rm)
+                 "dropped"
+                 "in your inventory"))))
+
+(define (give bdy person itm)
+  (let* ([id (and bdy (body-room-id bdy))]
+         [rm (and id (get-room id))]
+         [people-here (get-people-in id)]
+         [target (hash-ref people-here person #f)]
+         [current-items (and bdy (body-items bdy))])
     (if target
         (move-item itm
                    current-items
@@ -166,7 +181,8 @@ EXITS:
         (displayln (format "~a is not here" person)))))
 
 ;; INPUT AND TOKENIZING ===========================================================
-(define (do-command rm str)
+
+(define (do-command bdy str)
   (displayln str)
   (when (positive? (string-length str))
     (let* ([tokens (map string->symbol (string-split str " "))]
@@ -177,7 +193,7 @@ EXITS:
            [arg-count (or (and proc (sub1 (procedure-arity proc))) 0)])
       (if exists
           (if (= (length params) arg-count)
-              (apply proc (cons rm params))
+              (apply proc (cons bdy params))
               (if (< (length params) arg-count)
                   (displayln "not enough parameters")
                   (displayln "too many parameters")))
@@ -189,15 +205,13 @@ EXITS:
 
 (define (run)
   (set! done #f)
-  (with-room current-location look)
+  (look pc)
   (let loop ([str (prompt)])
-    (with-room current-location 
-               (curryr do-command (string-downcase str)))
+    (do-command pc (string-downcase str))
     (unless done (loop (prompt)))))
 
 ;; STATE ==========================================================================
-(define current-location 'test)
-(define current-items (make-hash))
+
 (define current-rooms (make-hash))
 (define current-cmds (sort '(quit help look take drop give north south east west) symbol<?))
 (define item-catalogue
@@ -208,9 +222,11 @@ EXITS:
 (define npcs (hash 'dave (body 'test (make-hash))
                    'mark (body 'test2 (make-hash))
                    'carl (body 'test3 (make-hash))))
+(define pc (body 'test (make-hash)))
 (define done #f)
 
 ;; TESTING ========================================================================
+
 (define (create-test-rooms)
   (write-room 'test (room "a test room
 
