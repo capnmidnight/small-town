@@ -253,10 +253,24 @@ EXITS:
           (hash-update! items item-id sub1)
           (when (= 0 (hash-ref items item-id))
             (hash-remove! items item-id))
-          (displayln (format "You equiped the ~a as a ~a" item-id itm-qpt)))
+          (displayln (format "You equiped the ~a as a ~a." item-id itm-qpt)))
         (if itm
-            (displayln (format "You can't equip the ~a" item-id))
-            (displayln (format "You don't have the ~a" item-id))))))
+            (displayln (format "You can't equip the ~a." item-id))
+            (displayln (format "You don't have the ~a." item-id))))))
+
+(define (remove bdy-id item-id)
+  (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
+         [items (and bdy (body-items bdy))]
+         [qp (and bdy (body-equip bdy))]
+         [cur (and qp (where qp cdr equal? item-id))]
+         [itm-qpt (and cur (caar (hash->list cur)))]
+         [good (and items cur)])
+    (if good
+        (begin 
+          (hash-update! items item-id add1 0)
+          (hash-remove! qp itm-qpt)
+          (displayln (format "You removed the ~a from the ~a slot." item-id itm-qpt)))
+        (displayln (format "You don't have the ~a equipped." item-id)))))
 
 ;; INPUT AND TOKENIZING ===========================================================
 
@@ -298,7 +312,13 @@ EXITS:
 ;; STATE ==========================================================================
 
 (define current-rooms (make-hash))
-(define current-cmds (sort '(quit help look take drop give make inv equip north south east west) symbol<?))
+(define current-cmds (sort '(quit 
+                             help
+                             look 
+                             take drop give inv
+                             make 
+                             equip remove 
+                             north south east west) symbol<?))
 (define equip-types '(none
                       head
                       eyes
@@ -429,4 +449,6 @@ quit" out)
   (equip 'player 'sword)
   (inv 'player)
   (equip 'player 'shovel)
+  (inv 'player)
+  (remove 'player 'shovel)
   (inv 'player))
