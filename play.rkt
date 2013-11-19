@@ -109,7 +109,7 @@
          [people (and id (get-people-in id))]
          [exits (and rm (room-exits rm))])
     (when rm
-      (format "ROOM: ~a
+      (displayln (format "ROOM: ~a
 
 ITEMS:
 \t~a
@@ -120,10 +120,10 @@ PEOPLE:
 EXITS:
 \t~a
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-" 
-              (room-descrip rm)
-              (format-hash room-item-description items)
-              (format-hash room-people-description (get-people-in id))
-              (format-hash exit-description exits)))))
+                         (room-descrip rm)
+                         (format-hash room-item-description items)
+                         (format-hash room-people-description (get-people-in id))
+                         (format-hash exit-description exits))))))
 
 (define (move bdy dir)
   (let* ([id (and bdy (body-room-id bdy))]
@@ -207,7 +207,15 @@ EXITS:
 (define (run)
   (set! done #f)
   (let loop ()
-    (do-command pc (string-downcase (prompt)))
+    (for ([kv (hash->list npcs)]
+          #:break done)
+      (let ([id (car kv)]
+            [c (cdr kv)])
+        (displayln id)
+        (do-command c 
+                    (if (body-pc? c) 
+                        (string-downcase (prompt))
+                        (random-command)))))
     (unless done (loop))))
 
 ;; STATE ==========================================================================
@@ -221,10 +229,13 @@ EXITS:
         'garbage (item "some junk")))
 (define npcs (hash 'dave (body 'test (make-hash) #f)
                    'mark (body 'test2 (make-hash) #f)
-                   'carl (body 'test3 (make-hash) #f)))
-(define pc (body 'test (make-hash) #t))
+                   'carl (body 'test3 (make-hash) #f)
+                   'player (body 'test (make-hash) #t)))
 (define done #f)
 
+(define (random-command)
+  (define cmds '("north" "south" "east" "west"))
+  (list-ref cmds (random (length cmds))))
 ;; TESTING ========================================================================
 
 (define (create-test-rooms)
