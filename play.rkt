@@ -5,10 +5,10 @@
 ;; MODEL ==========================================================================
 
 (serializable-struct exit (room-id key lock-msg))
-(serializable-struct item (descrip))
+(serializable-struct item (descrip equip-type))
 (serializable-struct recp (ingredients tools results))
 (serializable-struct room (descrip items exits) #:mutable)
-(serializable-struct body (room-id items pc?) #:transparent #:mutable)
+(serializable-struct body (room-id items equip pc?) #:transparent #:mutable)
 
 ;; CORE ===========================================================================
 
@@ -36,6 +36,11 @@
   (let* ([i (hash-ref item-catalogue k #f)]
          [desc (and i (item-descrip i))])
     (format "~a ~a - ~a" v k (or desc "(UNKNOWN)"))))
+
+(define (equip-description k v)
+  (let* ([i (hash-ref item-catalogue v #f)]
+         [desc (and i (item-descrip i))])
+    (format "(~a) ~a - ~a" k v (or desc "(UNKNOWN)"))))
 
 (define (room-people-description k v)
   (symbol->string k))
@@ -223,10 +228,35 @@ EXITS:
 
 (define (inv bdy-id)
   (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
-         [items (and bdy (body-items bdy))])
+         [items (and bdy (body-items bdy))]
+         [equip (and bdy (body-equip bdy))])
     (when items
       (display "\t")
-      (displayln (format-hash item-description items)))))
+      (displayln (format-hash item-description items))
+      (display "\n\t")
+      (displayln (format-hash equip-description equip)))))
+
+(define (equip bdy-id item-id)
+  (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
+         [items (and bdy (body-items bdy))]
+         [itm (and items item-id (hash-ref item-catalogue item-id #f))]
+         [itm-qpt (and itm (item-equip-type itm))]
+         [qp (and bdy (body-equip bdy))]
+         [cur (and itm-qpt qp (hash-ref qp itm-qpt #f))]
+         [good (and itm-qpt (not (equal? itm-qpt 'none)))])
+    (if good
+        (begin 
+          (when cur 
+            (hash-update! items cur add1 0)
+            (hash-remove! qp itm-qpt))
+          (hash-set! qp itm-qpt item-id)
+          (hash-update! items item-id sub1)
+          (when (= 0 (hash-ref items item-id))
+            (hash-remove! items item-id))
+          (displayln (format "You equiped the ~a as a ~a" item-id itm-qpt)))
+        (if itm
+            (displayln (format "You can't equip the ~a" item-id))
+            (displayln (format "You don't have the ~a" item-id))))))
 
 ;; INPUT AND TOKENIZING ===========================================================
 
@@ -268,19 +298,31 @@ EXITS:
 ;; STATE ==========================================================================
 
 (define current-rooms (make-hash))
-(define current-cmds (sort '(quit help look take drop give make inv north south east west) symbol<?))
+(define current-cmds (sort '(quit help look take drop give make inv equip north south east west) symbol<?))
+(define equip-types '(none
+                      head
+                      eyes
+                      shoulders 
+                      torso
+                      pants belt shirt
+                      biceps forearms hands
+                      thighs calves feet
+                      tool
+                      necklace 
+                      left-bracelet right-bracelet))
 (define item-catalogue
-  (hash 'sword (item "a rusty sword")
-        'bird (item "definitely a bird")
-        'dead-bird (item "maybe he's pining for the fjords?")
-        'feather (item "bird-hair")
-        'rock (item "definitely not a bird")
-        'garbage (item "some junk")))
+  (hash 'sword (item "a rusty sword" 'tool)
+        'bird (item "definitely a bird" 'none)
+        'dead-bird (item "maybe he's pining for the fjords?" 'none)
+        'feather (item "bird-hair" 'none)
+        'rock (item "definitely not a bird" 'none)
+        'garbage (item "some junk" 'none)
+        'shovel (item "used to butter bread" 'tool)))
 (define recipes
   (hash 'dead-bird (recp (hash 'bird 1)
                          (hash 'sword 1)
                          (hash 'dead-bird 1 'feather 5))))
-(define bodies (hash 'player (body 'test (make-hash) #t)
+(define bodies (hash 'player (body 'test (make-hash) (make-hash '((tool . shovel))) #t)
                      ; 'dave (body 'test (make-hash) #f)
                      ; 'mark (body 'test2 (make-hash) #f)
                      ; 'carl (body 'test3 (make-hash) #f)
@@ -364,22 +406,27 @@ look
 west
 look
 south
-look
 take bird
+south
+make dead-bird
+drop dead-bird
+drop feather
+drop feather
+drop feather
+drop feather
 look
 south
 look
 drop orb
 look
-drop bird
-look
-drop bird
 north
 south
 quit" out)
       (run))))
 
-(define (test-make)
-  (take 'player 'bird)
+(define (test-equip)
   (take 'player 'sword)
-  (make 'player 'dead-bird))
+  (equip 'player 'sword)
+  (inv 'player)
+  (equip 'player 'shovel)
+  (inv 'player))
