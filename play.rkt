@@ -8,22 +8,9 @@
 (serializable-struct room (descrip items exits) #:mutable)
 (serializable-struct body (room-id items) #:transparent #:mutable)
 
-;; STATE ==========================================================================
-(define current-location 'test)
-(define current-items (make-hash))
-(define current-rooms (make-hash))
-(define current-cmds '(quit help look take drop give north south east west))
-(define item-catalogue
-  (hash 'sword (item "a rusty sword")
-        'bird (item "definitely a bird")
-        'rock (item "definitely not a bird")
-        'garbage (item "some junk")))
-(define npcs (hash 'dave (body 'test (make-hash))
-                   'mark (body 'test2 (make-hash))
-                   'carl (body 'test3 (make-hash))))
-(define done #f)
-
 ;; CORE ===========================================================================
+(define (symbol<? s1 s2)
+  (string<? (symbol->string s1) (symbol->string s2)))
 
 (define (where hsh getter comparer val)
   (and hsh 
@@ -111,7 +98,7 @@ EXITS:
     (string-join (cons (symbol->string sym) 
                        (if params
                            (sequence->list params)
-                           " - (UNKOWN)")))))
+                           '(" - (UNKOWN)"))))))
 
 
 ;; COMMANDS =======================================================================
@@ -207,6 +194,21 @@ EXITS:
     (with-room current-location 
                (curryr do-command (string-downcase str)))
     (unless done (loop (prompt)))))
+
+;; STATE ==========================================================================
+(define current-location 'test)
+(define current-items (make-hash))
+(define current-rooms (make-hash))
+(define current-cmds (sort '(quit help look take drop give north south east west) symbol<?))
+(define item-catalogue
+  (hash 'sword (item "a rusty sword")
+        'bird (item "definitely a bird")
+        'rock (item "definitely not a bird")
+        'garbage (item "some junk")))
+(define npcs (hash 'dave (body 'test (make-hash))
+                   'mark (body 'test2 (make-hash))
+                   'carl (body 'test3 (make-hash))))
+(define done #f)
 
 ;; TESTING ========================================================================
 (define (create-test-rooms)
