@@ -2,10 +2,11 @@
 
 (require racket/serialize)
 
-;; SCHEMA =========================================================================
+;; MODEL ==========================================================================
 
 (serializable-struct exit (room-id key lock-msg))
 (serializable-struct item (descrip))
+(serializable-struct recp (ingredients tools results))
 (serializable-struct room (descrip items exits) #:mutable)
 (serializable-struct body (room-id items pc?) #:transparent #:mutable)
 
@@ -22,10 +23,16 @@
                   getter)
          (hash->list hsh)))))
 
-(define (get-people-in id)
-  (where npcs (compose body-room-id cdr) equal? id))
+(define (format-hash formatter objs)
+  (let ([strs (and objs (< 0 (hash-count objs)) (hash-map objs formatter))])
+    (or (and strs (string-join strs "\n\t")) "none")))
 
-(define (room-item-description k v)
+;; CONTROLLER =====================================================================
+
+(define (get-people-in id)
+  (where bodies (compose body-room-id cdr) equal? id))
+
+(define (item-description k v)
   (let* ([i (hash-ref item-catalogue k #f)]
          [desc (and i (item-descrip i))])
     (format "~a ~a - ~a" v k (or desc "(UNKNOWN)"))))
@@ -44,10 +51,6 @@
          [exists (and filename (file-exists? filename))]
          [extra (if exists "" " (UNDER CONSTRUCTION)")])
     (format "~a~a" k extra)))
-
-(define (format-hash formatter objs)
-  (let ([strs (and objs (< 0 (hash-count objs)) (hash-map objs formatter))])
-    (or (and strs (string-join strs "\n\t")) "none")))
 
 (define (prepare-room)
   (let* ([rm (deserialize (read))]
@@ -106,7 +109,7 @@
 \t~a" (string-join (map help-description current-cmds) "\n\t"))))
 
 (define (look bdy-id)
-  (let* ([bdy (and bdy-id (hash-ref npcs bdy-id #f))]
+  (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
          [id (and bdy (body-room-id bdy))]
          [rm (and id (get-room id))]
          [items (and rm (room-items rm))]
@@ -125,20 +128,20 @@ EXITS:
 \t~a
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-" 
                          (room-descrip rm)
-                         (format-hash room-item-description items)
+                         (format-hash item-description items)
                          (format-hash room-people-description (where people car (compose not equal?) bdy-id))
                          (format-hash exit-description exits))))))
 
 (define (move bdy-id dir)
-  (let* ([bdy (and bdy-id (hash-ref npcs bdy-id #f))]
+  (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
          [id (and bdy (body-room-id bdy))]
          [rm (and id (get-room id))]
          [exits (room-exits rm)]
          [x (and exits (hash-ref exits dir #f))]
          [exists (and x (file-exists? (room-exit-filename x)))]
          [key (and exists (exit-key x))]
-         [current-items (and bdy (body-items bdy))]
-         [good (and current-items x (or (not key) (and key (hash-ref current-items key #f))))])
+         [items (and bdy (body-items bdy))]
+         [good (and items x (or (not key) (and key (hash-ref items key #f))))])
     (if good
         (set-body-room-id! bdy (exit-room-id x)) 
         (if key
@@ -151,43 +154,79 @@ EXITS:
 (define (west bdy-id) (move bdy-id 'west))
 
 (define (take bdy-id itm)
-  (let* ([bdy (and bdy-id (hash-ref npcs bdy-id #f))]
+  (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
          [id (and bdy (body-room-id bdy))]
          [rm (and id (get-room id))]
-         [current-items (and bdy (body-items bdy))])
+         [items (and bdy (body-items bdy))])
     (when rm
       (move-item itm 
                  (room-items rm)
-                 current-items
+                 items
                  "picked up"
                  "here"))))
 
 (define (drop bdy-id itm)
-  (let* ([bdy (and bdy-id (hash-ref npcs bdy-id #f))]
+  (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
          [id (and bdy (body-room-id bdy))]
          [rm (and id (get-room id))]
-         [current-items (and bdy (body-items bdy))])
+         [items (and bdy (body-items bdy))])
     (when rm 
       (move-item itm
-                 current-items
+                 items
                  (room-items rm)
                  "dropped"
                  "in your inventory"))))
 
 (define (give bdy-id person itm)
-  (let* ([bdy (and bdy-id (hash-ref npcs bdy-id #f))]
+  (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
          [id (and bdy (body-room-id bdy))]
          [rm (and id (get-room id))]
          [people-here (get-people-in id)]
          [target (hash-ref people-here person #f)]
-         [current-items (and bdy (body-items bdy))])
+         [items (and bdy (body-items bdy))])
     (if target
         (move-item itm
-                   current-items
+                   items
                    (body-items target)
                    (format "gave to ~a" person)
                    "in your inventory")
         (displayln (format "~a is not here" person)))))
+
+(define (hash-satisfies? from to greater-than?)
+  (andmap identity 
+          (for/list ([c (hash->list to)])
+            (>= (hash-ref from (car c) 0) 
+                (cdr c)))))
+
+(define (make bdy-id rcp-id)
+  (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
+         [items (and bdy (body-items bdy))]
+         [rcp (and rcp-id (hash-ref recipes rcp-id #f))]
+         [ingr (and rcp (recp-ingredients rcp))]
+         [tools (and rcp (recp-tools rcp))]
+         [res (and rcp (hash-copy (recp-results rcp)))]
+         [have-all-ingr (and items ingr (hash-satisfies? items ingr >))]
+         [have-all-tool (and items tools (hash-satisfies? items tools >))])
+    (if (and have-all-ingr have-all-tool)
+        (begin
+          (for ([i (hash->list ingr)])
+            (hash-update! items (car i) (curry - (cdr i)))
+            (when (= 0 (hash-ref items (car i)))
+              (hash-remove! items (car i)))
+            (displayln (format "~a ~a(s) removed from inventory" (cdr i) (car i))))
+          (for ([i (hash->list res)])
+            (hash-update! items (car i) (curry + (cdr i)) 0)
+            (displayln (format "You created ~a ~a(s)" (cdr i) (car i)))))
+        (if (not have-all-ingr)
+            (displayln "You don't have all of the ingredients")
+            (displayln "You don't have all of the tools")))))
+
+(define (inv bdy-id)
+  (let* ([bdy (and bdy-id (hash-ref bodies bdy-id #f))]
+         [items (and bdy (body-items bdy))])
+    (when items
+      (display "\t")
+      (displayln (format-hash item-description items)))))
 
 ;; INPUT AND TOKENIZING ===========================================================
 
@@ -215,7 +254,7 @@ EXITS:
 (define (run)
   (set! done #f)
   (let loop ()
-    (for ([kv (hash->list npcs)]
+    (for ([kv (hash->list bodies)]
           #:break done)
       (let ([bdy-id (car kv)]
             [c (cdr kv)])
@@ -229,21 +268,29 @@ EXITS:
 ;; STATE ==========================================================================
 
 (define current-rooms (make-hash))
-(define current-cmds (sort '(quit help look take drop give north south east west) symbol<?))
+(define current-cmds (sort '(quit help look take drop give make inv north south east west) symbol<?))
 (define item-catalogue
   (hash 'sword (item "a rusty sword")
         'bird (item "definitely a bird")
+        'dead-bird (item "maybe he's pining for the fjords?")
+        'feather (item "bird-hair")
         'rock (item "definitely not a bird")
         'garbage (item "some junk")))
-(define npcs (hash 'dave (body 'test (make-hash) #f)
-                   'mark (body 'test2 (make-hash) #f)
-                   'carl (body 'test3 (make-hash) #f)
-                   'player (body 'test (make-hash) #t)))
+(define recipes
+  (hash 'dead-bird (recp (hash 'bird 1)
+                         (hash 'sword 1)
+                         (hash 'dead-bird 1 'feather 5))))
+(define bodies (hash 'player (body 'test (make-hash) #t)
+                     ; 'dave (body 'test (make-hash) #f)
+                     ; 'mark (body 'test2 (make-hash) #f)
+                     ; 'carl (body 'test3 (make-hash) #f)
+                     ))
 (define done #f)
 
 (define (random-command)
   (define cmds '("north" "south" "east" "west" "take rock" "drop rock"))
   (list-ref cmds (random (length cmds))))
+
 ;; TESTING ========================================================================
 
 (define (create-test-rooms)
@@ -262,7 +309,7 @@ Goodbye."
                                 'hidden 0)
                           (hash 'north (exit 'test2 #f #f)
                                 'east (exit 'test3 #f #f)
-                                'south (exit 'test4 'bird "don't forget the bird")
+                                'south (exit 'test4 'feather "you need a feather")
                                 'west #f)))
   
   (write-room 'test2 (room "another test room
@@ -331,3 +378,8 @@ north
 south
 quit" out)
       (run))))
+
+(define (test-make)
+  (take 'player 'bird)
+  (take 'player 'sword)
+  (make 'player 'dead-bird))
