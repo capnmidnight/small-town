@@ -7,7 +7,7 @@
 (serializable-struct exit (room-id key lock-msg))
 (serializable-struct item (descrip))
 (serializable-struct room (descrip items exits) #:mutable)
-(serializable-struct body (room-id items) #:transparent #:mutable)
+(serializable-struct body (room-id items pc?) #:transparent #:mutable)
 
 ;; CORE ===========================================================================
 
@@ -44,24 +44,7 @@
 
 (define (format-hash formatter objs)
   (let ([strs (and objs (< 0 (hash-count objs)) (hash-map objs formatter))])
-    (or (and strs (string-join strs "\n\t")) "\n\tnone")))
-
-(define (room-description rm)
-  (format "ROOM: ~a
-
-ITEMS:
-\t~a
-
-PEOPLE:
-\t~a
-
-EXITS:
-\t~a
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-" 
-          (room-descrip rm)
-          (format-hash room-item-description (room-items rm))
-          (format-hash room-people-description (get-people-in (body-room-id pc)))
-          (format-hash exit-description (room-exits rm))))
+    (or (and strs (string-join strs "\n\t")) "none")))
 
 (define (prepare-room)
   (let* ([rm (deserialize (read))]
@@ -121,8 +104,26 @@ EXITS:
 
 (define (look bdy)
   (let* ([id (and bdy (body-room-id bdy))]
-         [rm (and id (get-room id))])
-    (displayln (room-description rm))))
+         [rm (and id (get-room id))]
+         [items (and rm (room-items rm))]
+         [people (and id (get-people-in id))]
+         [exits (and rm (room-exits rm))])
+    (when rm
+      (format "ROOM: ~a
+
+ITEMS:
+\t~a
+
+PEOPLE:
+\t~a
+
+EXITS:
+\t~a
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-" 
+              (room-descrip rm)
+              (format-hash room-item-description items)
+              (format-hash room-people-description (get-people-in id))
+              (format-hash exit-description exits)))))
 
 (define (move bdy dir)
   (let* ([id (and bdy (body-room-id bdy))]
@@ -205,10 +206,9 @@ EXITS:
 
 (define (run)
   (set! done #f)
-  (look pc)
-  (let loop ([str (prompt)])
-    (do-command pc (string-downcase str))
-    (unless done (loop (prompt)))))
+  (let loop ()
+    (do-command pc (string-downcase (prompt)))
+    (unless done (loop))))
 
 ;; STATE ==========================================================================
 
@@ -219,10 +219,10 @@ EXITS:
         'bird (item "definitely a bird")
         'rock (item "definitely not a bird")
         'garbage (item "some junk")))
-(define npcs (hash 'dave (body 'test (make-hash))
-                   'mark (body 'test2 (make-hash))
-                   'carl (body 'test3 (make-hash))))
-(define pc (body 'test (make-hash)))
+(define npcs (hash 'dave (body 'test (make-hash) #f)
+                   'mark (body 'test2 (make-hash) #f)
+                   'carl (body 'test3 (make-hash) #f)))
+(define pc (body 'test (make-hash) #t))
 (define done #f)
 
 ;; TESTING ========================================================================
