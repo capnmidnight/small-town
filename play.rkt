@@ -354,16 +354,20 @@ EXITS:
   (let loop ()
     (for ([kv (hash->list bodies)]
           #:break done)
-      (let ([bdy-id (car kv)]
-            [bdy (cdr kv)])
-        (if (> (body-hp bdy) 0)
-            (begin
-              (displayln bdy-id)
-              (do-command bdy-id 
-                          (if (body-pc? bdy) 
-                              (string-downcase (prompt bdy))
-                              (random-command))))
-            (displayln "Knocked out!"))))
+      (let-values ([(bdy-id bdy) (values (car kv) (cdr kv))]
+                   [(in out) (make-pipe)])
+        (parameterize 
+            ([current-input-port 
+              (if (body-pc? bdy) (current-input-port) in)]
+             [current-output-port 
+              (if (body-pc? bdy) (current-output-port) out)])
+          (if (> (body-hp bdy) 0)
+              (begin
+                (displayln bdy-id)
+                (unless (body-pc? bdy)
+                  (random-command))
+                (do-command bdy-id (string-downcase (prompt bdy))))
+              (displayln "Knocked out!")))))
     (unless done (loop))))
 
 ;; STATE ==========================================================================
@@ -400,15 +404,15 @@ EXITS:
   (hash 'dead-bird (recp (hash 'bird 1)
                          (hash 'sword 1)
                          (hash 'dead-bird 1 'feather 5))))
-(define bodies (hash 'player (body 'test (make-hash) (make-hash) #t 10 '())
-                     'dave (body 'test (make-hash) (make-hash) #f 10 '())
-                     'mark (body 'test2 (make-hash) (make-hash) #f 10 '())
-                     'carl (body 'test3 (make-hash) (make-hash) #f 10 '())))
+(define bodies (hash-copy (hash 'player (body 'test (make-hash) (make-hash) #t 10 '())
+                                'dave (body 'test (make-hash) (make-hash) #f 10 '())
+                                'mark (body 'test2 (make-hash) (make-hash) #f 10 '())
+                                'carl (body 'test3 (make-hash) (make-hash) #f 10 '()))))
 (define done #f)
 
 (define (random-command)
   (define cmds '("north" "south" "east" "west" "attack player"))
-  (list-ref cmds (random (length cmds))))
+  (displayln (list-ref cmds (random (length cmds)))))
 
 ;; TESTING ========================================================================
 
