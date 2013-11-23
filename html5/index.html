@@ -2,72 +2,22 @@
 <html>
 <head>
 <meta charset="utf-8">
+<script type="text/javascript" src="markdown.min.js"></script>
 <script type="text/javascript" src="model.js"></script>
 <script type="text/javascript" src="core.js"></script>
 <script type="text/javascript" src="commands.js"></script>
 <script type="text/javascript" src="rooms.js"></script>
 <script type="text/javascript" src="items.js"></script>
 <script type="text/javascript" src="recipes.js"></script>
+<script type="text/javascript" src="io.js"></script>
 <script type="text/javascript">
 
-function run() {
-    try{
-		document.getElementById("start").style.display = "none";
-		init();
-		var timer = null;
-		var loop = function() {
-			if(done){
-				clearInterval(timer);
-				document.getElementById("start").style.display = "inline-block";
-			}
-			else {
-				var bodyId = "player";
-				var body = everyone[bodyId];
-				if(body.inputQ.length > 0){
-					if(body.hp > 0){
-						displayln(bodyId);
-						body.doCommand();
-					}
-					else{ 
-						displayln("Knocked out!"); 
-					}
-				}
-			}
-		};
-		timer = setInterval(loop, 100);
-    }
-    catch(exp){
-        console.log(exp);
-        clearInterval(timer);
-    }
-}
-    
-var everyone = null;
-function init(){    
-    done = false;
-    everyone = {"player": new Body("test", 10),
-                "dave": new Body("test", 10),
-                "mark": new Body("test", 10),
-                "carl": new Body("test", 10)};
-    setIds(everyone);
+function load() {
+    setup("input", "output");
+    run();
+    input.focus();
 }
 
-var done = false;
-
-function submitCommand(evt){
-    if(evt.keyCode == 13){
-        var val = input.value.trim().toLowerCase();
-        input.value = "";
-        everyone["player"].inputQ.push(val);
-        return false;
-    }
-    return true;
-}
-var input = null;
-function setup(){
-    input = document.getElementById("input");
-    input.addEventListener("keypress", submitCommand, false);
-}
 </script>
 <style type="text/css">
 #input, #output{
@@ -77,13 +27,13 @@ function setup(){
     width:50em;
 }
 #output{
-    height:25em;
+    height:35em;
     overflow:scroll;
 }
 </style>
 </head>
-<body onload="setup()">
-    <pre id="output"></pre><br>
+<body onload="load()">
+    <div id="output"></div>
     <input type="text" id="input" autocomplete="off"><button onclick="run()" id="start">start</button>
 
 </body>

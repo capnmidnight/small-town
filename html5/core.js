@@ -12,12 +12,6 @@ function hashMap(hsh, thunk) {
     return output;
 }
 
-function displayln(msg){
-    var output = document.getElementById("output");
-    output.innerHTML += msg + "\n";
-    output.scrollTop = output.scrollHeight;
-}
-
 function format() {
     var args = [].slice.call(arguments, 1);
     return arguments[0].replace(/{(\d+)}/g, function(match, number) { 
@@ -49,7 +43,7 @@ function formatHash(formatter, hsh) {
     if(hsh){
         var strs = hashMap(hsh, formatter);
         if(strs.length > 0)
-            return strs.join("\n\t");
+            return strs.join("\n");
     }
     return "none";
 }
@@ -84,26 +78,26 @@ function getPeopleIn(roomId){
  }
 
 function itemDescription(k, v) { 
-    return format("{1} {0} - {2}", k, v, 
+    return format("-    {1} {0} - {2}", k, v, 
         (itemCatalogue[k] ? itemCatalogue[k].descrip : "(UNKOWN)")); 
 }
 
 function equipDescription(k, v) { 
-    return format("({0}) {1} - {2}", k, v, 
+    return format("*    ({0}) {1} - {2}", k, v, 
         (itemCatalogue[v] ? itemCatalogue[v].descrip : "(UNKOWN)")); 
 }
 
 function roomPeopleDescription(k, v) { 
-    return format("{0}{1}", k, (everyone[k].hp > 0 ? "" : " (KNOCKED OUT)"));
+    return format("-    {0}{1}", k, (everyone[k].hp > 0 ? "" : " (KNOCKED OUT)"));
+}
+
+function exitDescription(k, v) { 
+    return format("+    {0}{1}", k, ((v && roomExists(v.roomId)) ? "" : " (UNDER CONSTRUCTION)")); 
 }
 
 function getRoom(id) { return currentRooms[id]; }
 function setRoom(id, rm) { currentRooms[id] = rm; }
 function roomExists(id) { return getRoom(id) != null; }
-
-function exitDescription(k, v) { 
-    return format("{0}{1}", k, ((v && roomExists(v.roomId)) ? "" : " (UNDER CONSTRUCTION)")); 
-}
 
 function moveItem(itm, from, to, actName, locName) {
 	if(transfer(itm, from, to))

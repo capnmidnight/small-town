@@ -44,7 +44,7 @@ Body.prototype.help = function() {
         src = src.replace("(", " ");
         src = src.replace(", ", " ");
         src = src.replace(",", " ");            
-        displayln(format("\t{0} {1}", currentCmds[i], src));
+        displayln(format("- {0} {1}", currentCmds[i], src));
     }
 }
 
@@ -54,8 +54,8 @@ Body.prototype.look = function() {
         var items = where(rm.items, value, greaterThan, 0);
         var people = where(getPeopleIn(this.roomId), key, notEqual, this.id);
         var exits = where(rm.exits, value, notEqual, null);
-            displayln(format("ROOM: {0}\n\nITEMS:\n\t{1}\n\nPEOPLE:\n\t{2}\n\nEXITS:\n\t{3}\n"
-                + "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-",
+            displayln(format("ROOM: {0}\n\nITEMS:\n\n{1}\n\nPEOPLE:\n\n{2}\n\nEXITS:\n\n{3}\n\n"
+                + "***",
                 rm.descrip,
                 formatHash(itemDescription, items),
                 formatHash(roomPeopleDescription, people),
@@ -130,7 +130,7 @@ Body.prototype.make = function(recipeId) {
 }
 
 Body.prototype.inv = function() {
-    displayln(format("\t{0}\n\t{1}",
+    displayln(format("Equipped:\n\n{1}\n\nUnequipped:\n\n{0}\n\n***",
         formatHash(itemDescription, this.items),
         formatHash(equipDescription, this.equipment)));
 }
@@ -174,7 +174,7 @@ Body.prototype.attack = function(targetId) {
     var atk = 1;
     var wpnId = this.equipment["tool"];
     if(wpnId){
-        var wpn = itemCatalogue(wpnId);
+        var wpn = itemCatalogue[wpnId];
         if(wpn)
             atk = wpn.strength;
     }
