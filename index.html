@@ -46,10 +46,16 @@ function Body (roomId, hp, items, equipment) {
 
 // CORE ===========================================================================
 
+
+function not(v) { return !v; }
 function equal(a, b) { return a == b; }
+function notEqual(a, b) { return a != b; }
 function key(k, v) { return k; }
 function value(k, v) { return v; }
 function pair(k, v) { return [k, v]; }
+function compose(f, g) { return function(x){ return f(g(x)); }; }
+function curry(f, a) { return function(b, c, d, e, f, g, h, i){ return f(a, b, c, d, e, f, g, h, i);}; }
+function curryr(f, i) { return function(a, b, c, d, e, f, g, h){ return f(a, b, c, d, e, f, g, h, i);}; }
 
 function hashMap(hsh, thunk) {
     var output = [];
@@ -83,19 +89,14 @@ function hashFilter(hsh) {
     return output;
 }
 
-function not(v) { return !v; }
-function compose(f, g) { return function(x){ return f(g(x)); }; }
-function curry(f, a) { return function(b, c, d, e, f, g, h, i){ return f(a, b, c, d, e, f, g, h, i);}; }
-function curryr(f, i) { return function(a, b, c, d, e, f, g, h){ return f(a, b, c, d, e, f, g, h, i);}; }
-
 function where(hsh, getter, comparer, val) {
     var output = {};
-    if(hsh)
+    if(hsh){
         for(var key in hsh){
-            var val = comparer(getter(key, hsh[key]), val);
-            if(val)
-                output[key] = val;
+            if(comparer(getter(key, hsh[key]), val))
+                output[key] = hsh[key];
         }
+    }
     return output;
 }
 
@@ -110,7 +111,9 @@ function formatHash(formatter, hsh) {
 
 // CONTROLLER =====================================================================
 
-function getPeopleIn(roomId){ return where(everyone, key, equal, roomId); }
+function getPeopleIn(roomId){ 
+    return where(everyone, function(k, v){return v.roomId;}, equal, roomId); 
+ }
 
 function itemDescription(k, v) { 
     return format("{1} {0} - {2}", k, v, 
@@ -136,9 +139,10 @@ function exitDescription(k, v) {
 
 function moveItem(itm, from, to, actName, locName) {
     if(from[itm]){
+        console.log(from, from[itm]);
         --from[itm];
         if(from[itm] == 0)
-            from[itm] = undefined;
+            delete from[itm];
         if(!to[itm])
             to[itm] = 0;
         ++to[itm];
@@ -179,7 +183,7 @@ Body.prototype.quit = function() {
     informUsers(everyone, this.id, ["quit"]);
     if(this.id == "player")
         done = true;
-    everyone[this.id] = undefined;
+    delete everyone[this.id];
 }
 
 Body.prototype.help = function() { 
@@ -199,7 +203,7 @@ Body.prototype.help = function() {
 
 Body.prototype.look = function() {
     var rm = getRoom(this.roomId);
-    var people = where(getPeopleIn(this.roomId), key, compose(not, equal), this.id);
+    var people = where(getPeopleIn(this.roomId), key, notEqual, this.id);
     if(rm)
         displayln(format("ROOM: {0}\n\nITEMS:\n\t{1}\n\nPEOPLE:\n\t{2}\n\nEXITS:\n\t{3}\n"
             + "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-",
@@ -263,7 +267,7 @@ Body.prototype.make = function(recipeId) {
         for(var key in recipe.ingredients) {
             this.items[key] -= recipe.ingredients[key];
             if(this.items[key] == 0)
-                this.items[key] = undefined;
+                delete this.items[key];
             displayln(format("{0} {1}(s) removed from inventory.", recipe.ingredients[key], key));
         }
         
@@ -306,7 +310,7 @@ Body.prototype.equip = function(itemId) {
                 
                 --this.items[itemId];
                 if(this.items[itemId] == 0)
-                    this.items[itemId] = undefined;
+                    delete this.items[itemId];
                     
                 displayln(format("You equiped the {0} as a {1}.", itemId, itm.equipType));
             }
@@ -321,7 +325,7 @@ Body.prototype.remove = function(itemId) {
                 this.items[itemId] = 0;
             ++this.items[itemId];
             
-            this.equipment[slot] = undefined;
+            delete this.equipment[slot];
             displayln(format("You removed the {0} as your {1}.", itemId, slot));
             return;
         }
