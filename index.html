@@ -5,6 +5,9 @@
 <script type="text/javascript" src="model.js"></script>
 <script type="text/javascript" src="core.js"></script>
 <script type="text/javascript" src="commands.js"></script>
+<script type="text/javascript" src="rooms.js"></script>
+<script type="text/javascript" src="items.js"></script>
+<script type="text/javascript" src="recipes.js"></script>
 <script type="text/javascript">
 
 function run() {
@@ -38,43 +41,7 @@ function run() {
         clearInterval(timer);
     }
 }
-// STATE ==========================================================================
-
-var currentRooms = {"test": new Room("a test room\n\nThere is not a lot to see here.\nThis is just a test room.\nIt's meant for testing.\nNothing more.\nGoodbye.",
-                          {"north": new Exit("test2"),
-                           "east": new Exit("test3"),
-                           "south": new Exit("test4", "feather", "you need a feather"),
-                           "west": null},
-                          {"sword": 1, "bird": 1, "rock": 5, "garbage": 0, "orb": 1, "hidden": 0}),
-                          
-                    "test2": new Room("another test room\n\nKeep moving along",
-                           {"south": new Exit("test")}),
-                           
-                    "test3": new Room("a loop room\n\nit's probably going to work",
-                           {"south": new Exit("test5")}),
-  
-                    "test4": new Room("locked room\n\nThis room was locked with the bird",
-                           {"north": new Exit("test")}),
-  
-                    "test5": new Room("a loop room, 2\n\nit's probably going to work",
-                           {"west": new Exit("test4")})};
-                          
-var itemCatalogue = {
-    "sword": new Item("a rusty sword", "tool", 10),
-    "bird": new Item("definitely a bird", "none", 0),
-    "dead-bird": new Item("maybe he's pining for the fjords?", "none", 0),
-    "feather": new Item("bird-hair", "none", 0),
-    "rock": new Item("definitely not a bird", "throwable", 2),
-    "garbage": new Item("some junk", "none", 0),
-    "shovel": new Item("used to butter bread", "tool", 5)};
     
-var recipes = {
-    "dead-bird": new Recipe({"bird": 1}, {"sword": 1}, {"dead-bird": 1, "feather": 5})};
-    
-setIds(currentRooms);
-setIds(itemCatalogue);
-setIds(recipes);
-
 var everyone = null;
 function init(){    
     done = false;

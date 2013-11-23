@@ -27,14 +27,14 @@ var equipTypes = ["none", "head", "eyes", "shoulders", "torso",
 //	- ingredients: the name and count of items that must be
 //			consumed out of the users inventory to be able
 //			to create the item.
-//	- tools: the name and count of items that must exist in
-//			the users inventory (but will not get consumed).
 //	- results: the name and count of items that will be added
 //			to the users inventory after the recipe has ran.
-function Recipe (ingredients, tools, results) {
+//	- tools (optional): the name and count of items that must exist in
+//			the users inventory (but will not get consumed).
+function Recipe (ingredients, results, tools) {
     this.ingredients = ingredients;
-    this.tools = tools;
     this.results = results;
+    this.tools = tools;
     this.id = null;
 }
 
