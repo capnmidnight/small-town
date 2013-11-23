@@ -4,7 +4,7 @@ var done = false;
 var everyone = null;
 var soFar = "";
 function displayln(msg){
-    soFar += msg + "\n";
+    soFar += msg + "\n\n";
     output.innerHTML = markdown.toHTML(soFar);
     output.scrollTop = output.scrollHeight;
 }

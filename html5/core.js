@@ -99,8 +99,8 @@ function getRoom(id) { return currentRooms[id]; }
 function setRoom(id, rm) { currentRooms[id] = rm; }
 function roomExists(id) { return getRoom(id) != null; }
 
-function moveItem(itm, from, to, actName, locName) {
-	if(transfer(itm, from, to))
+function moveItem(itm, from, to, actName, locName, amt) {
+	if(transfer(itm, from, to, amt))
         displayln(format("You {0} the {1}.", actName, itm));
     else
         displayln(format("There is no {0} {1}", itm, locName));

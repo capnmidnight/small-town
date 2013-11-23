@@ -1,5 +1,6 @@
-var currentCmds = ["quit", "help", "look", "take", "drop", "give", "inv", 
-"make", "equip", "remove", "attack", "north", "south", "east", "west"];
+var currentCmds = ["quit", "help", "look", "take", "takeall", "drop", "give", 
+"inv", "make", "equip", "remove", "attack", 
+"north", "south", "east", "west"];
 
 Body.prototype.doCommand = function(){
     var str = this.inputQ.pop();
@@ -83,8 +84,16 @@ Body.prototype.west = function(){ this.move("west"); }
 
 Body.prototype.take = function(itemId) {
     var rm = getRoom(this.roomId);
-    moveItem(itemId, rm.items, this.items, "picked up", "here");
+    moveItem(itemId, rm.items, this.items, "picked up", "here", amt);
     informUsers(getPeopleIn(this.roomId), this.id, ["take", itemId]);
+}
+
+Body.prototype.takeall = function() {
+    var rm = getRoom(this.roomId);
+    for(var itemId in rm.items){
+        moveItem(itemId, rm.items, this.items, "picked up", "here", rm.items[itemId]);
+        informUsers(getPeopleIn(this.roomId), this.id, ["take", itemId]);
+    }
 }
 
 Body.prototype.drop = function(itemId) {
