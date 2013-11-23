@@ -8,7 +8,7 @@
 (serializable-struct item (descrip equip-type strength))
 (serializable-struct recp (ingredients tools results))
 (serializable-struct room (descrip items exits) #:mutable)
-(serializable-struct body (room-id items equip pc? hp msg-q) #:transparent #:mutable)
+(serializable-struct body (room-id items equip hp msg-q) #:transparent #:mutable)
 
 ;; CORE ===========================================================================
 
@@ -132,7 +132,7 @@
     (when bdy
       (hash-remove! bodies bdy-id)
       (inform-users bodies '(quit) bdy-id)
-      (when (body-pc? bdy) (set! done #t)))))
+      (when (equal? bdy-id 'player) (set! done #t)))))
 
 (define (help bdy-id)
   (displayln (format "Available commands:
@@ -195,11 +195,7 @@ EXITS:
          [rm (and id (get-room id))]
          [items (and bdy (body-items bdy))])
     (when rm
-      (move-item itm 
-                 (room-items rm)
-                 items
-                 "picked up"
-                 "here")
+      (move-item itm (room-items rm) items "picked up" "here")
       (when people
         (inform-users people (list 'take itm) bdy-id)))))
 
@@ -210,7 +206,7 @@ EXITS:
          [rm (and id (get-room id))]
          [items (and bdy (body-items bdy))])
     (when rm 
-      (move-item itm
+      (move-item itm 
                  items
                  (room-items rm)
                  "dropped"
@@ -354,21 +350,21 @@ EXITS:
   (let loop ()
     (for ([kv (hash->list bodies)]
           #:break done)
-      (let-values ([(bdy-id bdy) (values (car kv) (cdr kv))]
-                   [(in out) (make-pipe)])
+      (let* ([bdy-id (car kv)]
+             [bdy (cdr kv)]
+             [io (and bdy-id (hash-ref io-ports bdy-id #f))])
+        (when io
         (parameterize 
-            ([current-input-port 
-              (if (body-pc? bdy) (current-input-port) in)]
-             [current-output-port 
-              (if (body-pc? bdy) (current-output-port) out)])
+            ([current-input-port (car io)]
+             [current-output-port (cdr io)])
           (if (> (body-hp bdy) 0)
               (begin
                 (displayln bdy-id)
-                (unless (body-pc? bdy)
+                (unless (equal? bdy-id 'player)
                   (random-command))
                 (do-command bdy-id (string-downcase (prompt bdy))))
               (displayln "Knocked out!")))))
-    (unless done (loop))))
+    (unless done (loop)))))
 
 ;; STATE ==========================================================================
 
@@ -404,10 +400,17 @@ EXITS:
   (hash 'dead-bird (recp (hash 'bird 1)
                          (hash 'sword 1)
                          (hash 'dead-bird 1 'feather 5))))
-(define bodies (hash-copy (hash 'player (body 'test (make-hash) (make-hash) #t 10 '())
-                                'dave (body 'test (make-hash) (make-hash) #f 10 '())
-                                'mark (body 'test2 (make-hash) (make-hash) #f 10 '())
-                                'carl (body 'test3 (make-hash) (make-hash) #f 10 '()))))
+(define bodies (hash-copy (hash 'player (body 'test (make-hash) (make-hash) 10 '())
+                                'dave (body 'test (make-hash) (make-hash) 10 '())
+                                'mark (body 'test2 (make-hash) (make-hash) 10 '())
+                                'carl (body 'test3 (make-hash) (make-hash) 10 '()))))
+
+(define (greep) (call-with-values (λ () (make-pipe)) cons))
+(define io-ports (hash 'player (cons (current-input-port) (current-output-port))
+                       'dave (greep)
+                       'mark (greep)
+                       'carl (greep)))
+
 (define done #f)
 
 (define (random-command)
