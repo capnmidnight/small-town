@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script type="text/javascript">
+
+// MODEL =======================================================================
+
+function Item (descrip, equipType, strength) {
+    this.descrip = descrip;
+    this.equipType = equipType;
+    this.strength = strength;
+    this.id = null;
+}
+
+function Recipe (ingredients, tools, results) {
+    this.ingredients = ingredients;
+    this.tools = tools;
+    this.results = results;
+    this.id = null;
+}
+
+function Room (descrip, exits, items) {
+    this.descrip = descrip;
+    this.exits = exits;
+    this.items = items ? items : {};
+    this.id = null;
+}
+
+function Exit (roomId, key, lockMsg) {
+    this.roomId = roomId;
+    this.key = key;
+    this.lockMsg = lockMsg;
+    this.id = null;
+}
+
+function Body (roomId, hp, items, equipment) {
+    this.roomId = roomId;
+    this.hp = hp;
+    this.items = items ? items : {};
+    this.equipment = equipment ? equipment : {};
+    this.msgQ = [];
+    this.inputQ = [];
+    this.id = null;
+}
+
+// CORE ===========================================================================
+
+function equal(a, b) { return a == b; }
+function key(k, v) { return k; }
+function value(k, v) { return v; }
+function pair(k, v) { return [k, v]; }
+
+function hashMap(hsh, thunk) {
+    var output = [];
+    for(var key in hsh)
+        output[output.length] = thunk(key, hsh[key]);
+    return output;
+}
+
+function format() {
+    var args = [].slice.call(arguments, 1);
+    return arguments[0].replace(/{(\d+)}/g, function(match, number) { 
+        return typeof args[number] != 'undefined'
+          ? args[number]
+          : match;
+    });
+}
+
+function hashToList(hsh) { return hashMap(hsh, pair); }
+function makeHash(arr) {
+    var output = [];
+    for(var i = 0; i < arr.length; ++i)
+        output[arr[0]] = arr[1];
+    return output;
+}
+
+function hashFilter(hsh) {
+    var output = {};
+    for(var key in hsh)
+        if(hsh[key])
+            output[key] = hsh[key];
+    return output;
+}
+
+function not(v) { return !v; }
+function compose(f, g) { return function(x){ return f(g(x)); }; }
+function curry(f, a) { return function(b, c, d, e, f, g, h, i){ return f(a, b, c, d, e, f, g, h, i);}; }
+function curryr(f, i) { return function(a, b, c, d, e, f, g, h){ return f(a, b, c, d, e, f, g, h, i);}; }
+
+function where(hsh, getter, comparer, val) {
+    var output = {};
+    if(hsh)
+        for(var key in hsh){
+            var val = comparer(getter(key, hsh[key]), val);
+            if(val)
+                output[key] = val;
+        }
+    return output;
+}
+
+function formatHash(formatter, hsh) {
+    if(hsh){
+        var strs = hashMap(hsh, formatter);
+        if(strs.length > 0)
+            return strs.join("\n\t");
+    }
+    return "none";
+}
+
+// CONTROLLER =====================================================================
+
+function getPeopleIn(roomId){ return where(everyone, key, equal, roomId); }
+
+function itemDescription(k, v) { 
+    return format("{1} {0} - {2}", k, v, 
+        (itemCatalogue[k] ? itemCatalogue[k].descrip : "(UNKOWN)")); 
+}
+
+function equipDescription(k, v) { 
+    return format("({0}) {1} - {2}", k, v, 
+        (itemCatalogue[k] ? itemCatalogue[k].descrip : "(UNKOWN)")); 
+}
+
+function roomPeopleDescription(k, v) { 
+    return format("{0}{1}", k, (everyone[k].hp > 0 ? "" : " (KNOCKED OUT)"));
+}
+
+function getRoom(id) { return currentRooms[id]; }
+function setRoom(id, rm) { currentRooms[id] = rm; }
+function roomExists(id) { return getRoom(id) != null; }
+
+function exitDescription(k, v) { 
+    return format("{0}{1}", k, ((v && roomExists(v.roomId)) ? "" : " (UNDER CONSTRUCTION)")); 
+}
+
+function moveItem(itm, from, to, actName, locName) {
+    if(from[itm]){
+        --from[itm];
+        if(from[itm] == 0)
+            from[itm] = undefined;
+        if(!to[itm])
+            to[itm] = 0;
+        ++to[itm];
+        displayln(format("You {0} the {1}.", actName, itm));
+    }
+    else{
+        displayln(format("There is no {0} {1}", itm, locName));
+    }
+}
+
+function informUser(toId, fromId, msg) { 
+    if(everyone[toId])
+        everyone[toId].msgQ.push([fromId, msg]); 
+}
+
+function informUsers(usrs, fromId, msg) {
+    for(var userId in usrs)
+        informUser(userId, fromId, msg);
+}
+
+function hashSatisfies(from, to, greaterThan) {
+    for(var k in to)
+        if(!from[k] || from[k] < to[k])
+            return false;
+    return true;
+}
+
+function setIds(hsh) { for (var k in hsh) hsh[k].id = k; }
+function displayln(msg){
+    var output = document.getElementById("output");
+    output.innerHTML += msg + "\n";
+    output.scrollTop = output.scrollHeight;
+}
+
+// COMMANDS =======================================================================
+
+Body.prototype.quit = function() {
+    informUsers(everyone, this.id, ["quit"]);
+    if(this.id == "player")
+        done = true;
+    everyone[this.id] = undefined;
+}
+
+Body.prototype.help = function() { 
+    displayln("Available commands:");
+    for(var i = 0; i < currentCmds.length; ++i){
+        var func = this[currentCmds[i]];
+        var src = func.toString();
+        var j = src.indexOf(")");
+        src = src.substring(0, j);
+        src = src.replace("function ", "");
+        src = src.replace("(", " ");
+        src = src.replace(", ", " ");
+        src = src.replace(",", " ");            
+        displayln(format("\t{0} {1}", currentCmds[i], src));
+    }
+}
+
+Body.prototype.look = function() {
+    var rm = getRoom(this.roomId);
+    var people = where(getPeopleIn(this.roomId), key, compose(not, equal), this.id);
+    if(rm)
+        displayln(format("ROOM: {0}\n\nITEMS:\n\t{1}\n\nPEOPLE:\n\t{2}\n\nEXITS:\n\t{3}\n"
+            + "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-",
+            rm.descrip,
+            formatHash(itemDescription, rm.items),
+            formatHash(roomPeopleDescription, people),
+            formatHash(exitDescription, rm.exits)));
+}
+
+Body.prototype.move = function(dir) {
+    var rm = getRoom(this.roomId);
+    var exit = rm.exits[dir];
+    if(roomExists(exit.roomId) && (!exit.key || this.items[exit.key])){
+        informUsers(getPeopleIn(this.roomId), this.id, ["left"]);
+        this.roomId = exit.roomId;
+        informUsers(getPeopleIn(this.roomId), this.id, ["entered"]);
+    }
+    else
+        displayln("You can't go that way. " + (exit.key ? exit.lockMsg : ""));
+}
+
+Body.prototype.north = function(){ this.move("north"); }
+Body.prototype.east = function(){ this.move("east"); }
+Body.prototype.south = function(){ this.move("south"); }
+Body.prototype.west = function(){ this.move("west"); }
+
+Body.prototype.take = function(itemId) {
+    var rm = getRoom(this.roomId);
+    moveItem(itemId, rm.items, this.items, "picked up", "here");
+    informUsers(getPeopleIn(this.roomId), this.id, ["take", itemId]);
+}
+
+Body.prototype.drop = function(itemId) {
+    var rm = getRoom(this.roomId);
+    moveItem(itemId, this.items, room.items, "dropped", "in your inventory");
+    informUsers(getPeopleIn(this.roomId), this.id, ["drop", itemId]);
+}
+
+Body.prototype.give = function(targetId, itemId) {
+    var rm = getRoom(this.roomId);
+    var people = getPeopleIn(this.roomId);
+    var target = people(targetId);
+    if(target) {
+        moveItem(itemId, this.items, target.items, format("gave to {0}", targetId), "in your inventory");
+        informUsers(people, this.id, ["give", targetId, itemId]);
+    }
+    else{
+        displayln("{0} is not here", targetId);
+    }
+}
+
+Body.prototype.make = function(recipeId) {
+    var recipe = recipes[recipeId];
+    if(!hashSatisfies(this.items, recipe.tools)) {
+        displayln("You don't have all of the tools.");
+    }
+    else if(!hashSatisfies(this.items, recipe.ingredients)) {
+        displayln("You don't have all of the ingredients");
+    }
+    else {
+        for(var key in recipe.ingredients) {
+            this.items[key] -= recipe.ingredients[key];
+            if(this.items[key] == 0)
+                this.items[key] = undefined;
+            displayln(format("{0} {1}(s) removed from inventory.", recipe.ingredients[key], key));
+        }
+        
+        for(var key in recipe.results) {
+            if(!this.items[key])
+                this.items[key] = 0;
+            this.items[key] += recipe.results[key];
+            displayln(format("You created {0} {1}(s).", recipe.results[key], key));
+        }
+        
+        informUsers(getPeopleIn(this.roomId), this.id, ["make", recipeId]);
+    }
+}
+
+Body.prototype.inv = function() {
+    displayln(format("\t{0}\n\t{1}",
+        formatHash(itemDescription, this.items),
+        formatHash(equipDescription, this.equipment)));
+}
+
+
+Body.prototype.equip = function(itemId) {
+    var itmCount = this.items[itemId];
+    if(itmCount === undefined || itmCount <= 0) {
+         displayln(format("You don't have the {0}.", itemId));
+    }
+    else {
+        var itm = itemCatalogue[itemId];
+        if(itm.equipType == "none") {
+            displayln(format("You can't equip the {0}.", itemId));
+        }
+        else{
+            var current = this.equipment[itm.equipType];
+            if(current){
+                if(!this.items[current])
+                    this.items[current] = 0;
+                ++this.items[current];
+                
+                this.equipment[itm.equipType] = itemId;
+                
+                --this.items[itemId];
+                if(this.items[itemId] == 0)
+                    this.items[itemId] = undefined;
+                    
+                displayln(format("You equiped the {0} as a {1}.", itemId, itm.equipType));
+            }
+        }
+    }
+}
+
+Body.prototype.remove = function(itemId) {
+    for(var slot in this.equipment){
+        if(this.equipment[slot] == itemId){
+            if(!this.items[itemId])
+                this.items[itemId] = 0;
+            ++this.items[itemId];
+            
+            this.equipment[slot] = undefined;
+            displayln(format("You removed the {0} as your {1}.", itemId, slot));
+            return;
+        }
+    }
+    displayln(format("There is no {0} to remove.", itemId));
+}
+
+
+Body.prototype.attack = function(targetId) {
+    var atk = 1;
+    var wpnId = this.equipment["tool"];
+    if(wpnId){
+        var wpn = itemCatalogue(wpnId);
+        if(wpn)
+            atk = wpn.strength;
+    }
+    else{
+        wpnId = "nothing";
+    }
+    var people = getPeopleIn(this.roomId);
+    var target = people[targetId];
+    if(target) {
+        target.hp -= atk;
+        informUsers(people, this.id, ["attack", targetId]);
+        informUser(targetId, this.id, ["damage", atk]);
+        displayln(format("You attack {0} with {1} for {2} damage.", targetId, wpnId, atk));
+    }
+    else {
+        displayln(format("There is no {0} to attack.", targetId));
+    }
+}
+
+// INPUT AND TOKENIZING ===========================================================
+
+Body.prototype.doCommand = function(){
+    var str = this.inputQ.pop();
+    displayln(str);
+    if(str.length > 0){
+        var tokens = str.split(" ");
+        var params = tokens.slice(1);
+        var cmd = tokens[0];
+        if(currentCmds.indexOf(cmd) < 0){
+            displayln(format("I don't understand \"{0}\".", cmd));
+        }
+        else{
+            var proc = this[cmd];
+            if(params.length < proc.length){
+                displayln("not enough parameters");
+            }
+            else if(params.length > proc.length){
+                displayln("too many parameters");
+            }
+            else{
+                proc.apply(this, params);
+            }
+        }
+    }
+}
+
+function run() {
+    try{
+    document.getElementById("start").style.display = "none";
+    init();
+    var timer = null;
+    var loop = function() {
+        if(done){
+            clearInterval(timer);
+            document.getElementById("start").style.display = "inline-block";
+        }
+        else {
+            var bodyId = "player";
+            var body = everyone[bodyId];
+            if(body.inputQ.length > 0){
+                if(body.hp > 0){
+                    displayln(bodyId);
+                    body.doCommand();
+                }
+                else{ 
+                    displayln("Knocked out!"); 
+                }
+            }
+        }
+    };
+    timer = setInterval(loop, 100);
+    }
+    catch(exp){
+        console.log(exp);
+    }
+}
+// STATE ==========================================================================
+
+var currentRooms = {"test": new Room("a test room\n\nThere is not a lot to see here.\nThis is just a test room.\nIt's meant for testing.\nNothing more.\nGoodbye.",
+                          {"north": new Exit("test2"),
+                           "east": new Exit("test3"),
+                           "south": new Exit("test4", "feather", "you need a feather"),
+                           "west": null},
+                          {"sword": 1, "bird": 1, "rock": 5, "garbage": 0, "orb": 1, "hidden": 0}),
+                          
+                    "test2": new Room("another test room\n\nKeep moving along",
+                           {"south": new Exit("test")}),
+                           
+                    "test3": new Room("a loop room\n\nit's probably going to work",
+                           {"south": new Exit("test5")}),
+  
+                    "test4": new Room("locked room\n\nThis room was locked with the bird",
+                           {"north": new Exit("test")}),
+  
+                    "test5": new Room("a loop room, 2\n\nit's probably going to work",
+                           {"west": new Exit("test4")})};
+                           
+var currentCmds = ["quit", "help", "look", "take", "drop", "give", "inv", 
+"make", "equip", "remove", "attack", "north", "south", "east", "west"];
+
+var equipTypes = ["none", "head", "eyes", "shoulders", "torso", 
+"pants", "belt", "shirt", "biceps", "forearms", "hands", "thighs", 
+"calves", "feet", "tool", "throwable", "necklace", "bracelet"];
+
+var itemCatalogue = {
+    "sword": new Item("a rusty sword", "tool", 10),
+    "bird": new Item("definitely a bird", "none", 0),
+    "dead-bird": new Item("maybe he's pining for the fjords?", "none", 0),
+    "feather": new Item("bird-hair", "none", 0),
+    "rock": new Item("definitely not a bird", "throwable", 2),
+    "garbage": new Item("some junk", "none", 0),
+    "shovel": new Item("used to butter bread", "tool", 5)};
+    
+var recipes = {
+    "dead-bird": new Recipe({"bird": 1}, {"sword": 1}, {"dead-bird": 1, "feather": 5})};
+    
+setIds(currentRooms);
+setIds(itemCatalogue);
+setIds(recipes);
+
+var everyone = null;
+function init(){    
+    done = false;
+    everyone = {"player": new Body("test", 10),
+                "dave": new Body("test", 10),
+                "mark": new Body("test", 10),
+                "carl": new Body("test", 10)};
+    setIds(everyone);
+}
+
+var done = false;
+
+function submitCommand(evt){
+    if(evt.keyCode == 13){
+        var val = input.value.trim().toLowerCase();
+        input.value = "";
+        everyone["player"].inputQ.push(val);
+        return false;
+    }
+    return true;
+}
+var input = null;
+function setup(){
+    input = document.getElementById("input");
+    input.addEventListener("keypress", submitCommand, false);
+}
+</script>
+<style type="text/css">
+#input, #output{
+    position:relative;
+    font-family:"Courier New";
+    font-size:12pt;
+    width:50em;
+}
+#output{
+    height:25em;
+    overflow:scroll;
+}
+</style>
+</head>
+<body onload="setup()">
+    <pre id="output"></pre><br>
+    <input type="text" id="input" autocomplete="off"><button onclick="run()" id="start">start</button>
+
+</body>
+</html>
