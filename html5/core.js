@@ -12,6 +12,10 @@ function hashMap(hsh, thunk) {
     return output;
 }
 
+function selectRandom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
 function format() {
     var args = [].slice.call(arguments, 1);
     return arguments[0].replace(/{(\d+)}/g, function(match, number) { 
@@ -99,19 +103,8 @@ function getRoom(id) { return currentRooms[id]; }
 function setRoom(id, rm) { currentRooms[id] = rm; }
 function roomExists(id) { return getRoom(id) != null; }
 
-function moveItem(itm, from, to, actName, locName, amt) {
-	if(transfer(itm, from, to, amt))
-        displayln(format("You {0} the {1}.", actName, itm));
-    else
-        displayln(format("There is no {0} {1}", itm, locName));
-}
-
-function informUser(toId, fromId, msg) { 
-    if(everyone[toId])
-        everyone[toId].msgQ.push([fromId, msg]); 
-}
-
-function informUsers(usrs, fromId, msg) {
+function informUsers(usrs, msg) {
     for(var userId in usrs)
-        informUser(userId, fromId, msg);
+        everyone[userId].informUser(msg);
 }
+

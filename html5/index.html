@@ -10,6 +10,7 @@
 <script type="text/javascript" src="items.js"></script>
 <script type="text/javascript" src="recipes.js"></script>
 <script type="text/javascript" src="io.js"></script>
+<script type="text/javascript" src="ai.js"></script>
 <script type="text/javascript">
 
 function load() {
@@ -24,17 +25,17 @@ function load() {
     position:relative;
     font-family:"Courier New";
     font-size:12pt;
-    width:50em;
+    width:100%;
 }
 #output{
     height:35em;
-    overflow:scroll;
+    overflow-y:scroll;
 }
 </style>
 </head>
 <body onload="load()">
     <div id="output"></div>
-    <input type="text" id="input" autocomplete="off"><button onclick="run()" id="start">start</button>
-
+    <input type="text" id="input" autocomplete="off">
+    <button onclick="run()" id="start">start</button>
 </body>
 </html>

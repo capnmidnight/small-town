@@ -3,6 +3,7 @@ var output = null;
 var done = false;
 var everyone = null;
 var soFar = "";
+
 function displayln(msg){
     soFar += msg + "\n\n";
     output.innerHTML = markdown.toHTML(soFar);
@@ -18,6 +19,10 @@ function run() {
                     "mark": new Body("test", 10),
                     "carl": new Body("test", 10)};
         setIds(everyone);
+        for(var key in everyone) {
+            if(key != "player")
+                everyone[key].initAI();
+        }
 		var timer = null;
 		var loop = function() {
 			if(done){
@@ -25,17 +30,27 @@ function run() {
 				document.getElementById("start").style.display = "inline-block";
 			}
 			else {
-				var bodyId = "player";
-				var body = everyone[bodyId];
-				if(body.inputQ.length > 0){
-					if(body.hp > 0){
-						displayln(bodyId);
-						body.doCommand();
-					}
-					else{ 
-						displayln("Knocked out!"); 
-					}
-				}
+				for(var bodyId in everyone) {
+                    var body = everyone[bodyId];
+                    
+                    if(bodyId == "player") {
+                        body.printInformation();
+                    }
+                    else if(body.hp > 0) {
+                        body.doAI();
+                    }
+                        
+                    if(body.inputQ.length > 0) {
+                        if(body.hp > 0) {
+                            body.doCommand();
+                        }
+                        else { 
+                            body.sysMsg("Knocked out!");
+                            while(body.inputQ.length > 0) 
+                                body.inputQ.shift();
+                        }
+                    }
+                }
 			}
 		};
 		timer = setInterval(loop, 100);
