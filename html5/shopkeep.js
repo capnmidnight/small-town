@@ -71,7 +71,7 @@ ShopKeep.prototype.react_buy = function (m)
     }
 }
 
-ShopKeep.prototype.takeRandomExit = function ()
+ShopKeep.prototype.idleAction = function ()
 {
     // do nothing, and keep the shopkeep where they are set.
 }

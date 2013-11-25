@@ -227,8 +227,8 @@ Body.prototype.take = function (itemId)
 
     for (var i = 0; i < items.length; ++i)
     {
-        this.moveItem(items[i], rm.items, this.items, "picked up", "here", rm.items[items[i]]);
         informUsers(getPeopleIn(this.roomId), new Message(this.id, "take", [items[i]]));
+        this.moveItem(items[i], rm.items, this.items, "picked up", "here", rm.items[items[i]]);
     }
 }
 

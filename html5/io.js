@@ -61,7 +61,7 @@ function run()
             "bird": new Lot(10, { "gold": 1 }),
             "steel-wool": new Lot(12, { "gold": 2 })
         }),
-        "mark": new AIBody("test", 10),
+        "mark": new Scavenger("test", 10),
         "carl": new AIBody("test", 10)
     };
     setIds(everyone);

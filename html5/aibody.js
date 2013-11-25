@@ -8,7 +8,7 @@ function AIBody(roomId, hp, items, equipment)
 
 AIBody.prototype = Object.create(Body.prototype);
 
-AIBody.prototype.takeRandomExit = function ()
+AIBody.prototype.idleAction = function ()
 {
     var rm = currentRooms[this.roomId];
     var exitIds = hashMap(rm.exits, key);
@@ -69,7 +69,7 @@ AIBody.prototype.update = function ()
         }
         else
         {
-            this.takeRandomExit();
+            this.idleAction();
         }
         this.lastTime = now;
     }
