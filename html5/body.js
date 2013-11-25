@@ -159,7 +159,7 @@ Body.prototype.help = function ()
         src = src.replace("(", " ");
         src = src.replace(", ", " ");
         src = src.replace(",", " ");
-        msg += format("- {0} {1}\n\n", currentCmds[i], src);
+        msg += format("*    {0} {1}\n\n", currentCmds[i], src);
     }
     this.sysMsg(msg);
 }

@@ -7,7 +7,22 @@ var soFar = "";
 function displayln(msg)
 {
     soFar += msg + "\n\n";
-    output.innerHTML = markdown.toHTML(soFar);
+    var lines = soFar.split("\n\n");
+    var listOn = false;
+    for (var i = 0; i < lines.length; ++i)
+    {
+        if (lines[i].indexOf("*   ") >= 0)
+        {
+            lines[i] = lines[i].replace("*    ", listOn ? "<li>" : "<ul><li>") + "</li>";
+            listOn = true;
+        }
+        else
+        {
+            lines[i] = (listOn ? "</ul>" : "") + lines[i].replace("***", "<hr>") + "<br/>";
+            listOn = false;
+        }
+    }
+    output.innerHTML = lines.join("\n");
     output.scrollTop = output.scrollHeight;
 }
 

@@ -45,7 +45,7 @@ function formatHash(formatter, hsh)
     {
         var strs = hashMap(hsh, formatter);
         if (strs.length > 0)
-            return strs.join("\n");
+            return strs.join("\n\n");
     }
     return "none";
 }
@@ -109,7 +109,7 @@ function getPeopleIn(roomId)
 
 function itemDescription(k, v)
 {
-    return format("-    {1} {0} - {2}", k, v,
+    return format("*    {1} {0} - {2}", k, v,
         (itemCatalogue[k] ? itemCatalogue[k].descrip : "(UNKOWN)"));
 }
 
@@ -121,12 +121,12 @@ function equipDescription(k, v)
 
 function roomPeopleDescription(k, v)
 {
-    return format("-    {0}{1}", k, (everyone[k].hp > 0 ? "" : " (KNOCKED OUT)"));
+    return format("*    {0}{1}", k, (everyone[k].hp > 0 ? "" : " (KNOCKED OUT)"));
 }
 
 function exitDescription(k, v)
 {
-    return format("+    {0}{1}", k, ((v && roomExists(v.roomId)) ? "" : " (UNDER CONSTRUCTION)"));
+    return format("*    {0}{1}", k, ((v && roomExists(v.roomId)) ? "" : " (UNDER CONSTRUCTION)"));
 }
 
 function getRoom(id) { return currentRooms[id]; }
