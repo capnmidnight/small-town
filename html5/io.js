@@ -15,12 +15,18 @@ function submitCommand(evt)
 {
     if (evt.keyCode == 13)
     {
-        var val = input.value.trim().toLowerCase();
-        input.value = "";
-        everyone["player"].inputQ.push(val);
+        enterCommand();
         return false;
     }
     return true;
+}
+
+function enterCommand()
+{
+    var val = input.value.trim().toLowerCase();
+    input.value = "";
+    everyone["player"].inputQ.push(val);
+    input.focus();
 }
 
 function setup(iId, oId)
