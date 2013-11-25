@@ -73,6 +73,10 @@ Body.prototype.doCommand = function ()
         {
             this.sysMsg("too many parameters");
         }
+        else if(this.hp <= 0 && cmd != "quit")
+        {
+            this.sysMsg("knocked out!");
+        }
         else
         {
             proc.apply(this, params);
@@ -131,7 +135,8 @@ Body.prototype.update = function ()
         var m = this.msgQ.shift();
         msg += format("{0} {1} {2}\n\n", m.fromId, m.message, m.payload.join(" "));
     }
-    msg = msg.trim();
+    if (msg.length > 0)
+        msg += format("{0} ({1}) :>", this.id, this.hp);
     if (msg.length > 0)
     {
         displayln(msg);
@@ -213,22 +218,19 @@ Body.prototype.west = function () { this.move("west"); }
 Body.prototype.take = function (itemId)
 {
     var rm = getRoom(this.roomId);
-    var items = [];
-
+    
     if (itemId == "all")
     {
         for (var key in rm.items)
-            items.push(key);
+        {
+            informUsers(getPeopleIn(this.roomId), new Message(this.id, "take", [key]));
+            this.moveItem(key, rm.items, this.items, "picked up", "here", rm.items[key]);
+        }
     }
     else
     {
-        items.push(itemId);
-    }
-
-    for (var i = 0; i < items.length; ++i)
-    {
-        informUsers(getPeopleIn(this.roomId), new Message(this.id, "take", [items[i]]));
-        this.moveItem(items[i], rm.items, this.items, "picked up", "here", rm.items[items[i]]);
+        informUsers(getPeopleIn(this.roomId), new Message(this.id, "take", [itemId]));
+        this.moveItem(itemId, rm.items, this.items, "picked up", "here");
     }
 }
 
@@ -327,8 +329,8 @@ Body.prototype.equip = function (itemId)
 Body.prototype.who = function ()
 {
     var msg = "People online:\n\n";
-    var people = where(everyone, function (k, v) { return v instanceof AIBody; }, equal, false);
-    msg += formatHash(function (k, v) { return format("*   {0} - {1}", k, v.roomId); }, people);
+    var people = where(everyone, isAI, equal, false);
+    msg += formatHash(function (k, v) { return format("*    {0} - {1}", k, v.roomId); }, people);
     this.sysMsg(msg);
 }
 
@@ -371,8 +373,8 @@ Body.prototype.attack = function (targetId)
             wpnId = "bare fists";
         }
         target.hp -= atk;
-        informUsers(people, this.id, new Message("attack", [targetId]));
-        target.informUser(this.id, new Message("damage", [atk]));
+        informUsers(people, new Message(this.id, "attack", [targetId]));
+        target.informUser(new Message(this.id, "damage", [atk]));
         this.sysMsg(format("You attacked {0} with {1} for {2} damage.", targetId, wpnId, atk));
     }
 }

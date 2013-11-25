@@ -9,6 +9,7 @@
     <script type="text/javascript" src="aibody.js"></script>
     <script type="text/javascript" src="shopkeep.js"></script>
     <script type="text/javascript" src="scavenger.js"></script>
+    <script type="text/javascript" src="aggressor.js"></script>
     <script type="text/javascript" src="room.js"></script>
     <script type="text/javascript" src="item.js"></script>
     <script type="text/javascript" src="recipe.js"></script>
@@ -24,7 +25,12 @@
 
     </script>
     <style type="text/css">
-        #input, #output
+        body, #input
+        {
+            color: #00ff00;
+            background-color: black;
+        }
+        #input, #output, #start, #enter
         {
             position: relative;
             font-family: "Courier New";
@@ -43,7 +49,7 @@
     <div id="output"></div>
     <input type="text" id="input" autocomplete="off" value="help">
     <button onclick="run()" id="start">start</button>
-    <button onclick="enterCommand()">enter</button>
+    <button onclick="enterCommand()" id="enter">enter</button>
 </body>
 </html>
 

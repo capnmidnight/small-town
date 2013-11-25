@@ -18,28 +18,19 @@ AIBody.prototype.idleAction = function ()
 AIBody.prototype.react_damage = function (m)
 {
     this.yell(format("Ouch! Stop it, {0}!", m.fromId));
-    this.target = m.fromId;
 }
 
 AIBody.prototype.react_tell = function (m)
 {
     var people = getPeopleIn(this.roomId);
     var msg = m.payload[0];
-    if (msg == "gift")
-    {
-        this.tell(m.fromId, "You have to ask nicely.");
-    }
-    else if (msg == "gift please")
-    {
-        this.give(m.fromId, selectRandom(hashMap(this.items, key)));
-    }
-    else if(msg == "quit")
+    if (msg == "quit")
     {
         this.quit();
     }
 }
 
-AIBody.prototype.react_say = function(m)
+AIBody.prototype.react_say = function (m)
 {
     if (m.payload[0] == "hello")
         this.say("Hi!");
@@ -63,14 +54,8 @@ AIBody.prototype.update = function ()
 
     if ((now - this.lastTime) >= this.dt)
     {
-        if (this.target && getPeopleIn(this.roomId)[this.target])
-        {
-            this.attack(this.target);
-        }
-        else
-        {
+        if (this.hp > 0)
             this.idleAction();
-        }
         this.lastTime = now;
     }
 };

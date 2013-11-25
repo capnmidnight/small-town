@@ -107,6 +107,11 @@ function getPeopleIn(roomId)
     return where(everyone, function (k, v) { return v.roomId; }, equal, roomId);
 }
 
+function isAI(k, v)
+{
+    return v instanceof AIBody;
+}
+
 function itemDescription(k, v)
 {
     return format("*    {1} {0} - {2}", k, v,

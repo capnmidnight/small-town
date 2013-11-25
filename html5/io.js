@@ -56,13 +56,14 @@ function run()
     document.getElementById("start").style.display = "none";
     done = false;
     everyone = {
-        "player": new Body("test", 10),
+        "player": new Body("test", 100),
         "dave": new ShopKeep("test", 10, {
             "bird": new Lot(10, { "gold": 1 }),
             "steel-wool": new Lot(12, { "gold": 2 })
         }),
         "mark": new Scavenger("test", 10),
-        "carl": new AIBody("test", 10)
+        "carl": new AIBody("test", 10),
+        "doug": new Aggressor("test", 10, null, { "tool": "sword" })
     };
     setIds(everyone);
     var timer = null;
