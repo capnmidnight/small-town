@@ -19,13 +19,24 @@ Body.prototype.react = function (m) {
             this.target = m.fromId;
             break;
         case "tell":
-            if(m.payload[0] == "inventory"
+            var msg = m.payload[0];
+            if(msg == "inventory"
                 && people[m.fromId]) {
                 var itms = hashMap(this.items, key).join(", ");
                 if(itms.length == 0)
                     itms = "nothing";
                 this.tell(m.fromId, format("I have: {0}", itms));
             }
+            else if(msg == "gift"){
+                this.tell(m.fromId, "You have to ask nicely.");
+            }
+            else if(msg == "gift please"){
+                this.give(m.fromId, selectRandom(hashMap(this.items, key)));
+            }
+            break;
+        case "say":
+            if(m.payload[0] == "hello")
+                this.say("Hi!");
             break;
     }
 }

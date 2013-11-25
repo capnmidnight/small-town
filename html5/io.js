@@ -15,7 +15,7 @@ function run() {
 		document.getElementById("start").style.display = "none";
         done = false;
         everyone = {"player": new Body("test", 10),
-                    "dave": new Body("test", 10),
+                    "dave": new Body("test", 10, {"bird": 1}),
                     "mark": new Body("test", 10),
                     "carl": new Body("test", 10)};
         setIds(everyone);

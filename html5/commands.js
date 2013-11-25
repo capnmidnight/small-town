@@ -165,7 +165,7 @@ Body.prototype.moveItem = function(itm, from, to, actName, locName, amt) {
 Body.prototype.give = function(targetId, itemId) {
     var rm = getRoom(this.roomId);
     var people = getPeopleIn(this.roomId);
-    var target = people(targetId);
+    var target = people[targetId];
     if(target) {
         this.moveItem(itemId, this.items, target.items, format("gave to {0}", targetId), "in your inventory");
         informUsers(people, new Message(this.id, "gave", [targetId]));
