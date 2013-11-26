@@ -1,6 +1,6 @@
 var currentCmds = ["quit", "help", "who", "look", "take", "drop", "give",
 "inv", "make", "equip", "remove", "attack", "loot",
-"say", "yell", "tell", "buy",
+"say", "yell", "tell", "buy", "sell",
 "north", "south", "east", "west"];
 
 // Body class
@@ -95,6 +95,20 @@ Body.prototype.buy = function (targetId, itemId)
     else
     {
         target.informUser(new Message(this.id, "buy", [itemId]));
+    }
+}
+
+Body.prototype.sell = function (targetId, itemId)
+{
+    var people = getPeopleIn(this.roomId);
+    var target = people[targetId];
+    if (!target)
+    {
+        this.sysMsg(format("{0} is not here to sell to.", targetId));
+    }
+    else
+    {
+        target.informUser(new Message(this.id, "sell", [itemId]));
     }
 }
 

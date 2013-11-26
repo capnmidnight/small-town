@@ -13,11 +13,11 @@ Scavenger.prototype.idleAction = function ()
     var exits = hashMap(rm.exits, key);
     if(!this.moving && items.length > 0)
     {
-        this.take(selectRandom(items));
+        this.cmd("take {0}", selectRandom(items));
     }
     else
     {
-        this.move(selectRandom(exits));
+        this.cmd(selectRandom(exits));
     }
     this.moving = !this.moving;
 }

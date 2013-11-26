@@ -1,20 +1,30 @@
+// A few functions used in conjunction with
+// hashMap and where
 function equal(a, b) { return a == b; }
 function notEqual(a, b) { return a != b; }
 function greaterThan(a, b) { return a > b; }
 function key(k, v) { return k; }
 function value(k, v) { return v; }
 function pair(k, v) { return [k, v]; }
+function kvString(k, v){return format("{0} {1}", k, v);}
+function vkString(k, v){return format("{0} {1}", v, k);}
 
 function curry(f, v)
 {
-    var g = function ()
-    {
-        [].unshift.call(arguments, v);
-        return f.apply(this, arguments);
-    }
-    return g;
+		var g = function()
+		{
+			[].unshift.call(arguments, v);
+			f.apply(this, arguments);
+		}
+		return g;
 }
 
+// Applies a function to the contents of an associative
+// array, returning the results of each call on that
+// function in an array.
+//			- hsh: the associative array to process
+//			- thunk: a function, taking two parameters "key" and "value",
+//								that returns a single-value result.
 function hashMap(hsh, thunk)
 {
     var output = [];
@@ -23,11 +33,20 @@ function hashMap(hsh, thunk)
     return output;
 }
 
+// Picks a random item out of an array
 function selectRandom(arr)
 {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Makes templated strings.
+//   - template: a string that uses {#} placeholders,
+//							where # is an integer number representing
+//							an index into the args parameter array that
+//						 	will be used to replace the placeholder.
+//		- [args...]: a variable-length argument list that
+//							contains each of the elements that will
+//							replace the placeholders in the template.
 function format()
 {
     var args = [].slice.call(arguments, 1);
@@ -39,6 +58,15 @@ function format()
     });
 }
 
+// Frequently, it's necessary to print the status of a
+// hash. This function will run the printing, or return
+// the word "none" if there is nothing in the hash.
+//    - formatter: a function, taking two parameters "key"
+//            and "value", that returns a single-value 
+//            result, as in hashMap (as that is where it
+//            will be used). The function should return
+// 							 a string.
+//			- hsh: the associative array to process
 function formatHash(formatter, hsh)
 {
     if (hsh)
@@ -47,20 +75,25 @@ function formatHash(formatter, hsh)
         if (strs.length > 0)
             return strs.join("\n\n");
     }
-    return "none";
+    return "*    none";
 }
 
+// filters an associative array.
+//    - hsh: the associative array to process.
+//    - getter: a function, taking two parameters "key"
+//            and "value", that returns a single-value 
+//            result, as in hashMap.
+//    - comparer: a function, taking two values A and B,
+//            that compares the output of getter to the
+//            val parameter.
+//    - val: a filtering value.
 function where(hsh, getter, comparer, val)
 {
     var output = {};
     if (hsh && getter && comparer)
-    {
         for (var key in hsh)
-        {
             if (comparer(getter(key, hsh[key]), val))
                 output[key] = hsh[key];
-        }
-    }
     return output;
 }
 
