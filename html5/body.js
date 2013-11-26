@@ -291,6 +291,20 @@ Body.prototype.cmd_inv = function ()
         formatHash(itemDescription, this.items)));
 }
 
+Body.prototype.cmd_drink = function(itemId)
+{
+    var item = itemCatalogue[itemId];
+    if(!this.items[itemId])
+        this.sysMsg(format("You don't have a {0} to drink.", itemId));
+    else if(item.equipType != "potion")
+        this.sysMsg(format("You can't drink a {0}, for it is a {1}.", itemId, item.equipType));
+    else
+    {
+        dec(this.items, itemId);
+        this.hp += item.strength;
+        this.sysMsg(format("Health restored by {0} points.", item.strength));
+    }
+}
 
 Body.prototype.cmd_equip = function (itemId)
 {
@@ -298,7 +312,7 @@ Body.prototype.cmd_equip = function (itemId)
     var itm = itemCatalogue[itemId];
     if (itmCount === undefined || itmCount <= 0)
         this.sysMsg(format("You don't have the {0}.", itemId));
-    else if (itm.equipType == "none")
+    else if (equipTypes.indexOf(itm.equipType) < 0)
         this.sysMsg(format("You can't equip the {0}.", itemId));
     else
     {

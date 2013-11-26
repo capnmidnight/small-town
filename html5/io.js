@@ -56,13 +56,21 @@ function run()
     document.getElementById("start").style.display = "none";
     done = false;
     everyone = {
-        "player": new Body("welcome", 100),
+        "player": new Body("welcome", 100, {"gold": 10}),
         "dave": new ShopKeep("mainSquare", 10,
-            {"bird": 10, "steel-wool": 10},
-            {"bird": { "gold": 1 }, "steel-wool": { "gold": 2 }}),
+            {
+                "bird": 10,
+                "steel-wool": 10,
+                "health-potion": 3
+            },
+            {
+                "bird": { "gold": 1 },
+                "steel-wool": { "gold": 2 },
+                "health-potion": {"gold": 3}
+            }),
         "mark": new Scavenger("mainSquare", 10),
         "carl": new AIBody("mainSquare", 10),
-        "doug": new Aggressor("mainSquare", 10, null, { "tool": "sword" })
+        "doug": new AIBody("mainSquare", 10, null, { "tool": "sword" })
     };
     everyone.player.inputQ.push("look");
     setIds(everyone);
