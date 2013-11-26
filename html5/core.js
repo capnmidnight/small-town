@@ -11,20 +11,20 @@ function vkString(k, v){return format("{0} {1}", v, k);}
 
 function curry(f, v)
 {
-		var g = function()
-		{
-			[].unshift.call(arguments, v);
-			f.apply(this, arguments);
-		}
-		return g;
+        var g = function()
+        {
+            [].unshift.call(arguments, v);
+            f.apply(this, arguments);
+        }
+        return g;
 }
 
 // Applies a function to the contents of an associative
 // array, returning the results of each call on that
 // function in an array.
-//			- hsh: the associative array to process
-//			- thunk: a function, taking two parameters "key" and "value",
-//								that returns a single-value result.
+//          - hsh: the associative array to process
+//          - thunk: a function, taking two parameters "key" and "value",
+//                              that returns a single-value result.
 function hashMap(hsh, thunk)
 {
     var output = [];
@@ -36,21 +36,23 @@ function hashMap(hsh, thunk)
 // Picks a random item out of an array
 function selectRandom(arr)
 {
-    return arr[Math.floor(Math.random() * arr.length)];
+    if(arr)
+        return arr[Math.floor(Math.random() * arr.length)];
 }
 
 // Makes templated strings.
 //   - template: a string that uses {#} placeholders,
-//							where # is an integer number representing
-//							an index into the args parameter array that
-//						 	will be used to replace the placeholder.
-//		- [args...]: a variable-length argument list that
-//							contains each of the elements that will
-//							replace the placeholders in the template.
+//               where # is an integer number representing
+//               an index into the args parameter array that
+//               will be used to replace the placeholder.
+//   - [args...]: a variable-length argument list that
+//               contains each of the elements that will
+//               replace the placeholders in the template.
 function format()
 {
+    var template = arguments[0];
     var args = [].slice.call(arguments, 1);
-    return arguments[0].replace(/{(\d+)}/g, function (match, number)
+    return template.replace(/{(\d+)}/g, function (match, number)
     {
         return typeof args[number] != 'undefined'
           ? args[number]
@@ -62,11 +64,11 @@ function format()
 // hash. This function will run the printing, or return
 // the word "none" if there is nothing in the hash.
 //    - formatter: a function, taking two parameters "key"
-//            and "value", that returns a single-value 
+//            and "value", that returns a single-value
 //            result, as in hashMap (as that is where it
 //            will be used). The function should return
-// 							 a string.
-//			- hsh: the associative array to process
+//                           a string.
+//          - hsh: the associative array to process
 function formatHash(formatter, hsh)
 {
     if (hsh)
@@ -81,7 +83,7 @@ function formatHash(formatter, hsh)
 // filters an associative array.
 //    - hsh: the associative array to process.
 //    - getter: a function, taking two parameters "key"
-//            and "value", that returns a single-value 
+//            and "value", that returns a single-value
 //            result, as in hashMap.
 //    - comparer: a function, taking two values A and B,
 //            that compares the output of getter to the
@@ -147,7 +149,7 @@ function isAI(k, v)
 
 function getRealPeopleIn(roomId)
 {
-			return where(everyone, function(k, v){ return !(v instanceof AIBody) && (!roomId || v.roomId == roomId);}, equal, true);
+            return where(everyone, function(k, v){ return !(v instanceof AIBody) && (!roomId || v.roomId == roomId);}, equal, true);
 }
 
 function itemDescription(k, v)

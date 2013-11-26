@@ -1,10 +1,10 @@
-//	AIBody class
-// 	All AI systems either run through
-// 	run through Reactions or Idle Actions. Reactions occur
-// 	immediately after a message is received. Idle Actions
-// 	occur on a set time frequency.
-//		- parameters are the same as the Body class. AIBody is
-//							a subclass of Body
+//  AIBody class
+//  All AI systems either run through
+//  run through Reactions or Idle Actions. Reactions occur
+//  immediately after a message is received. Idle Actions
+//  occur on a set time frequency.
+//      - parameters are the same as the Body class. AIBody is
+//                          a subclass of Body
 function AIBody(roomId, hp, items, equipment)
 {
     Body.call(this, roomId, hp, items, equipment);
@@ -45,16 +45,18 @@ AIBody.prototype.update = function ()
 
 // simplifies adding commands to the command queue.
 // - parameters are the same as for format(template, [args...])
-AIBody.prototype.cmd = function()
+AIBody.prototype.cmd = function(msg)
 {
-    this.inputQ.push(format.apply(window, arguments));
+    this.inputQ.push(msg);
 }
 
 AIBody.prototype.idleAction = function ()
 {
     var rm = currentRooms[this.roomId];
-    var exitIds = hashMap(rm.exits, key);
-    this.cmd(selectRandom(exitIds));
+    var exits = hashMap(rm.exits, key);
+    var exit = selectRandom(exit);
+    if(exit)
+        this.cmd(exit);
 }
 
 // checks to see if there is a reaction registered
@@ -68,10 +70,10 @@ AIBody.prototype.react = function (m)
 
 AIBody.prototype.react_damage = function (m)
 {
-    this.cmd("yell Ouch! Stop it, {0}!", m.fromId);
+    this.cmd(format("yell Ouch! Stop it, {0}!", m.fromId));
 }
 
-// A debugging system for AI units. They will 
+// A debugging system for AI units. They will
 // issue whatever command you tell them to.
 AIBody.prototype.react_tell = function (m)
 {

@@ -33,19 +33,7 @@ function Exit(roomId, key, lockMsg)
 
 var currentRooms = {};
 currentRooms.welcome = new Room(
-  "   ___________________________\n\n"
-+ "  /    _                      \\n\n"
-+ "  |   / |  /  / / /   /   | / |\n\n"
-+ "  |  /__/ /__/ / /   /    |/  |\n\n"
-+ "  | /    /  / / /__ /__   /   |\n\n"
-+ "  |                           |\n\n"
-+ "  |                    _      |\n\n"
-+ "  |     /| /|   /  /  / \     |\n\n"
-+ "  |    / |/ |  /  /  /  |     |\n\n"
-+ "  |   /     | /__/  /___/     |\n\n"
-+ "  \___________________________/\n\n"
-+ "\n\n"
-+ "Welcome to a very simple, Multi-User\n\n"
+  "Welcome to a very simple, Multi-User\n\n"
 + "Dungeon that I have created. This MUD\n\n"
 + "is almost completely useless at this time.\n\n"
 + "However, you can run around in the few\n\n"
@@ -68,6 +56,6 @@ currentRooms.intro = new Room(
 + "Try \"take all\" followed by \"make sword\".\n\n") },
            { "steel-wool": 3, "rusty-metal": 1 });
 
-currentRooms.mainSquare = new Room("Welcome! You made it! There is nowhere else to go. You are stuck here");
+currentRooms.mainSquare = new Room("Welcome! You made it! There is nowhere else to go. You are stuck here.");
 
 setIds(currentRooms);

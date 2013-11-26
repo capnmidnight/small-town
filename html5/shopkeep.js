@@ -6,7 +6,6 @@ function ShopKeep(roomId, hp, items, prices, equipment)
 
 ShopKeep.prototype = Object.create(AIBody.prototype);
 
-
 ShopKeep.prototype.react_tell = function (m)
 {
     var people = getPeopleIn(this.roomId);
@@ -16,16 +15,16 @@ ShopKeep.prototype.react_tell = function (m)
         var msg = m.payload[0];
         if (msg == "inv")
         {
-        	   var output = "";
-        	   for(var itemId in this.items)
-        	       if(this.prices[itemId])
-        	           output += format("*    {0} ({1}) - {2}\n\n", itemId, this.items[itemId], 
-        	               hashMap(this.prices[itemId], vkString).join(","));
+            var output = "";
+            for(var itemId in this.items)
+                if(this.prices[itemId])
+                    output += format("*    {0} ({1}) - {2}\n\n", itemId, this.items[itemId],
+                        hashMap(this.prices[itemId], vkString).join(","));
             if (output.length == 0)
                 output = " nothing";
             else
                 output = "\n\n" + output;
-            this.cmd("tell {0} I have:{1}", m.fromId, output);
+            this.cmd(format("tell {0} I have:{1}", m.fromId, output));
         }
     }
 }
@@ -40,17 +39,14 @@ ShopKeep.prototype.react_buy = function (m)
         var item = this.items[itemId];
         var price = this.prices[itemId];
         if (!item)
-        {
-            this.cmd("tell {0} item not available", m.fromId);
-        }
+            this.cmd(format("tell {0} item not available", m.fromId));
         else if (!hashSatisfies(target.items, price))
-        {
-            this.cmd("tell {0} price not met", m.fromId);
-        }
+            this.cmd(format("tell {0} price not met", m.fromId));
         else
         {
-        			this.cmd("sell {0} {1}", m.fromId, itemId);
-        			this.cmd("tell {0} pleasure doing business", m.fromId);
+            this.cmd(format("sell {0} {1}", m.fromId, itemId));
+            this.cmd(format("tell {0} pleasure doing business",
+                m.fromId));
         }
     }
 }
@@ -66,45 +62,46 @@ ShopKeep.prototype.react_sell = function (m)
         var price = this.prices[itemId];
         if (!item)
         {
-            this.cmd("tell {0} you don't have that item", m.fromId);
+            this.cmd(format("tell {0} you don't have that item",
+                m.fromId));
         }
         else if (!hashSatisfies(this.items, price))
         {
-            this.cmd("tell {0} I can't afford that", m.fromId);
+            this.cmd(format("tell {0} I can't afford that", m.fromId));
         }
         else
         {
-        			this.cmd("buy {0} {1}", m.fromId, itemId);
-        			this.cmd("tell {0} pleasure doing business", m.fromId);
+            this.cmd(format("buy {0} {1}", m.fromId, itemId));
+            this.cmd(format("tell {0} pleasure doing business",
+                m.fromId));
         }
     }
 }
 
-ShopKeep.prototype.buy = function(targetId, itemId)
-{
-			var people = getPeopleIn(this.roomId);
-			var target = people[targetId];
-			var item = this.items[itemId];
-			var price = this.prices[itemId];
-			if(target && item && price)
-			{
+ShopKeep.prototype.cmd_buy = function(targetId, itemId) {
+    var people = getPeopleIn(this.roomId);
+    var target = people[targetId];
+    var item = this.items[itemId];
+    var price = this.prices[itemId];
+    if(target && item && price)
+    {
         for (var k in price)
-            this.give(targetId, k, price[k]);
-        target.give(this.id, itemId);
+            this.cmd_give(targetId, k, price[k]);
+        target.cmd_give(this.id, itemId);
     }
 }
 
-ShopKeep.prototype.sell = function(targetId, itemId)
+ShopKeep.prototype.cmd_sell = function(targetId, itemId)
 {
-			var people = getPeopleIn(this.roomId);
-			var target = people[targetId];
-			var item = this.items[itemId];
-			var price = this.prices[itemId];
-			if(target && item && price)
-			{
+    var people = getPeopleIn(this.roomId);
+    var target = people[targetId];
+    var item = this.items[itemId];
+    var price = this.prices[itemId];
+    if(target && item && price)
+    {
         for (var k in price)
-            target.give(this.id, k, price[k]);
-        this.give(targetId, itemId);
+            target.cmd_give(this.id, k, price[k]);
+        this.cmd_give(targetId, itemId);
     }
 }
 

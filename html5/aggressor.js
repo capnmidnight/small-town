@@ -1,12 +1,12 @@
 // Aggressor class
-//	A violent NPC. Will alternate between moving and attacking
+//  A violent NPC. Will alternate between moving and attacking
 // players.
-//	- roomId: the name of the room in which the Aggressor starts.
-//	- hp: how much health the Aggressor starts with.
-//	- items (optional): an associative array of item IDs to counts,
-//			representing the stuff in the character's pockets.
-//	- equipment (optional): an associative array of item IDs to
-//			counts, representing the stuff in use by the character.	
+//  - roomId: the name of the room in which the Aggressor starts.
+//  - hp: how much health the Aggressor starts with.
+//  - items (optional): an associative array of item IDs to counts,
+//          representing the stuff in the character's pockets.
+//  - equipment (optional): an associative array of item IDs to
+//          counts, representing the stuff in use by the character.
 
 function Aggressor(roomId, hp, items, equipment)
 {
@@ -20,15 +20,15 @@ Aggressor.prototype.idleAction = function ()
 {
     var rm = getRoom(this.roomId);
     var people = hashMap(getRealPeopleIn(this.roomId), key);
+    var target = selectRandom(people);
     var exits = hashMap(rm.exits, key);
-    if(!this.moving)
+    var exit = selectRandom(exits);
+    if(!this.moving && target)
     {
         this.cmd("say RAAAARGH!");
-        this.cmd("attack {0}", selectRandom(people));
+        this.cmd(format("attack {0}", selectRandom(people)));
     }
-    else
-    {
-        this.cmd(selectRandom(exits));
-    }
+    else if(exit)
+        this.cmd(exit);
     this.moving = !this.moving;
 }

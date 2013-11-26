@@ -10,14 +10,12 @@ Scavenger.prototype.idleAction = function ()
 {
     var rm = getRoom(this.roomId);
     var items = hashMap(rm.items, key);
+    var item = selectRandom(item);
     var exits = hashMap(rm.exits, key);
-    if(!this.moving && items.length > 0)
-    {
-        this.cmd("take {0}", selectRandom(items));
-    }
-    else
-    {
-        this.cmd(selectRandom(exits));
-    }
+    var exit = selectRandom(exits);
+    if(!this.moving && item)
+        this.cmd(format("take {0}", item));
+    else if(exit)
+        this.cmd(exit);
     this.moving = !this.moving;
 }

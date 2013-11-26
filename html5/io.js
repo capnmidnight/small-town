@@ -58,12 +58,13 @@ function run()
     everyone = {
         "player": new Body("welcome", 100),
         "dave": new ShopKeep("mainSquare", 10,
-        			{"bird": 10, "steel-wool": 10},
+            {"bird": 10, "steel-wool": 10},
             {"bird": { "gold": 1 }, "steel-wool": { "gold": 2 }}),
-        "mark": new Scavenger("test", 10),
-        "carl": new AIBody("test", 10),
-        "doug": new Aggressor("test", 10, null, { "tool": "sword" })
+        "mark": new Scavenger("mainSquare", 10),
+        "carl": new AIBody("mainSquare", 10),
+        "doug": new Aggressor("mainSquare", 10, null, { "tool": "sword" })
     };
+    everyone.player.inputQ.push("look");
     setIds(everyone);
     var timer = null;
     var loop = function ()
