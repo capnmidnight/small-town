@@ -31,28 +31,43 @@ function Exit(roomId, key, lockMsg)
     this.id = null;
 }
 
-var currentRooms = {
+var currentRooms = {};
+currentRooms.welcome = new Room(
+  "   ___________________________\n\n"
++ "  /    _                      \\n\n"
++ "  |   / |  /  / / /   /   | / |\n\n"
++ "  |  /__/ /__/ / /   /    |/  |\n\n"
++ "  | /    /  / / /__ /__   /   |\n\n"
++ "  |                           |\n\n"
++ "  |                    _      |\n\n"
++ "  |     /| /|   /  /  / \     |\n\n"
++ "  |    / |/ |  /  /  /  |     |\n\n"
++ "  |   /     | /__/  /___/     |\n\n"
++ "  \___________________________/\n\n"
++ "\n\n"
++ "Welcome to a very simple, Multi-User\n\n"
++ "Dungeon that I have created. This MUD\n\n"
++ "is almost completely useless at this time.\n\n"
++ "However, you can run around in the few\n\n"
++ "rooms that exist and try to get a feel\n\n"
++ "for things!",
+          {"leave": new Exit("intro")});
+          
+currentRooms.intro = new Room(
+  "Learning the commands to the game important.\n\n"
++ "You can see all of the commands you're\n\n"
++ "capable of by typing <strong>help</strong> in the command\n\n"
++ "box below and either hitting your enter key\n\n"
++ "or tapping the enter button.\n\n"
++ "\n\n"
++ "You will have to take the items in this room\n\n"
++ "and make a key in order to exit.\n\n",
+           { "exit": new Exit("mainSquare", "sword", 
+  "Don't forget to take the items (rusty metal"
++ "and steel-wool) and use them to make a sword.\n\n"
++ "Try \"take all\" followed by \"make sword\".\n\n") },
+           { "steel-wool": 3, "rusty-metal": 1 });
 
-    "test": new Room("a test room\n\nThere is not a lot to see here.\nThis is just a test room.\nIt's meant for testing.\nNothing more.\nGoodbye.",
-          {
-              "north": new Exit("test2"),
-              "east": new Exit("test3"),
-              "south": new Exit("test4", "feather", "you need a feather")
-          },
-          { "sword": 1, "bird": 1, "rock": 5, "gold": 10 }),
-
-    "test2": new Room("another test room\n\nKeep moving along",
-           { "south": new Exit("test") },
-           { "steel-wool": 4 }),
-
-    "test3": new Room("a loop room\n\nit's probably going to work",
-           { "south": new Exit("test5") }),
-
-    "test4": new Room("locked room\n\nThis room was locked with the bird",
-           { "north": new Exit("test") }),
-
-    "test5": new Room("a loop room, 2\n\nit's probably going to work",
-           { "west": new Exit("test4") })
-};
+currentRooms.mainSquare = new Room("Welcome! You made it! There is nowhere else to go. You are stuck here");
 
 setIds(currentRooms);

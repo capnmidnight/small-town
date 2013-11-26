@@ -56,8 +56,8 @@ function run()
     document.getElementById("start").style.display = "none";
     done = false;
     everyone = {
-        "player": new Body("test", 100),
-        "dave": new ShopKeep("test", 10,
+        "player": new Body("welcome", 100),
+        "dave": new ShopKeep("mainSquare", 10,
         			{"bird": 10, "steel-wool": 10},
             {"bird": { "gold": 1 }, "steel-wool": { "gold": 2 }}),
         "mark": new Scavenger("test", 10),

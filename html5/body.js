@@ -1,7 +1,7 @@
 var currentCmds = ["quit", "help", "who", "look", "take", "drop", "give",
 "inv", "make", "equip", "remove", "attack", "loot",
 "say", "yell", "tell", "buy", "sell",
-"north", "south", "east", "west"];
+"north", "south", "east", "west", "leave", "up", "down", "enter", "exit"];
 
 // Body class
 //	A person, notionally. Both PCs and NPCs are represented as
@@ -213,7 +213,7 @@ Body.prototype.move = function (dir)
         || exit.key
             && !this.items[exit.key])
     {
-        this.sysMsg(format("You can't go that {0}. {1}.", dir, ((exit && exit.key) ? exit.lockMsg : "")));
+        this.sysMsg(format("You can't go {0}. {1}.", dir, ((exit && exit.key) ? exit.lockMsg : "")));
     }
     else
     {
@@ -228,6 +228,11 @@ Body.prototype.north = function () { this.move("north"); }
 Body.prototype.east = function () { this.move("east"); }
 Body.prototype.south = function () { this.move("south"); }
 Body.prototype.west = function () { this.move("west"); }
+Body.prototype.leave = function () { this.move("leave"); }
+Body.prototype.up = function () { this.move("up"); }
+Body.prototype.down = function () { this.move("down"); }
+Body.prototype.enter = function () { this.move("enter"); }
+Body.prototype.exit = function () { this.move("exit"); }
 
 Body.prototype.take = function (itemId)
 {
@@ -343,8 +348,7 @@ Body.prototype.equip = function (itemId)
 Body.prototype.who = function ()
 {
     var msg = "People online:\n\n";
-    var people = where(everyone, isAI, equal, false);
-    msg += formatHash(function (k, v) { return format("*    {0} - {1}", k, v.roomId); }, people);
+    msg += formatHash(function (k, v) { return format("*    {0} - {1}", k, v.roomId); }, everyone);
     this.sysMsg(msg);
 }
 
