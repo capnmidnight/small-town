@@ -154,8 +154,8 @@ Body.prototype.cmd_help = function ()
             src = src.replace("(", " ");
             src = src.replace(", ", " ");
             src = src.replace(",", " ");
-            src = src.replace("cmd_", "");
-            msg += format("*    {0} {1}\n\n", currentCmds[i], src);
+            cmd = cmd.replace("cmd_", "");
+            msg += format("*    {0} {1}\n\n", cmd, src);
         }
     }
     this.sysMsg(msg);
