@@ -22,7 +22,6 @@ AIBody.prototype.react_damage = function (m)
 
 AIBody.prototype.react_tell = function (m)
 {
-    var people = getPeopleIn(this.roomId);
     var msg = m.payload[0];
     if (msg == "quit")
     {

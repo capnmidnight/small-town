@@ -9,7 +9,7 @@ Aggressor.prototype = Object.create(AIBody.prototype);
 Aggressor.prototype.idleAction = function ()
 {
     var rm = getRoom(this.roomId);
-    var people = hashMap(where(getPeopleIn(this.roomId), isAI, equal, false), key);
+    var people = hashMap(getRealPeopleIn(this.roomId), key);
     var exits = hashMap(rm.exits, key);
     if(!this.moving)
     {

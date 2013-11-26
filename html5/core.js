@@ -112,16 +112,21 @@ function isAI(k, v)
     return v instanceof AIBody;
 }
 
+function getRealPeopleIn(roomId)
+{
+			return where(everyone, function(k, v){ return !(v instanceof AIBody) && (!roomId || v.roomId == roomId);}, equal, true);
+}
+
 function itemDescription(k, v)
 {
     return format("*    {1} {0} - {2}", k, v,
-        (itemCatalogue[k] ? itemCatalogue[k].descrip : "(UNKOWN)"));
+        (itemCatalogue[k] ? itemCatalogue[k].descrip : "(UNKNOWN)"));
 }
 
 function equipDescription(k, v)
 {
     return format("*    ({0}) {1} - {2}", k, v,
-        (itemCatalogue[v] ? itemCatalogue[v].descrip : "(UNKOWN)"));
+        (itemCatalogue[v] ? itemCatalogue[v].descrip : "(UNKNOWN)"));
 }
 
 function roomPeopleDescription(k, v)

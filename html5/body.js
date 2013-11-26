@@ -1,5 +1,5 @@
 var currentCmds = ["quit", "help", "who", "look", "take", "drop", "give",
-"inv", "make", "equip", "remove", "attack",
+"inv", "make", "equip", "remove", "attack", "loot",
 "say", "yell", "tell", "buy",
 "north", "south", "east", "west"];
 
@@ -377,4 +377,29 @@ Body.prototype.attack = function (targetId)
         target.informUser(new Message(this.id, "damage", [atk]));
         this.sysMsg(format("You attacked {0} with {1} for {2} damage.", targetId, wpnId, atk));
     }
+}
+
+Body.prototype.loot = function(targetId)
+{
+			var people = getPeopleIn(this.roomId);
+			var target = people[targetId];
+			if(!target)
+			{
+        this.sysMsg(format("{0} is not here to loot.", targetId));
+			}
+			else if(target.hp > 0)
+			{
+					this.sysMsg(format("{0} knocks your hand away from his pockets.", targetId));
+			}
+			else
+			{
+					for(var slot in target.equipment)
+					{
+							target.remove(target.equipment[slot]);
+					}
+					for(var itemId in target.items)
+					{
+							this.moveItem(itemId, target.items, this.items, "looted", "from " + targetId, target.items[itemId]);
+					}
+			}
 }
