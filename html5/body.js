@@ -366,6 +366,19 @@ Body.prototype.cmd_attack = function (targetId)
         }
         else
             wpnId = "bare fists";
+
+        var def = 0;
+        for(var i = 0; i < armorTypes.length; ++i)
+        {
+            var armId = target.equipment[armorTypes[i]];
+            if(armId)
+            {
+                var arm = itemCatalogue[armId];
+                if(arm)
+                    def += arm.strength;
+            }
+        }
+        atk = Math.max(atk - def, 0);
         target.hp -= atk;
         informUsers(people, new Message(this.id, "attack", [targetId]));
         target.informUser(new Message(this.id, "damage", [atk]));

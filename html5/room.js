@@ -54,7 +54,7 @@ currentRooms.intro = new Room(
   "Don't forget to take the items (rusty metal"
 + "and steel-wool) and use them to make a sword.\n\n"
 + "Try \"take all\" followed by \"make sword\".\n\n") },
-           { "steel-wool": 3, "rusty-metal": 1 });
+           { "steel-wool": 3, "rusty-metal": 1, "helmet": 1 });
 
 currentRooms.mainSquare = new Room(
   "Main Square\n\n\n\n"

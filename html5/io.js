@@ -70,7 +70,7 @@ function run()
             }),
         "mark": new Scavenger("mainSquare", 10),
         "carl": new AIBody("mainSquare", 10),
-        "doug": new AIBody("mainSquare", 10, null, { "tool": "sword" })
+        "doug": new Aggressor("mainSquare", 10, null, { "tool": "sword" })
     };
     everyone.player.inputQ.push("look");
     setIds(everyone);
