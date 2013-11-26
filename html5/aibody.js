@@ -73,6 +73,11 @@ AIBody.prototype.react_damage = function (m)
     this.cmd(format("yell Ouch! Stop it, {0}!", m.fromId));
 }
 
+AIBody.prototype.react_attack = function (m)
+{
+    this.cmd(format("say Whoa, settle down, {0}!", m.fromId));
+}
+
 // A debugging system for AI units. They will
 // issue whatever command you tell them to.
 AIBody.prototype.react_tell = function (m)

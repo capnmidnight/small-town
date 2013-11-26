@@ -26,6 +26,8 @@ ShopKeep.prototype.react_tell = function (m)
                 output = "\n\n" + output;
             this.cmd(format("tell {0} I have:{1}", m.fromId, output));
         }
+        else
+            AIBody.prototype.react_tell.call(this, m);
     }
 }
 
