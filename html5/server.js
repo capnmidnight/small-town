@@ -5,15 +5,11 @@ var io = socketsio.listen(app);
 var fs = require("fs");
 var core = require("./core.js");
 var serverState = require("./serverState.js");
+var Body = require("./body.js");
 
 app.listen(8080);
 
 done = false;
-
-// gives every object in an associative array access to its
-// own key name.
-
-serverState.everyone.player.inputQ.push("look");
 
 var timer = null;
 var loop = function ()
@@ -53,14 +49,19 @@ function handler(req, res)
     });
 }
 
-function getCommand(data)
-{
-    console.log(data);
-    serverState.everyone.player.inputQ.push(data);
-}
-
 io.sockets.on("connection", function(socket)
 {
-    serverState.everyone.player.socket = socket;
-    socket.on("cmd", getCommand);
+    socket.on("name", function(name)
+    {
+        console.log("naming", name, !!(serverState.everyone[name]));
+        if(!serverState.everyone[name])
+        {
+            serverState.everyone[name] = new Body("welcome", 100, {"gold": 10}, null, socket, name);
+            socket.emit("good name", name);
+        }
+        else
+        {
+            socket.emit("news", "Name is already in use, try another one.");
+        }
+    });
 });

@@ -93,5 +93,5 @@ AIBody.prototype.react_tell = function (m)
 AIBody.prototype.react_say = function (m)
 {
     if (m.payload[0] == "hello")
-        this.say("Hi!");
+        this.cmd("say Hi!");
 }

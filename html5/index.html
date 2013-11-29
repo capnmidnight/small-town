@@ -5,64 +5,68 @@
     <title>JSMUD</title>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
-var input = null;
-var output = null;
-var soFar = "";
-var socket = null;
+        var input = null;
+        var output = null;
+        var soFar = "";
+        var socket = null;
+        var name = null;
 
-function displayln(msg)
-{
-    soFar += msg + "\n\n";
-    var lines = soFar.split("\n\n");
-    var listOn = false;
-    for (var i = 0; i < lines.length; ++i)
-    {
-        if (lines[i].indexOf("*   ") >= 0)
+        function displayln(msg)
         {
-            lines[i] = lines[i].replace("*    ", listOn ? "<li>" : "<ul><li>") + "</li>";
-            listOn = true;
+            soFar += msg + "\n\n";
+            var lines = soFar.split("\n\n");
+            var listOn = false;
+            for (var i = 0; i < lines.length; ++i)
+            {
+                if (lines[i].indexOf("*   ") >= 0)
+                {
+                    lines[i] = lines[i].replace("*    ", listOn ? "<li>" : "<ul><li>") + "</li>";
+                    listOn = true;
+                }
+                else
+                {
+                    lines[i] = (listOn ? "</ul>" : "") + lines[i].replace("***", "<hr>") + "<br/>";
+                    listOn = false;
+                }
+            }
+            output.innerHTML = lines.join("\n");
+            output.scrollTop = output.scrollHeight;
         }
-        else
+
+        function submitCommand(evt)
         {
-            lines[i] = (listOn ? "</ul>" : "") + lines[i].replace("***", "<hr>") + "<br/>";
-            listOn = false;
+            if (evt.keyCode == 13)
+            {
+                enterCommand();
+                return false;
+            }
+            return true;
         }
-    }
-    output.innerHTML = lines.join("\n");
-    output.scrollTop = output.scrollHeight;
-}
 
-function submitCommand(evt)
-{
-    if (evt.keyCode == 13)
-    {
-        enterCommand();
-        return false;
-    }
-    return true;
-}
+        function enterCommand()
+        {
+            var val = input.value.trim().toLowerCase();
+            input.value = "";
+            if(name)
+                socket.emit("cmd", val);
+            else
+                socket.emit("name", val);
+            input.focus();
+        }
 
-function enterCommand()
-{
-    var val = input.value.trim().toLowerCase();
-    input.value = "";
-    socket.emit("cmd", val);
-    input.focus();
-}
+        function setup(iId, oId)
+        {
+            input = document.getElementById(iId);
+            input.addEventListener("keypress", submitCommand, false);
+            output = document.getElementById(oId);
+        }
 
-function setup(iId, oId)
-{
-    input = document.getElementById(iId);
-    input.addEventListener("keypress", submitCommand, false);
-    output = document.getElementById(oId);
-}
-
-function run()
-{
-    document.getElementById("start").style.display = "none";
-    socket = io.connect("http://localhost:8080");
-    socket.on("news", displayln);
-}
+        function run()
+        {
+            socket = io.connect("http://localhost:8080");
+            socket.on("news", displayln);
+            socket.on("good name", function(data){name = data;});
+        }
 
         function load()
         {
@@ -95,9 +99,8 @@ function run()
     </style>
 </head>
 <body onload="load()">
-    <div id="output"></div>
+    <div id="output">Please enter a name below to continue.</div>
     <input type="text" id="input" autocomplete="off">
-    <button onclick="run()" id="start">start</button>
     <button onclick="enterCommand()" id="enter">enter</button>
 </body>
 </html>

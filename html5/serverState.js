@@ -11,7 +11,6 @@ var core = require("./core.js");
 
 module.exports.everyone =
 {
-    "player": new Body("welcome", 100, {"gold": 10}),
     "dave": new ShopKeep("mainSquare", 10,
     {
         "bird": 10,

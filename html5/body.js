@@ -12,16 +12,25 @@ var serverState = require("./serverState.js");
 //          representing the stuff in the character's pockets.
 //  - equipment (optional): an associative array of item IDs to
 //          counts, representing the stuff in use by the character.
-var Body = function(roomId, hp, items, equipment)
+var Body = function(roomId, hp, items, equipment, socket, id)
 {
     this.roomId = roomId;
     this.hp = hp;
     this.items = items ? items : {};
     this.equipment = equipment ? equipment : {};
     this.msgQ = [];
-    this.inputQ = [];
-    this.id = null;
-    this.socket = null;
+    this.inputQ = ["look"];
+    this.socket = socket;
+    if(this.socket)
+    {
+        var body = this;
+        this.socket.on("cmd", function (data)
+        {
+            console.log(data);
+            body.inputQ.push(data);
+        });
+    }
+    this.id = id;
 }
 
 Body.prototype.sysMsg = function (msg)
