@@ -45,7 +45,7 @@
 
         function enterCommand()
         {
-            var val = input.value.trim().toLowerCase();
+            var val = input.value.trim();
             input.value = "";
             if(name)
                 socket.emit("cmd", val);
@@ -65,13 +65,19 @@
         {
             socket = io.connect("http://localhost:8080");
             socket.on("news", displayln);
-            socket.on("good name", function(data){name = data;});
+            socket.on("good name", function(data)
+            {
+                displayln("Name accepted.");
+                name = data;
+                socket.emit("cmd", "look");
+            });
         }
 
         function load()
         {
             setup("input", "output");
             run();
+            displayln("Please enter a name below to continue.");
             input.focus();
         }
 
@@ -99,7 +105,7 @@
     </style>
 </head>
 <body onload="load()">
-    <div id="output">Please enter a name below to continue.</div>
+    <div id="output"></div>
     <input type="text" id="input" autocomplete="off">
     <button onclick="enterCommand()" id="enter">enter</button>
 </body>

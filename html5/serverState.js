@@ -9,6 +9,7 @@ var Item = require("./item.js");
 var Recipe = require("./recipe.js");
 var core = require("./core.js");
 
+module.exports.users = {};
 module.exports.everyone =
 {
     "dave": new ShopKeep("mainSquare", 10,
@@ -27,7 +28,7 @@ module.exports.everyone =
     "doug": new Aggressor("mainSquare", 10, null, { "tool": "sword" })
 };
 
-module.exports.everywhere =
+module.exports.rooms =
 {
     "welcome": new Room(
       "Welcome!\n\n\n\nWelcome to a very simple, Multi-User\n\n"
@@ -50,12 +51,39 @@ module.exports.everywhere =
                { "exit": new Exit("mainSquare", "sword",
       "Don't forget to take the items (rusty metal"
     + "and steel-wool) and use them to make a sword.\n\n"
-    + "Try \"take all\" followed by \"make sword\".\n\n") },
-               { "steel-wool": 3, "rusty-metal": 1, "helmet": 1 }),
+    + "Try \"take all\" followed by \"make sword\".\n\n") }),
 
     "mainSquare": new Room(
           "Main Square\n\n\n\n"
         + "Welcome! You made it! There is nowhere else to go. You are stuck here.")
+};
+
+module.exports.items = {};
+module.exports.everything = {"intro" : {"steel-wool": 3, "rusty-metal": 1, "helmet": 1 }};
+
+module.exports.lastSpawn = 0;
+module.exports.respawnRate = 5 * 60 * 1000; // 5 minutes worth of milliseconds
+module.exports.respawn = function()
+{
+    var now = Date.now();
+    if((now - this.lastSpawn) > this.respawnRate)
+    {
+        for(var userId in this.everyone)
+        {
+            if(!this.users[userId])
+                this.users[userId] = this.everyone[userId].copy();
+            this.everyone[userId].copyTo(this.users[userId]);
+        }
+
+        for(var roomId in this.everything)
+        {
+            if(!this.items[roomId])
+                this.items[roomId] = {};
+            for(var itemId in this.everything[roomId])
+                this.items[roomId][itemId] = this.everything[roomId][itemId];
+        }
+        this.lastSpawn = now;
+    }
 };
 
 module.exports.equipTypes = ["head", "eyes", "shoulders", "torso",
@@ -67,7 +95,7 @@ module.exports.armorTypes = ["head", "torso", "biceps", "forearms", "hands",
 
 module.exports.consumeTypes = ["potion", "food", "scroll"];
 
-module.exports.everything =
+module.exports.itemCatalogue =
 {
     "rusty-metal": new Item("a rusty sword", "tool", 10),
     "bird": new Item("definitely a bird", "none", 0),
@@ -83,7 +111,7 @@ module.exports.everything =
     "helmet": new Item("a basic helm for protecting your melon.", "head", 10)
 };
 
-module.exports.everyway =
+module.exports.recipes =
 {
     "dead-bird": new Recipe(
         { "bird": 1 },
@@ -97,7 +125,7 @@ module.exports.everyway =
 module.exports.getPeopleIn = function (roomId)
 {
     return core.where(
-        this.everyone,
+        this.users,
         function (k, v) { return v.roomId; },
         core.equal,
         roomId);
@@ -105,7 +133,8 @@ module.exports.getPeopleIn = function (roomId)
 
 function setIds(hsh) { for (var k in hsh) hsh[k].id = k; }
 
+setIds(module.exports.itemCatalogue);
 setIds(module.exports.everything);
-setIds(module.exports.everywhere);
 setIds(module.exports.everyone);
-setIds(module.exports.everyway);
+setIds(module.exports.recipes);
+setIds(module.exports.rooms);

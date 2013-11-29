@@ -9,9 +9,9 @@ var serverState = require("./serverState.js");
 //  occur on a set time frequency.
 //      - parameters are the same as the Body class. AIBody is
 //                          a subclass of Body
-function AIBody(roomId, hp, items, equipment)
+function AIBody(roomId, hp, items, equipment, id)
 {
-    Body.call(this, roomId, hp, items, equipment);
+    Body.call(this, roomId, hp, items, equipment, id);
     this.dt = Math.floor(Math.random() * 5) * 200 + 5000;
     this.lastTime = Date.now();
     this.target = null;
@@ -20,6 +20,11 @@ function AIBody(roomId, hp, items, equipment)
 module.exports = AIBody;
 
 AIBody.prototype = Object.create(Body.prototype);
+
+AIBody.prototype.copyTo = function(obj)
+{
+    AIBody.call(obj, this.roomId, this.hp, this.items, this.equipment, this.id);
+}
 
 // occurs as quickly as possible. Allows the AI unit
 // to react to actions against it immediately, and
@@ -56,7 +61,7 @@ AIBody.prototype.cmd = function(msg)
 
 AIBody.prototype.idleAction = function ()
 {
-    var rm = serverState.everywhere[this.roomId];
+    var rm = serverState.rooms[this.roomId];
     var exits = core.hashMap(rm.exits, core.key);
     var exit = core.selectRandom(exit);
     if(exit)
@@ -94,4 +99,10 @@ AIBody.prototype.react_say = function (m)
 {
     if (m.payload[0] == "hello")
         this.cmd("say Hi!");
+}
+
+AIBody.prototype.react_yell = function(m)
+{
+    if(!(serverState.users[m.fromId] instanceof AIBody))
+        this.cmd("yell SHADDAP!");
 }

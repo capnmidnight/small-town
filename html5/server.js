@@ -20,10 +20,11 @@ var loop = function ()
     }
     else
     {
-        for (var bodyId in serverState.everyone)
+        serverState.respawn();
+        for (var bodyId in serverState.users)
         {
-            var body = serverState.everyone[bodyId];
-            body["update"]();
+            var body = serverState.users[bodyId];
+            body.update();
             while (body.inputQ.length > 0)
                 body.doCommand();
         }
@@ -53,10 +54,9 @@ io.sockets.on("connection", function(socket)
 {
     socket.on("name", function(name)
     {
-        console.log("naming", name, !!(serverState.everyone[name]));
-        if(!serverState.everyone[name])
+        if(!serverState.users[name])
         {
-            serverState.everyone[name] = new Body("welcome", 100, {"gold": 10}, null, socket, name);
+            serverState.users[name] = new Body("welcome", 100, {"gold": 10}, null, name, socket);
             socket.emit("good name", name);
         }
         else

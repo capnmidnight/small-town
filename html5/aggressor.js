@@ -12,9 +12,9 @@ var serverState = require("./serverState.js");
 //  - equipment (optional): an associative array of item IDs to
 //          counts, representing the stuff in use by the character.
 
-function Aggressor(roomId, hp, items, equipment)
+function Aggressor(roomId, hp, items, equipment, id)
 {
-    AIBody.call(this, roomId, hp, items, equipment);
+    AIBody.call(this, roomId, hp, items, equipment, id);
     this.moving = true;
 }
 
@@ -22,9 +22,14 @@ module.exports = Aggressor;
 
 Aggressor.prototype = Object.create(AIBody.prototype);
 
+Aggressor.prototype.copyTo = function(obj)
+{
+    Aggressor.call(obj, this.roomId, this.hp, this.items, this.equipment, this.id);
+}
+
 Aggressor.prototype.idleAction = function ()
 {
-    var rm = serverState.everywhere[this.roomId];
+    var rm = serverState.rooms[this.roomId];
     var people = core.hashMap(serverState.getPeopleIn(this.roomId), core.key);
     var target = core.selectRandom(people);
     var exits = core.hashMap(rm.exits, core.key);
