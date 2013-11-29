@@ -20,13 +20,23 @@ var loop = function ()
     }
     else
     {
-        serverState.respawn();
-        for (var bodyId in serverState.users)
+        try{
+            serverState.respawn();
+            for (var bodyId in serverState.users)
+            {
+                var body = serverState.users[bodyId];
+                body.update();
+                while (body.inputQ.length > 0)
+                    body.doCommand();
+            }
+        }
+        catch(exp)
         {
-            var body = serverState.users[bodyId];
-            body.update();
-            while (body.inputQ.length > 0)
-                body.doCommand();
+            while(exp != null)
+            {
+                console.log(exp.message);
+                exp = exp.innerException;
+            }
         }
     }
 };

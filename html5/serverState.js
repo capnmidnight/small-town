@@ -134,7 +134,6 @@ module.exports.getPeopleIn = function (roomId)
 function setIds(hsh) { for (var k in hsh) hsh[k].id = k; }
 
 setIds(module.exports.itemCatalogue);
-setIds(module.exports.everything);
 setIds(module.exports.everyone);
 setIds(module.exports.recipes);
 setIds(module.exports.rooms);
