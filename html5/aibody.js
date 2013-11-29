@@ -1,3 +1,7 @@
+var Body = require("./body.js");
+var core = require("./core.js");
+var serverState = require("./serverState.js");
+
 //  AIBody class
 //  All AI systems either run through
 //  run through Reactions or Idle Actions. Reactions occur
@@ -12,6 +16,8 @@ function AIBody(roomId, hp, items, equipment)
     this.lastTime = Date.now();
     this.target = null;
 }
+
+module.exports = AIBody;
 
 AIBody.prototype = Object.create(Body.prototype);
 
@@ -31,9 +37,7 @@ AIBody.prototype.update = function ()
     var now = Date.now();
 
     while (this.msgQ.length > 0)
-    {
         this.react(this.msgQ.shift());
-    }
 
     if ((now - this.lastTime) >= this.dt)
     {
@@ -52,9 +56,9 @@ AIBody.prototype.cmd = function(msg)
 
 AIBody.prototype.idleAction = function ()
 {
-    var rm = currentRooms[this.roomId];
-    var exits = hashMap(rm.exits, key);
-    var exit = selectRandom(exit);
+    var rm = serverState.everywhere[this.roomId];
+    var exits = core.hashMap(rm.exits, core.key);
+    var exit = core.selectRandom(exit);
     if(exit)
         this.cmd(exit);
 }
@@ -70,12 +74,12 @@ AIBody.prototype.react = function (m)
 
 AIBody.prototype.react_damage = function (m)
 {
-    this.cmd(format("yell Ouch! Stop it, {0}!", m.fromId));
+    this.cmd(core.format("yell Ouch! Stop it, {0}!", m.fromId));
 }
 
 AIBody.prototype.react_attack = function (m)
 {
-    this.cmd(format("say Whoa, settle down, {0}!", m.fromId));
+    this.cmd(core.format("say Whoa, settle down, {0}!", m.fromId));
 }
 
 // A debugging system for AI units. They will

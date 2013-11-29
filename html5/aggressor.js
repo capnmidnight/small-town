@@ -1,3 +1,7 @@
+var AIBody = require("./aibody.js");
+var core = require("./core.js");
+var serverState = require("./serverState.js");
+
 // Aggressor class
 //  A violent NPC. Will alternate between moving and attacking
 // players.
@@ -14,19 +18,21 @@ function Aggressor(roomId, hp, items, equipment)
     this.moving = true;
 }
 
+module.exports = Aggressor;
+
 Aggressor.prototype = Object.create(AIBody.prototype);
 
 Aggressor.prototype.idleAction = function ()
 {
-    var rm = getRoom(this.roomId);
-    var people = hashMap(getRealPeopleIn(this.roomId), key);
-    var target = selectRandom(people);
-    var exits = hashMap(rm.exits, key);
-    var exit = selectRandom(exits);
+    var rm = serverState.everywhere[this.roomId];
+    var people = core.hashMap(serverState.getPeopleIn(this.roomId), core.key);
+    var target = core.selectRandom(people);
+    var exits = core.hashMap(rm.exits, core.key);
+    var exit = core.selectRandom(exits);
     if(!this.moving && target)
     {
         this.cmd("say RAAAARGH!");
-        this.cmd(format("attack {0}", selectRandom(people)));
+        this.cmd(core.format("attack {0}", core.selectRandom(people)));
     }
     else if(exit)
         this.cmd(exit);

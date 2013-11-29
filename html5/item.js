@@ -13,28 +13,4 @@ function Item(descrip, equipType, strength)
     this.id = null;
 }
 
-var equipTypes = ["head", "eyes", "shoulders", "torso",
-"pants", "belt", "shirt", "biceps", "forearms", "hands", "thighs",
-"calves", "feet", "tool", "throwable", "necklace", "bracelet"];
-
-var armorTypes = ["head", "torso", "biceps", "forearms", "hands",
-"thighs", "calves", "feet"];
-
-var consumeTypes = ["potion", "food", "scroll"];
-
-var itemCatalogue = {
-    "rusty-metal": new Item("a rusty sword", "tool", 10),
-    "bird": new Item("definitely a bird", "none", 0),
-    "dead-bird": new Item("maybe he's pining for the fjords?", "none", 0),
-    "feather": new Item("bird-hair", "none", 0),
-    "rock": new Item("definitely not a bird", "throwable", 2),
-    "garbage": new Item("some junk", "none", 0),
-    "shovel": new Item("used to butter bread", "tool", 5),
-    "sword": new Item("it glistens in the sun", "tool", 12),
-    "steel-wool": new Item("very scratchy", "none", 0),
-    "gold": new Item("a yellow metal that seems to be highly valued in these realms", "none", 0),
-    "health-potion": new Item("recovers 10 health", "potion", 10),
-    "helmet": new Item("a basic helm for protecting your melon.", "head", 10)
-};
-
-setIds(itemCatalogue);
+module.exports = Item;

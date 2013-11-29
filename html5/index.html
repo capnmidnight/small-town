@@ -3,18 +3,66 @@
 <head>
     <meta charset="utf-8">
     <title>JSMUD</title>
-    <script type="text/javascript" src="markdown.min.js"></script>
-    <script type="text/javascript" src="core.js"></script>
-    <script type="text/javascript" src="body.js"></script>
-    <script type="text/javascript" src="aibody.js"></script>
-    <script type="text/javascript" src="shopkeep.js"></script>
-    <script type="text/javascript" src="scavenger.js"></script>
-    <script type="text/javascript" src="aggressor.js"></script>
-    <script type="text/javascript" src="room.js"></script>
-    <script type="text/javascript" src="item.js"></script>
-    <script type="text/javascript" src="recipe.js"></script>
-    <script type="text/javascript" src="io.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
+var input = null;
+var output = null;
+var soFar = "";
+var socket = null;
+
+function displayln(msg)
+{
+    soFar += msg + "\n\n";
+    var lines = soFar.split("\n\n");
+    var listOn = false;
+    for (var i = 0; i < lines.length; ++i)
+    {
+        if (lines[i].indexOf("*   ") >= 0)
+        {
+            lines[i] = lines[i].replace("*    ", listOn ? "<li>" : "<ul><li>") + "</li>";
+            listOn = true;
+        }
+        else
+        {
+            lines[i] = (listOn ? "</ul>" : "") + lines[i].replace("***", "<hr>") + "<br/>";
+            listOn = false;
+        }
+    }
+    output.innerHTML = lines.join("\n");
+    output.scrollTop = output.scrollHeight;
+}
+
+function submitCommand(evt)
+{
+    if (evt.keyCode == 13)
+    {
+        enterCommand();
+        return false;
+    }
+    return true;
+}
+
+function enterCommand()
+{
+    var val = input.value.trim().toLowerCase();
+    input.value = "";
+    socket.emit("cmd", val);
+    input.focus();
+}
+
+function setup(iId, oId)
+{
+    input = document.getElementById(iId);
+    input.addEventListener("keypress", submitCommand, false);
+    output = document.getElementById(oId);
+}
+
+function run()
+{
+    document.getElementById("start").style.display = "none";
+    socket = io.connect("http://localhost:8080");
+    socket.on("news", displayln);
+}
 
         function load()
         {
@@ -30,6 +78,7 @@
             color: #00ff00;
             background-color: black;
         }
+
         #input, #output, #start, #enter
         {
             position: relative;
@@ -52,4 +101,3 @@
     <button onclick="enterCommand()" id="enter">enter</button>
 </body>
 </html>
-
