@@ -34,7 +34,12 @@ var loop = function ()
         {
             while(exp != null)
             {
-                console.log(exp.message);
+                console.log(core.format("{0} {{1}\n}",
+                    exp.message,
+                    core.hashMap(exp, function(k, v)
+                    {
+                        return core.format("\n\t{0}: {1}", k, v);
+                    }).join("\n")));
                 exp = exp.innerException;
             }
         }
