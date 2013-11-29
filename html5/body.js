@@ -21,6 +21,7 @@ var Body = function(roomId, hp, items, equipment)
     this.msgQ = [];
     this.inputQ = [];
     this.id = null;
+    this.socket = null;
 }
 
 Body.prototype.sysMsg = function (msg)
@@ -165,14 +166,16 @@ function itemDescription(k, v)
 
 function roomPeopleDescription(k, v)
 {
-    return format("*    {0}{1}", k, (serverState.everyone[k].hp > 0 ? "" : " (KNOCKED OUT)"));
+    return core.format("*    {0}{1}", k, (serverState.everyone[k].hp > 0 ? "" : " (KNOCKED OUT)"));
 }
 
 function exitDescription(k, v)
 {
-    return core.format("*    {0} to {1}", k, v);
+    return core.format("*    {0} to {1}", k, v.roomId);
 }
+
 function greaterThan(a, b) { return a > b; }
+
 Body.prototype.cmd_look = function ()
 {
     var rm = serverState.everywhere[this.roomId];
@@ -201,9 +204,11 @@ Body.prototype.cmd_look = function ()
 
 Body.prototype.move = function (dir)
 {
+    console.log("move", this.roomId, dir);
     var rm = serverState.everywhere[this.roomId];
     var exit = rm.exits[dir];
-    var exitRoom = exit && serverState.everwhere[exit.roomId];
+    console.log("rm", rm.id, "exit", exit.roomId);
+    var exitRoom = exit && serverState.everywhere[exit.roomId];
     if (!exit
         || !exitRoom
         || exit.key
@@ -240,13 +245,13 @@ Body.prototype.cmd_take = function (itemId)
 
     if (itemId == "all")
     {
-        for (var key in rm.items)
+        for (itemId in rm.items)
         {
             var people = serverState.getPeopleIn(this.roomId);
-            var m = new Message(this.id, "take", [key]);
+            var m = new Message(this.id, "take", [itemId]);
             for(var userId in people)
                 people[userId].informUser(m);
-            this.moveItem(key, rm.items, this.items, "picked up", "here", rm.items[key]);
+            this.moveItem(itemId, rm.items, this.items, "picked up", "here", rm.items[itemId]);
         }
     }
     else
@@ -271,7 +276,7 @@ Body.prototype.cmd_drop = function (itemId)
 
 Body.prototype.moveItem = function (itm, from, to, actName, locName, amt)
 {
-    if (transfer(itm, from, to, amt))
+    if (core.transfer(itm, from, to, amt))
         this.sysMsg(core.format("You {0} the {1}.", actName, itm));
     else
         this.sysMsg(core.format("There is no {0} {1}", itm, locName));
@@ -295,25 +300,25 @@ Body.prototype.cmd_give = function (targetId, itemId)
 
 Body.prototype.cmd_make = function (recipeId)
 {
-    var recipe = recipes[recipeId];
+    var recipe = serverState.everyway[recipeId];
     if(!recipe)
         this.sysMsg(core.format("{0} isn't a recipe.", recipeId));
-    if (!hashSatisfies(this.items, recipe.tools))
+    if (!core.hashSatisfies(this.items, recipe.tools))
         this.sysMsg("You don't have all of the tools.");
-    else if (!hashSatisfies(this.items, recipe.ingredients))
+    else if (!core.hashSatisfies(this.items, recipe.ingredients))
         this.sysMsg("You don't have all of the ingredients");
     else
     {
-        for (var key in recipe.ingredients)
+        for (var itemId in recipe.ingredients)
         {
-            dec(this.items, key, recipe.ingredients[key]);
-            this.sysMsg(core.format("{0} {1}(s) removed from inventory.", recipe.ingredients[key], key));
+            core.dec(this.items, itemId, recipe.ingredients[itemId]);
+            this.sysMsg(core.format("{0} {1}(s) removed from inventory.", recipe.ingredients[itemId], itemId));
         }
 
-        for (var key in recipe.results)
+        for (var itemId in recipe.results)
         {
-            inc(this.items, key, recipe.results[key]);
-            this.sysMsg(core.format("You created {0} {1}(s).", recipe.results[key], key));
+            core.inc(this.items, itemId, recipe.results[itemId]);
+            this.sysMsg(core.format("You created {0} {1}(s).", recipe.results[itemId], itemId));
         }
         var people = serverState.getPeopleIn(this.roomId);
         var m = new Message(this.id, "make", [recipeId]);
@@ -344,7 +349,7 @@ Body.prototype.cmd_drink = function(itemId)
         this.sysMsg(core.format("You can't drink a {0}, for it is a {1}.", itemId, item.equipType));
     else
     {
-        dec(this.items, itemId);
+        core.dec(this.items, itemId);
         this.hp += item.strength;
         this.sysMsg(core.format("Health restored by {0} points.", item.strength));
     }
@@ -362,9 +367,9 @@ Body.prototype.cmd_equip = function (itemId)
     {
         var current = this.equipment[itm.equipType];
         if (current)
-            inc(this.items, current);
+            core.inc(this.items, current);
         this.equipment[itm.equipType] = itemId;
-        dec(this.items, itemId);
+        core.dec(this.items, itemId);
         this.sysMsg(core.format("You equiped the {0} as a {1}.", itemId, itm.equipType));
     }
 }
@@ -375,7 +380,7 @@ Body.prototype.cmd_remove = function (itemId)
     {
         if (this.equipment[slot] == itemId)
         {
-            inc(this.items, itemId);
+            core.inc(this.items, itemId);
             delete this.equipment[slot];
             this.sysMsg(core.format("You removed the {0} as your {1}.", itemId, slot));
             return;

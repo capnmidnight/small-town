@@ -116,8 +116,8 @@ module.exports.transfer = function(itm, from, to, amt)
 {
     if (from[itm])
     {
-        dec(from, itm, amt);
-        inc(to, itm, amt);
+        this.dec(from, itm, amt);
+        this.inc(to, itm, amt);
         return true;
     }
     return false;
