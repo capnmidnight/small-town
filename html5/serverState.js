@@ -75,12 +75,13 @@ module.exports.respawn = function()
             this.everyone[userId].copyTo(this.users[userId]);
         }
 
-        for(var roomId in this.everything)
+        for(var roomId in this.rooms)
         {
             if(!this.items[roomId])
                 this.items[roomId] = {};
-            for(var itemId in this.everything[roomId])
-                this.items[roomId][itemId] = this.everything[roomId][itemId];
+            if(this.everything[roomId])
+                for(var itemId in this.everything[roomId])
+                    this.items[roomId][itemId] = this.everything[roomId][itemId];
         }
         this.lastSpawn = now;
     }

@@ -299,8 +299,8 @@ Body.prototype.cmd_take = function (itemId)
 
 Body.prototype.cmd_drop = function (itemId)
 {
-    var rm = serverState.rooms[this.roomId];
-    this.moveItem(itemId, this.items, rm.items, "dropped", "in your inventory");
+    var items = serverState.items[this.roomId];
+    this.moveItem(itemId, this.items, items, "dropped", "in your inventory");
     var people = serverState.getPeopleIn(this.roomId);
     var m = new Message(this.id, "drop", [itemId]);
     for(var userId in people)
