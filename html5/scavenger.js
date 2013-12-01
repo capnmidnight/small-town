@@ -19,10 +19,9 @@ Scavenger.prototype.copyTo = function(obj)
 
 Scavenger.prototype.idleAction = function ()
 {
-    console.log("scavenging");
     var rm = serverState.rooms[this.roomId];
     var items = core.hashMap(serverState.items[this.roomId], core.key);
-    var item = core.selectRandom(item);
+    var item = core.selectRandom(items);
     var exits = core.hashMap(rm.exits, core.key);
     var exit = core.selectRandom(exits);
     if(!this.moving && item)
