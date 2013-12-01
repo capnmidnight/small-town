@@ -71,8 +71,10 @@ module.exports.respawn = function()
         for(var userId in this.everyone)
         {
             if(!this.users[userId])
+            {
                 this.users[userId] = this.everyone[userId].copy();
-            this.everyone[userId].copyTo(this.users[userId]);
+                this.everyone[userId].copyTo(this.users[userId]);
+            }
         }
 
         for(var roomId in this.rooms)

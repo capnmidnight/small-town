@@ -9,39 +9,31 @@ var Body = require("./body.js");
 
 app.listen(8080);
 
-done = false;
-
 var timer = null;
 var loop = function ()
 {
-    if (done)
+    try
     {
-        clearInterval(timer);
-    }
-    else
-    {
-        try{
-            serverState.respawn();
-            for (var bodyId in serverState.users)
-            {
-                var body = serverState.users[bodyId];
-                body.update();
-                while (body.inputQ.length > 0)
-                    body.doCommand();
-            }
-        }
-        catch(exp)
+        serverState.respawn();
+        for (var bodyId in serverState.users)
         {
-            while(exp != null)
-            {
-                console.log(core.format("{0} {{1}\n}",
-                    exp.message,
-                    core.hashMap(exp, function(k, v)
-                    {
-                        return core.format("\n\t{0}: {1}", k, v);
-                    }).join("\n")));
-                exp = exp.innerException;
-            }
+            var body = serverState.users[bodyId];
+            body.update();
+            while (body.inputQ.length > 0)
+                body.doCommand();
+        }
+    }
+    catch(exp)
+    {
+        while(exp != null)
+        {
+            console.log(core.format("{0} {{1}\n}",
+                exp.message,
+                core.hashMap(exp, function(k, v)
+                {
+                    return core.format("\n\t{0}: {1}", k, v);
+                }).join("\n")));
+            exp = exp.innerException;
         }
     }
 };

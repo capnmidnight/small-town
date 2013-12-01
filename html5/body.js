@@ -166,8 +166,6 @@ Body.prototype.cmd_quit = function ()
     var m = new Message(this.id, ["quit"]);
     for(var userId in serverState.users)
         serverState.users[userId].informUser(m);
-    if (this.id == "player")
-        done = true;
     delete serverState.users[this.id];
 }
 
