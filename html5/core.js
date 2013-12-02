@@ -56,7 +56,7 @@ module.exports.selectRandom = function(arr)
 module.exports.format = function()
 {
     var template = arguments[0];
-    var args = [].slice.call(arguments, 1);
+    var args = Array.prototype.slice.call(arguments, 1);
     return template.replace(/{(\d+)}/g, function(match, number)
     {
         return typeof args[number] != 'undefined'

@@ -5,11 +5,8 @@
     <title>JSMUD</title>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
-        var input = null;
-        var output = null;
+        var input, output, socket, userName;
         var soFar = "";
-        var socket = null;
-        var name = null;
 
         function displayln(msg)
         {
@@ -38,6 +35,7 @@
             if (evt.keyCode == 13)
             {
                 enterCommand();
+                evt.preventDefault();
                 return false;
             }
             return true;
@@ -46,38 +44,66 @@
         function enterCommand()
         {
             var val = input.value.trim();
-            input.value = "";
-            if(name)
-                socket.emit("cmd", val);
-            else
-                socket.emit("name", val);
-            input.focus();
+            console.log(userName, val);
+            try
+            {
+                if (userName == null || !userName)
+                {
+                    console.log("sending name", userName, val);
+                    socket.emit("name", val);
+                }
+                else
+                {
+                    console.log("sending cmd", userName, val);
+                    socket.emit("cmd", val);
+                }
+                input.value = "";
+                input.focus();
+            }
+            catch (exp)
+            {
+                console.log(exp.message);
+            }
         }
 
         function setup(iId, oId)
         {
-            input = document.getElementById(iId);
-            input.addEventListener("keypress", submitCommand, false);
-            output = document.getElementById(oId);
+            try
+            {
+                input = document.getElementById(iId);
+                input.addEventListener("keypress", submitCommand, false);
+                output = document.getElementById(oId);
+            }
+            catch (exp)
+            {
+                console.log(exp.message);
+            }
         }
 
         function run()
         {
-            socket = io.connect("http://localhost:8080");
-            socket.on("news", displayln);
-            socket.on("good name", function(data)
+            try
             {
-                displayln("Name accepted.");
-                name = data;
-                socket.emit("cmd", "look");
-            });
+                socket = io.connect("http://localhost:8080/");
+                socket.emit("client", "hello");
+                socket.on("news", displayln);
+                socket.on("good name", function(data)
+                {
+                    displayln("Name accepted.");
+                    userName = data;
+                    socket.emit("cmd", "look");
+                });
+            }
+            catch (exp)
+            {
+                console.log(exp.message);
+            }
         }
 
         function load()
         {
             setup("input", "output");
             run();
-            displayln("Please enter a name below to continue.");
             input.focus();
         }
 
