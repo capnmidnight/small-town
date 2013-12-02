@@ -8,7 +8,7 @@
 function Room(descrip, exits)
 {
     this.descrip = descrip;
-    this.exits = exits;
+    this.exits = exits || {};
     this.id = null;
 }
 
