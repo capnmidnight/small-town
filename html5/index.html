@@ -5,7 +5,8 @@
     <title>JSMUD</title>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
-        var input, output, socket, userName;
+        var input, output, socket;
+        var userName = "";
         var soFar = "";
 
         function displayln(msg)
@@ -46,7 +47,8 @@
             var val = input.value.trim();
             try
             {
-                socket.emit(userName ? "cmd" : "name", val);
+                console.log((userName == "") ? "name" : "cmd", val);
+                socket.emit((userName == "") ? "name" : "cmd", val);
                 input.value = "";
                 input.focus();
             }
@@ -74,14 +76,26 @@
         {
             try
             {
-                socket = io.connect("http://localhost:8080/");
-                socket.emit("client", "hello");
-                socket.on("news", displayln);
+                socket = io.connect("http://localhost:8080/",
+                {
+                    "reconnect": true,
+                    "reconnection delay": 1000
+                });
+                socket.on("connect", function ()
+                {
+                    displayln("Connected.");
+                });
                 socket.on("good name", function (data)
                 {
                     displayln("Name accepted.");
                     userName = data;
                     socket.emit("cmd", "look");
+                });
+                socket.on("news", displayln);
+                socket.on("disconnect", function ()
+                {
+                    displayln("Disconnected.");
+                    userName = "";
                 });
             }
             catch (exp)
