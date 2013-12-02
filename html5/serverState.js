@@ -12,7 +12,7 @@ var core = require("./core.js");
 module.exports.users = {};
 module.exports.everyone =
 {
-    "dave": new ShopKeep("mainSquare", 10,
+    "dave": new ShopKeep("Main Square", 10,
     {
         "bird": 10,
         "steel-wool": 10,
@@ -23,9 +23,9 @@ module.exports.everyone =
         "steel-wool": { "gold": 2 },
         "health-potion": {"gold": 3}
     }),
-    "mark": new Scavenger("mainSquare", 10),
-    "carl": new AIBody("mainSquare", 10),
-    "doug": new Aggressor("mainSquare", 10, null, { "tool": "sword" })
+    "mark": new Scavenger("Main Square", 10),
+    "carl": new AIBody("Main Square", 10),
+    "doug": new Aggressor("Main Square", 10, null, { "tool": "sword" })
 };
 
 module.exports.rooms =
@@ -48,12 +48,12 @@ module.exports.rooms =
     + "\n\n"
     + "You will have to take the items in this room\n\n"
     + "and make a key in order to exit.\n\n",
-               { "exit": new Exit("mainSquare", "sword",
+               { "exit": new Exit("Main Square", "sword",
       "Don't forget to take the items (rusty metal"
     + "and steel-wool) and use them to make a sword.\n\n"
     + "Try \"take all\" followed by \"make sword\".\n\n") }),
 
-    "mainSquare": new Room(
+    "Main Square": new Room(
           "Main Square\n\n\n\n"
         + "Welcome! You made it! There is nowhere else to go. You are stuck here.")
 };
