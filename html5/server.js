@@ -18,9 +18,17 @@ var loop = function ()
         for (var bodyId in serverState.users)
         {
             var body = serverState.users[bodyId];
-            body.update();
-            while (body.inputQ.length > 0)
-                body.doCommand();
+            if (body.quit)
+            {
+                console.log(core.format("{0} quit", bodyId));
+                delete serverState.users[bodyId];
+            }
+            else
+            {
+                body.update();
+                while (body.inputQ.length > 0)
+                    body.doCommand();
+            }
         }
     }
     catch(exp)
@@ -71,4 +79,5 @@ io.sockets.on("connection", function(socket)
             socket.emit("news", "Name is already in use, try another one.");
         }
     });
+    socket.emit("news", "Please enter a name.");
 });

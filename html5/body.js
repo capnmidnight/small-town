@@ -28,13 +28,18 @@ var Body = function(roomId, hp, items, equipment, id, socket)
     this.msgQ = [];
     this.id = id;
     this.socket = socket;
+    this.quit = false;
     if(this.socket)
     {
         var body = this;
-        this.socket.on("cmd",
-        function(data)
+        this.socket.on("cmd", function(data)
         {
             body.inputQ.push(data);
+        });
+        this.socket.on("disconnect", function ()
+        {
+            console.log("user disconnected:", body.id);
+            body.cmd_quit();
         });
     }
 }
@@ -166,7 +171,7 @@ Body.prototype.cmd_quit = function ()
     var m = new Message(this.id, ["quit"]);
     for(var userId in serverState.users)
         serverState.users[userId].informUser(m);
-    delete serverState.users[this.id];
+    this.quit = true;
 }
 
 Body.prototype.cmd_help = function ()
