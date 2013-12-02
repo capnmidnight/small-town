@@ -44,19 +44,9 @@
         function enterCommand()
         {
             var val = input.value.trim();
-            console.log(userName, val);
             try
             {
-                if (userName == null || !userName)
-                {
-                    console.log("sending name", userName, val);
-                    socket.emit("name", val);
-                }
-                else
-                {
-                    console.log("sending cmd", userName, val);
-                    socket.emit("cmd", val);
-                }
+                socket.emit(userName ? "cmd" : "name", val);
                 input.value = "";
                 input.focus();
             }
@@ -87,7 +77,7 @@
                 socket = io.connect("http://localhost:8080/");
                 socket.emit("client", "hello");
                 socket.on("news", displayln);
-                socket.on("good name", function(data)
+                socket.on("good name", function (data)
                 {
                     displayln("Name accepted.");
                     userName = data;
