@@ -1,6 +1,7 @@
 var Body = require("./body.js");
 var core = require("./core.js");
 var serverState = require("./serverState.js");
+var format = require("util").format;
 
 //  AIBody class
 //  All AI systems either run through
@@ -79,12 +80,12 @@ AIBody.prototype.react = function (m)
 
 AIBody.prototype.react_damage = function (m)
 {
-    this.cmd(core.format("yell Ouch! Stop it, {0}!", m.fromId));
+    this.cmd(format("yell Ouch! Stop it, %s!", m.fromId));
 }
 
 AIBody.prototype.react_attack = function (m)
 {
-    this.cmd(core.format("say Whoa, settle down, {0}!", m.fromId));
+    this.cmd(format("say Whoa, settle down, %s!", m.fromId));
 }
 
 // A friendly greeting!

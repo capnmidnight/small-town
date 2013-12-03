@@ -4,6 +4,7 @@ var socketsio = require("socket.io");;
 var io = socketsio.listen(app);
 var fs = require("fs");
 var core = require("./core.js");
+var format = require("util").format;
 var serverState = require("./serverState.js");
 var Body = require("./body.js");
 
@@ -37,7 +38,7 @@ var loop = function () {
         for (var bodyId in serverState.users) {
             var body = serverState.users[bodyId];
             if (body.quit) {
-                console.log(core.format("{0} quit", bodyId));
+                console.log(format("%s quit", bodyId));
                 delete serverState.users[bodyId];
             }
             else {
@@ -48,10 +49,10 @@ var loop = function () {
         }
     }
     catch (exp) {
-        process.stderr.write(core.format("{0} {{1}\n}\n",
+        process.stderr.write(format("%s {%s\n}\n",
             exp.message,
             core.hashMap(exp, function (k, v) {
-                return core.format("\n\t{0}: {1}", k, v);
+                return format("\n\t%s: %s", k, v);
             }).join("\n")));
     }
 };

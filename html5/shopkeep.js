@@ -1,6 +1,7 @@
 var AIBody = require("./aibody.js");
 var core = require("./core.js");
 var serverState = require("./serverState.js");
+var format = require("util").format;
 
 function ShopKeep(roomId, hp, items, prices, equipment, id)
 {
@@ -23,7 +24,7 @@ ShopKeep.prototype.copyTo = function(obj)
     ShopKeep.call(obj, this.roomId, this.hp, this.items, this.prices, this.equipment, this.id);
 }
 
-function vkString(k, v){return core.format("{0} {1}", v, k);}
+function vkString(k, v){return format("%d %s", v, k);}
 ShopKeep.prototype.react_tell = function (m)
 {
     var people = serverState.getPeopleIn(this.roomId);
@@ -36,13 +37,13 @@ ShopKeep.prototype.react_tell = function (m)
             var output = "";
             for(var itemId in this.items)
                 if(this.prices[itemId])
-                    output += core.format("*    {0} ({1}) - {2}\n\n", itemId, this.items[itemId],
+                    output += format("*    %s (%d) - %s\n\n", itemId, this.items[itemId],
                         core.hashMap(this.prices[itemId], vkString).join(","));
             if (output.length == 0)
                 output = " nothing";
             else
                 output = "\n\n" + output;
-            this.cmd(core.format("tell {0} I have:{1}", m.fromId, output));
+            this.cmd(format("tell %s I have:%s", m.fromId, output));
         }
         else
             AIBody.prototype.react_tell.call(this, m);
@@ -59,13 +60,13 @@ ShopKeep.prototype.react_buy = function (m)
         var item = this.items[itemId];
         var price = this.prices[itemId];
         if (!item)
-            this.cmd(core.format("tell {0} item not available", m.fromId));
+            this.cmd(format("tell %s item not available", m.fromId));
         else if (!core.hashSatisfies(target.items, price))
-            this.cmd(core.format("tell {0} price not met", m.fromId));
+            this.cmd(format("tell %s price not met", m.fromId));
         else
         {
-            this.cmd(core.format("sell {0} {1}", m.fromId, itemId));
-            this.cmd(core.format("tell {0} pleasure doing business",
+            this.cmd(format("sell %s %s", m.fromId, itemId));
+            this.cmd(format("tell %s pleasure doing business",
                 m.fromId));
         }
     }
@@ -82,17 +83,17 @@ ShopKeep.prototype.react_sell = function (m)
         var price = this.prices[itemId];
         if (!item)
         {
-            this.cmd(core.format("tell {0} you don't have that item",
+            this.cmd(format("tell %s you don't have that item",
                 m.fromId));
         }
         else if (!core.hashSatisfies(this.items, price))
         {
-            this.cmd(core.format("tell {0} I can't afford that", m.fromId));
+            this.cmd(format("tell %s I can't afford that", m.fromId));
         }
         else
         {
-            this.cmd(core.format("buy {0} {1}", m.fromId, itemId));
-            this.cmd(core.format("tell {0} pleasure doing business",
+            this.cmd(format("buy %s %s", m.fromId, itemId));
+            this.cmd(format("tell %s pleasure doing business",
                 m.fromId));
         }
     }

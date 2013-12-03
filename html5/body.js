@@ -1,6 +1,7 @@
 var Message = require("./message.js");
 var core = require("./core.js");
 var serverState = require("./serverState.js");
+var format = require("util").format;
 
 // Body class
 //  A person, notionally. Both PCs and NPCs are represented as
@@ -79,7 +80,7 @@ Body.prototype.doCommand = function ()
 
         var proc = this["cmd_" + cmd];
         if (!proc)
-            this.sysMsg(core.format("I don't understand \"{0}\".", cmd));
+            this.sysMsg(format("I don't understand \"%s\".", cmd));
         else if (params.length < proc.length)
             this.sysMsg("not enough parameters");
         else if (params.length > proc.length)
@@ -98,7 +99,7 @@ Body.prototype.cmd_buy = function (targetId, itemId)
     var people = serverState.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)
-        this.sysMsg(core.format("{0} is not here to buy from.", targetId));
+        this.sysMsg(format("%s is not here to buy from.", targetId));
     else
         target.informUser(new Message(this.id, "buy", [itemId]));
 }
@@ -108,7 +109,7 @@ Body.prototype.cmd_sell = function (targetId, itemId)
     var people = serverState.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)
-        this.sysMsg(core.format("{0} is not here to sell to.", targetId));
+        this.sysMsg(format("%s is not here to sell to.", targetId));
     else
         target.informUser(new Message(this.id, "sell", [itemId]));
 }
@@ -135,7 +136,7 @@ Body.prototype.cmd_tell = function (targetId, msg)
     var target = people[targetId];
     if (!target)
     {
-        this.sysMsg(core.format("{0} is not here to tell anything to.", targetId));
+        this.sysMsg(format("%s is not here to tell anything to.", targetId));
     }
     else
     {
@@ -153,11 +154,11 @@ Body.prototype.update = function ()
     if(this.socket && this.msgQ.length > 0)
     {
         var msg = this.msgQ.map(function(m){
-            return core.format("{0} {1} {2}\n\n", m.fromId, m.message, m.payload.join(" "));
+            return format("%s %s %s\n\n", m.fromId, m.message, m.payload.join(" "));
         }).join("\n\n");
 
         this.msgQ = [];
-        this.socket.emit("news", core.format("{0}{1} ({2}) :>", msg, this.id, this.hp));
+        this.socket.emit("news", format("%s%s (%d) :>", msg, this.id, this.hp));
     }
 }
 
@@ -185,7 +186,7 @@ Body.prototype.cmd_help = function ()
             src = src.replace(", ", " ");
             src = src.replace(",", " ");
             cmd = cmd.replace("cmd_", "");
-            msg += core.format("*    {0} {1}\n\n", cmd, src);
+            msg += format("*    %s %s\n\n", cmd, src);
         }
     }
     this.sysMsg(msg);
@@ -193,18 +194,18 @@ Body.prototype.cmd_help = function ()
 
 function itemDescription(k, v)
 {
-    return core.format("*    {1} {0} - {2}", k, v,
+    return format("*    %d %s - %s", v, k,
         (serverState.itemCatalogue[k] ? serverState.itemCatalogue[k].descrip : "(UNKNOWN)"));
 }
 
 function roomPeopleDescription(k, v)
 {
-    return core.format("*    {0}{1}", k, (serverState.users[k].hp > 0 ? "" : " (KNOCKED OUT)"));
+    return format("*    %s%s", k, (serverState.users[k].hp > 0 ? "" : " (KNOCKED OUT)"));
 }
 
 function exitDescription(k, v)
 {
-    return core.format("*    {0} to {1}", k, v.roomId);
+    return format("*    %s to %s", k, v.roomId);
 }
 
 function greaterThan(a, b) { return a > b; }
@@ -226,7 +227,7 @@ Body.prototype.cmd_look = function ()
             rm.exits,
             core.value,
             core.notEqual, null);
-        this.sysMsg(core.format("ROOM: {0}\n\nITEMS:\n\n{1}\n\nPEOPLE:\n\n{2}\n\nEXITS:\n\n{3}\n\n"
+        this.sysMsg(format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n"
             + "***",
             rm.descrip,
             core.formatHash(itemDescription, items),
@@ -244,7 +245,7 @@ Body.prototype.move = function (dir)
         || !exitRoom
         || exit.key
             && !this.items[exit.key])
-        this.sysMsg(core.format("You can't go {0}. {1}.", dir, ((exit && exit.key) ? exit.lockMsg : "")));
+        this.sysMsg(format("You can't go %s. %s.", dir, ((exit && exit.key) ? exit.lockMsg : "")));
     else
     {
         var people = serverState.getPeopleIn(this.roomId);
@@ -308,9 +309,9 @@ Body.prototype.cmd_drop = function (itemId)
 Body.prototype.moveItem = function (itm, from, to, actName, locName, amt)
 {
     if (core.transfer(itm, from, to, amt))
-        this.sysMsg(core.format("You {0} the {1}.", actName, itm));
+        this.sysMsg(format("You %s the %s.", actName, itm));
     else
-        this.sysMsg(core.format("There is no {0} {1}", itm, locName));
+        this.sysMsg(format("There is no %s %s", itm, locName));
 }
 
 Body.prototype.cmd_give = function (targetId, itemId)
@@ -319,10 +320,10 @@ Body.prototype.cmd_give = function (targetId, itemId)
     var people = serverState.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)
-        this.sysMsg(core.format("{0} is not here", targetId));
+        this.sysMsg(format("%s is not here", targetId));
     else
     {
-        this.moveItem(itemId, this.items, target.items, core.format("gave to {0}", targetId), "in your inventory");
+        this.moveItem(itemId, this.items, target.items, format("gave to %s", targetId), "in your inventory");
         var m = new Message(this.id, "give", [targetId, itemId]);
         for(var userId in people)
             people[userId].informUser(m);
@@ -333,7 +334,7 @@ Body.prototype.cmd_make = function (recipeId)
 {
     var recipe = serverState.recipes[recipeId];
     if(!recipe)
-        this.sysMsg(core.format("{0} isn't a recipe.", recipeId));
+        this.sysMsg(format("%s isn't a recipe.", recipeId));
     if (!core.hashSatisfies(this.items, recipe.tools))
         this.sysMsg("You don't have all of the tools.");
     else if (!core.hashSatisfies(this.items, recipe.ingredients))
@@ -343,13 +344,13 @@ Body.prototype.cmd_make = function (recipeId)
         for (var itemId in recipe.ingredients)
         {
             core.dec(this.items, itemId, recipe.ingredients[itemId]);
-            this.sysMsg(core.format("{0} {1}(s) removed from inventory.", recipe.ingredients[itemId], itemId));
+            this.sysMsg(format("%d %s(s) removed from inventory.", recipe.ingredients[itemId], itemId));
         }
 
         for (var itemId in recipe.results)
         {
             core.inc(this.items, itemId, recipe.results[itemId]);
-            this.sysMsg(core.format("You created {0} {1}(s).", recipe.results[itemId], itemId));
+            this.sysMsg(format("You created %d %s(s).", recipe.results[itemId], itemId));
         }
         var people = serverState.getPeopleIn(this.roomId);
         var m = new Message(this.id, "make", [recipeId]);
@@ -360,13 +361,13 @@ Body.prototype.cmd_make = function (recipeId)
 
 function equipDescription(k, v)
 {
-    return core.format("*    ({0}) {1} - {2}", k, v,
+    return format("*    (%s) %s - %s", k, v,
         (serverState.itemCatalogue[v] ? serverState.itemCatalogue[v].descrip : "(UNKNOWN)"));
 }
 
 Body.prototype.cmd_inv = function ()
 {
-    this.sysMsg(core.format("Equipped:\n\n{0}\n\nUnequipped:\n\n{1}\n\n***",
+    this.sysMsg(format("Equipped:\n\n%s\n\nUnequipped:\n\n%s\n\n***",
         core.formatHash(equipDescription, this.equipment),
         core.formatHash(itemDescription, this.items)));
 }
@@ -375,14 +376,14 @@ Body.prototype.cmd_drink = function(itemId)
 {
     var item = serverState.itemCatalogue[itemId];
     if(!this.items[itemId])
-        this.sysMsg(core.format("You don't have a {0} to drink.", itemId));
+        this.sysMsg(format("You don't have a %s to drink.", itemId));
     else if(item.equipType != "food")
-        this.sysMsg(core.format("You can't drink a {0}, for it is a {1}.", itemId, item.equipType));
+        this.sysMsg(format("You can't drink a %s, for it is a %s.", itemId, item.equipType));
     else
     {
         core.dec(this.items, itemId);
         this.hp += item.strength;
-        this.sysMsg(core.format("Health restored by {0} points.", item.strength));
+        this.sysMsg(format("Health restored by %d points.", item.strength));
     }
 }
 
@@ -391,9 +392,9 @@ Body.prototype.cmd_equip = function (itemId)
     var itmCount = this.items[itemId];
     var itm = serverState.itemCatalogue[itemId];
     if (itmCount === undefined || itmCount <= 0)
-        this.sysMsg(core.format("You don't have the {0}.", itemId));
+        this.sysMsg(format("You don't have the %s.", itemId));
     else if (serverState.equipTypes.indexOf(itm.equipType) < 0)
-        this.sysMsg(core.format("You can't equip the {0}.", itemId));
+        this.sysMsg(format("You can't equip the %s.", itemId));
     else
     {
         var current = this.equipment[itm.equipType];
@@ -401,7 +402,7 @@ Body.prototype.cmd_equip = function (itemId)
             core.inc(this.items, current);
         this.equipment[itm.equipType] = itemId;
         core.dec(this.items, itemId);
-        this.sysMsg(core.format("You equiped the {0} as a {1}.", itemId, itm.equipType));
+        this.sysMsg(format("You equiped the %s as a %s.", itemId, itm.equipType));
     }
 }
 
@@ -413,17 +414,17 @@ Body.prototype.cmd_remove = function (itemId)
         {
             core.inc(this.items, itemId);
             delete this.equipment[slot];
-            this.sysMsg(core.format("You removed the {0} as your {1}.", itemId, slot));
+            this.sysMsg(format("You removed the %s as your %s.", itemId, slot));
             return;
         }
     }
-    this.sysMsg(core.format("There is no {0} to remove.", itemId));
+    this.sysMsg(format("There is no %s to remove.", itemId));
 }
 
 Body.prototype.cmd_who = function ()
 {
     var msg = "People online:\n\n";
-    msg += core.formatHash(function (k, v) { return core.format("*    {0} - {1}", k, v.roomId); }, serverState.users);
+    msg += core.formatHash(function (k, v) { return format("*    %s - %s", k, v.roomId); }, serverState.users);
     this.sysMsg(msg);
 }
 
@@ -433,7 +434,7 @@ Body.prototype.cmd_attack = function (targetId)
     var people = serverState.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)
-        this.sysMsg(core.format("{0} is not here to attack.", targetId));
+        this.sysMsg(format("%s is not here to attack.", targetId));
     else
     {
         var atk = 1;
@@ -464,7 +465,7 @@ Body.prototype.cmd_attack = function (targetId)
         for(var userId in people)
             people[userId].informUser(m);
         target.informUser(new Message(this.id, "damage", [atk]));
-        this.sysMsg(core.format("You attacked {0} with {1} for {2} damage.", targetId, wpnId, atk));
+        this.sysMsg(format("You attacked %s with %s for %d damage.", targetId, wpnId, atk));
     }
 }
 
@@ -473,9 +474,9 @@ Body.prototype.cmd_loot = function(targetId)
     var people = serverState.getPeopleIn(this.roomId);
     var target = people[targetId];
     if(!target)
-        this.sysMsg(core.format("{0} is not here to loot.", targetId));
+        this.sysMsg(format("%s is not here to loot.", targetId));
     else if(target.hp > 0)
-        this.sysMsg(core.format("{0} knocks your hand away from his pockets.", targetId));
+        this.sysMsg(format("%s knocks your hand away from his pockets.", targetId));
     else
     {
         for(var slot in target.equipment)

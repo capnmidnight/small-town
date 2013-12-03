@@ -45,26 +45,6 @@ exports.selectRandom = function(arr)
         return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// Makes templated strings.
-//   - template: a string that uses {#} placeholders,
-//               where # is an integer number representing
-//               an index into the args parameter array that
-//               will be used to replace the placeholder.
-//   - [args...]: a variable-length argument list that
-//               contains each of the elements that will
-//               replace the placeholders in the template.
-exports.format = function()
-{
-    var template = arguments[0];
-    var args = Array.prototype.slice.call(arguments, 1);
-    return template.replace(/{(\d+)}/g, function(match, number)
-    {
-        return typeof args[number] != 'undefined'
-          ? args[number]
-          : match;
-    });
-}
-
 // Frequently, it's necessary to print the status of a
 // hash. This exports.will run the printing, or return
 // the word "none" if there is nothing in the hash.

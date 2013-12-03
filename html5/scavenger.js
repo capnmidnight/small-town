@@ -1,6 +1,7 @@
 var AIBody = require("./aibody.js");
 var core = require("./core.js");
 var serverState = require("./serverState.js");
+var format = require("util").format;
 
 function Scavenger(roomId, hp, items, equipment, id)
 {
@@ -25,7 +26,7 @@ Scavenger.prototype.idleAction = function ()
     var exits = core.hashMap(rm.exits, core.key);
     var exit = core.selectRandom(exits);
     if(!this.moving && item)
-        this.cmd(core.format("take {0}", item));
+        this.cmd(format("take %s", item));
     else if(exit)
         this.cmd(exit);
     this.moving = !this.moving;
