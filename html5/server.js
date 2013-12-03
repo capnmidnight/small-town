@@ -7,13 +7,35 @@ var core = require("./core.js");
 var serverState = require("./serverState.js");
 var Body = require("./body.js");
 
+var readline = require('readline'),
+    rl = readline.createInterface(process.stdin, process.stdout);
+
+rl.setPrompt('MUDADMIN :> ');
+rl.prompt();
+
+rl.on('line', function (line) {
+    cmdQ.push(line.trim());
+}).on('close', function () {
+    console.log('Have a great day!');
+    process.exit(0);
+});
+
 app.listen(8080);
 
 var timer = null;
+var cmdQ = [];
 var loop = function ()
 {
     try
     {
+        if (cmdQ.length > 0) {
+            while (cmdQ.length > 0) {
+                var cmd = cmdQ.shift();
+                console.log(cmd);
+                console.log(eval(cmd));
+            }
+            rl.prompt();
+        }
         serverState.respawn();
         for (var bodyId in serverState.users)
         {
@@ -33,7 +55,7 @@ var loop = function ()
     }
     catch (exp)
     {
-        console.log(core.format("{0} {{1}\n}",
+        process.stderr.write(core.format("{0} {{1}\n}\n",
             exp.message,
             core.hashMap(exp, function (k, v)
             {
