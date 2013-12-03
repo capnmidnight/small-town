@@ -1,6 +1,7 @@
 var http = require("http");
 var app = http.createServer(handler);
 var socketsio = require("socket.io");;
+var mime = require("mime");
 var io = socketsio.listen(app);
 var fs = require("fs");
 var core = require("./core.js");
@@ -58,11 +59,6 @@ var loop = function () {
 };
 timer = setInterval(loop, 100);
 
-var mimeTypes = {
-    "html": "text/html",
-    "png": "image/png"
-}
-
 function handler(req, res) {
     console.log("REQUEST:", req.method, req.url);
     if (req.method === "GET" && req.url[0] === "/") {
@@ -75,8 +71,7 @@ function handler(req, res) {
                 serverError(res, req.url);
             }
             else {
-                var ext = path.substring(path.indexOf(".") + 1);
-                res.writeHead(200, { "Content-Type": mimeTypes[ext] || "text/plain" });
+                res.writeHead(200, { "Content-Type": mime.lookup(path) });
                 res.end(data);
             }
         });
