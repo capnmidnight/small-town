@@ -220,14 +220,14 @@ module.exports.itemCatalogue =
     "bottle": new Item("can hold liquids, or secrets"),
     "herbs": new Item("the buds of a special plant"),
 
-    "apple": new Item("fruit", "potion", 5),
-    "peach": new Item("fruit", "potion", 5),
-    "blueberries": new Item("fruit", "potion", 5),
-    "small-potion": new Item("recovers 10 health", "potion", 10),
-    "apple-pie": new Item("quite yummy", "potion", 20),
-    "peach-pie": new Item("quite yummy", "potion", 20),
-    "blueberry-pie": new Item("quite yummy", "potion", 20),
-    "large-potion": new Item("recovers 50 health", "potion", 50)
+    "apple": new Item("fruit", "food", 5),
+    "peach": new Item("fruit", "food", 5),
+    "blueberries": new Item("fruit", "food", 5),
+    "small-potion": new Item("recovers 10 health", "food", 10),
+    "apple-pie": new Item("quite yummy", "food", 20),
+    "peach-pie": new Item("quite yummy", "food", 20),
+    "blueberry-pie": new Item("quite yummy", "food", 20),
+    "large-potion": new Item("recovers 50 health", "food", 50)
 };
 
 module.exports.equipTypes = ["head", "eyes", "shoulders", "torso",
@@ -236,7 +236,7 @@ module.exports.equipTypes = ["head", "eyes", "shoulders", "torso",
 
 module.exports.armorTypes = ["head", "torso", "forearms", "gloves", "shins", "boots"];
 
-module.exports.consumeTypes = ["potion", "food", "scroll"];
+module.exports.consumeTypes = ["food", "scroll"];
 
 module.exports.recipes =
 {
