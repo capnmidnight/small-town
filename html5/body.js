@@ -69,7 +69,7 @@ Body.prototype.doCommand = function ()
 
         var cmd = tokens[0].toLowerCase();
         var params = tokens.slice(1);
-        if (cmd == "say" || cmd == "yell" || cmd == "debug")
+        if (cmd == "say" || cmd == "yell")
             params = [params.join(" ")];
         else if (cmd == "tell" && params.length > 0)
             params = [params[0], params.slice(1).join(" ")];
@@ -91,11 +91,6 @@ Body.prototype.doCommand = function ()
         else
             proc.apply(this, params);
     }
-}
-
-Body.prototype.cmd_debug = function(script)
-{
-    this.sysMsg(eval(script));
 }
 
 Body.prototype.cmd_buy = function (targetId, itemId)

@@ -87,13 +87,6 @@ AIBody.prototype.react_attack = function (m)
     this.cmd(core.format("say Whoa, settle down, {0}!", m.fromId));
 }
 
-// A debugging system for AI units. They will
-// issue whatever command you tell them to.
-AIBody.prototype.react_tell = function (m)
-{
-    this.cmd(m.payload[0]);
-}
-
 // A friendly greeting!
 AIBody.prototype.react_say = function (m)
 {
