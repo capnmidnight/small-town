@@ -1,17 +1,17 @@
 // A few functions used in conjunction with
 // hashMap and where
-module.exports.equal = function(a, b) { return a == b; }
-module.exports.notEqual = function(a, b) { return a != b; }
-module.exports.key = function(k, v) { return k; }
-module.exports.value = function(k, v) { return v; }
+exports.equal = function(a, b) { return a == b; }
+exports.notEqual = function(a, b) { return a != b; }
+exports.key = function(k, v) { return k; }
+exports.value = function(k, v) { return v; }
 
-// Applies a module.exports.to the contents of an associative
+// Applies a exports.to the contents of an associative
 // array, returning the results of each call on that
-// module.exports.in an array.
+// exports.in an array.
 //          - hsh: the associative array to process
 //          - thunk: a function, taking two parameters "key" and "value",
 //                              that returns a single-value result.
-module.exports.hashMap = function(hsh, thunk)
+exports.hashMap = function(hsh, thunk)
 {
     var output = [];
     for (var key in hsh)
@@ -28,7 +28,7 @@ module.exports.hashMap = function(hsh, thunk)
 //            that compares the output of getter to the
 //            val parameter.
 //    - val: a filtering value.
-module.exports.where = function(hsh, getter, comparer, val)
+exports.where = function(hsh, getter, comparer, val)
 {
     var output = {};
     if (hsh && getter && comparer)
@@ -39,7 +39,7 @@ module.exports.where = function(hsh, getter, comparer, val)
 }
 
 // Picks a random item out of an array
-module.exports.selectRandom = function(arr)
+exports.selectRandom = function(arr)
 {
     if(arr)
         return arr[Math.floor(Math.random() * arr.length)];
@@ -53,7 +53,7 @@ module.exports.selectRandom = function(arr)
 //   - [args...]: a variable-length argument list that
 //               contains each of the elements that will
 //               replace the placeholders in the template.
-module.exports.format = function()
+exports.format = function()
 {
     var template = arguments[0];
     var args = Array.prototype.slice.call(arguments, 1);
@@ -66,15 +66,15 @@ module.exports.format = function()
 }
 
 // Frequently, it's necessary to print the status of a
-// hash. This module.exports.will run the printing, or return
+// hash. This exports.will run the printing, or return
 // the word "none" if there is nothing in the hash.
 //    - formatter: a function, taking two parameters "key"
 //            and "value", that returns a single-value
 //            result, as in hashMap (as that is where it
-//            will be used). The module.exports.should return
+//            will be used). The exports.should return
 //                           a string.
 //          - hsh: the associative array to process
-module.exports.formatHash = function(formatter, hsh)
+exports.formatHash = function(formatter, hsh)
 {
     if (hsh)
     {
@@ -85,7 +85,7 @@ module.exports.formatHash = function(formatter, hsh)
     return "*    none";
 }
 
-module.exports.hashSatisfies = function(onHand, required)
+exports.hashSatisfies = function(onHand, required)
 {
     for (var k in required)
         if (!onHand[k] || onHand[k] < required[k])
@@ -93,7 +93,7 @@ module.exports.hashSatisfies = function(onHand, required)
     return true;
 }
 
-module.exports.inc = function(hsh, itm, amt)
+exports.inc = function(hsh, itm, amt)
 {
     amt = amt || 1;
     if (!hsh[itm])
@@ -101,7 +101,7 @@ module.exports.inc = function(hsh, itm, amt)
     hsh[itm] += amt;
 }
 
-module.exports.dec = function(hsh, itm, amt)
+exports.dec = function(hsh, itm, amt)
 {
     amt = amt || 1;
     if (hsh[itm])
@@ -112,7 +112,7 @@ module.exports.dec = function(hsh, itm, amt)
     }
 }
 
-module.exports.transfer = function(itm, from, to, amt)
+exports.transfer = function(itm, from, to, amt)
 {
     if (from[itm])
     {

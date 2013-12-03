@@ -31,18 +31,14 @@ var loop = function ()
             }
         }
     }
-    catch(exp)
+    catch (exp)
     {
-        while(exp != null)
-        {
-            console.log(core.format("{0} {{1}\n}",
-                exp.message,
-                core.hashMap(exp, function(k, v)
-                {
-                    return core.format("\n\t{0}: {1}", k, v);
-                }).join("\n")));
-            exp = exp.innerException;
-        }
+        console.log(core.format("{0} {{1}\n}",
+            exp.message,
+            core.hashMap(exp, function (k, v)
+            {
+                return core.format("\n\t{0}: {1}", k, v);
+            }).join("\n")));
     }
 };
 timer = setInterval(loop, 100);
@@ -95,12 +91,12 @@ function serverError(res, path)
     }
 }
 
-io.sockets.on("connection", function(socket)
+io.sockets.on("connection", function (socket)
 {
-    socket.on("name", function(name)
+    socket.on("name", function (name)
     {
         console.log("naming", name);
-        if(serverState.users[name])
+        if (serverState.users[name])
         {
             console.log("old name");
             socket.emit("news", "Name is already in use, try another one.");

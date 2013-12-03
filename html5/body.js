@@ -381,7 +381,7 @@ Body.prototype.cmd_drink = function(itemId)
     var item = serverState.itemCatalogue[itemId];
     if(!this.items[itemId])
         this.sysMsg(core.format("You don't have a {0} to drink.", itemId));
-    else if(item.equipType != "potion")
+    else if(item.equipType != "food")
         this.sysMsg(core.format("You can't drink a {0}, for it is a {1}.", itemId, item.equipType));
     else
     {

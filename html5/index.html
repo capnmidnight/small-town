@@ -79,7 +79,8 @@
                 socket = io.connect("http://localhost:8080/",
                 {
                     "reconnect": true,
-                    "reconnection delay": 1000
+                    "reconnection delay": 1000,
+                    "max reconnection attempts": 60
                 });
                 socket.on("connect", function ()
                 {

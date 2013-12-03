@@ -8,8 +8,8 @@
 function Item(descrip, equipType, strength)
 {
     this.descrip = descrip;
-    this.equipType = equipType;
-    this.strength = strength;
+    this.equipType = equipType || "none";
+    this.strength = strength || 0;
     this.id = null;
 }
 
