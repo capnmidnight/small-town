@@ -14,7 +14,15 @@ rl.setPrompt('MUDADMIN :> ');
 rl.prompt();
 
 rl.on('line', function (line) {
-    cmdQ.push(line.trim());
+    var cmd = line.trim();
+    console.log(cmd);
+    try {
+        console.log(eval(cmd));
+    }
+    catch (exp) {
+        process.stderr.write(exp.message + "\n");
+    }
+    rl.prompt();
 }).on('close', function () {
     console.log('Have a great day!');
     process.exit(0);
@@ -23,42 +31,26 @@ rl.on('line', function (line) {
 app.listen(8080);
 
 var timer = null;
-var cmdQ = [];
-var loop = function ()
-{
-    try
-    {
-        if (cmdQ.length > 0) {
-            while (cmdQ.length > 0) {
-                var cmd = cmdQ.shift();
-                console.log(cmd);
-                console.log(eval(cmd));
-            }
-            rl.prompt();
-        }
+var loop = function () {
+    try {
         serverState.respawn();
-        for (var bodyId in serverState.users)
-        {
+        for (var bodyId in serverState.users) {
             var body = serverState.users[bodyId];
-            if (body.quit)
-            {
+            if (body.quit) {
                 console.log(core.format("{0} quit", bodyId));
                 delete serverState.users[bodyId];
             }
-            else
-            {
+            else {
                 body.update();
                 while (body.inputQ.length > 0)
                     body.doCommand();
             }
         }
     }
-    catch (exp)
-    {
+    catch (exp) {
         process.stderr.write(core.format("{0} {{1}\n}\n",
             exp.message,
-            core.hashMap(exp, function (k, v)
-            {
+            core.hashMap(exp, function (k, v) {
                 return core.format("\n\t{0}: {1}", k, v);
             }).join("\n")));
     }
@@ -70,61 +62,48 @@ var mimeTypes = {
     "png": "image/png"
 }
 
-function handler(req, res)
-{
+function handler(req, res) {
     console.log("REQUEST:", req.method, req.url);
-    if (req.method === "GET" && req.url[0] === "/")
-    {
+    if (req.method === "GET" && req.url[0] === "/") {
         if (req.url.length == 1)
             req.url += "index.html";
         var path = __dirname + req.url;
         fs.readFile(path,
-        function (err, data)
-        {
-            if (err)
-            {
+        function (err, data) {
+            if (err) {
                 serverError(res, req.url);
             }
-            else
-            {
+            else {
                 var ext = path.substring(path.indexOf(".") + 1);
                 res.writeHead(200, { "Content-Type": mimeTypes[ext] || "text/plain" });
                 res.end(data);
             }
         });
     }
-    else
-    {
+    else {
         serverError(res);
     }
 }
 
-function serverError(res, path)
-{
-    if (path)
-    {
+function serverError(res, path) {
+    if (path) {
         res.writeHead(404);
         res.end("error loading " + path.substring(1));
     }
-    else
-    {
+    else {
         res.writeHead(500);
         res.end("error");
     }
 }
 
-io.sockets.on("connection", function (socket)
-{
-    socket.on("name", function (name)
-    {
+io.sockets.on("connection", function (socket) {
+    socket.on("name", function (name) {
         console.log("naming", name);
-        if (serverState.users[name])
-        {
+        if (serverState.users[name]) {
             console.log("old name");
             socket.emit("news", "Name is already in use, try another one.");
         }
-        else
-        {
+        else {
             console.log("new name");
             serverState.users[name] = new Body("welcome", 100, { "gold": 10 }, null, name, socket);
             socket.emit("good name", name);
