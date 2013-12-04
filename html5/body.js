@@ -25,7 +25,7 @@ var Body = function(roomId, hp, items, equipment, id, socket)
     for(var slot in equipment)
         this.equipment[slot] = equipment[slot];
 
-    this.inputQ = [];
+    this.inputQ = ["look"];
     this.msgQ = [];
     this.id = id;
     this.socket = socket;
@@ -488,3 +488,4 @@ Body.prototype.cmd_loot = function(targetId)
 }
 
 module.exports = Body;
+

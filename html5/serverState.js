@@ -8,6 +8,7 @@ var Exit = require("./exit.js");
 var Item = require("./item.js");
 var Recipe = require("./recipe.js");
 var core = require("./core.js");
+var format = require("util").format;
 
 module.exports.users = {};
 module.exports.everyone =
@@ -264,3 +265,25 @@ setIds(module.exports.itemCatalogue);
 setIds(module.exports.everyone);
 setIds(module.exports.recipes);
 setIds(module.exports.rooms);
+
+module.exports.pump = function(newConnections)
+{
+  for(var id in newConnections)
+  {
+    this.users[id] = new Body("welcome", 100, { "gold": 10 }, null, id, newConnections[id]);
+    delete newConnections[id];
+  }
+  this.respawn();
+  for (var bodyId in this.users) {
+    var body = this.users[bodyId];
+    if (body.quit) {
+      console.log(format("%s quit", bodyId));
+      delete this.users[bodyId];
+    }
+    else {
+      body.update();
+      while (body.inputQ.length > 0)
+        body.doCommand();
+    }
+  }
+}
