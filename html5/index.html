@@ -1,8 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <title>JSMUD</title>
+    <link href='http://fonts.googleapis.com/css?family=Eagle+Lake' rel='stylesheet' type='text/css'>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/client.js"></script>
     <script type="text/javascript">
@@ -12,6 +13,7 @@
       client.run();
       input.focus();
     }
+    addEventListener("keypress", function () { input.focus(); });
     </script>
     <style type="text/css">
         body{
@@ -19,31 +21,45 @@
         }
         body, #input, button
         {
-            color: black;
-            background-color: white;
+            color: #3e3223;
+            background-color: #b6d6b6;
         }
 
         #input, #output, #start, #enter
         {
             position: relative;
-            font-family: Georgia, sans;
+            font-family: "Eagle Lake", Georgia, sans;
             font-size: 12pt;
-            width: 100%;
         }
-
+        #input{
+            border:0;
+        }
         #output
         {
             height: 25em;
-            overflow-y: scroll;
+            overflow-y: hidden;
+            padding:1em;
+            transition: all 3s ease;
+        }
+        .fadeIn
+        {
+            opacity: 0.0;
+            -webkit-transition: opacity 1s;
+            -moz-transition: opacity 1s;
+            transition: opacity 1s ease;
+        }
+        .opaque{
+            opacity: 1;
         }
     </style>
 </head>
 <body onload="load('input', 'output')">
-    <div id="output"></div>
-    <input type="text" id="input" autocomplete="off">
-    <button onclick="enterCommand()" id="enter">enter</button>
+    <div id="output"></div><br />
+    <input type="text" id="input" autocomplete="off" placeholder="<disconnected>">
+    <!-- <button onclick="enterCommand()" id="enter">enter</button> -->
 </body>
 </html>
 
 
-
+
+

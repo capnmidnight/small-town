@@ -37,7 +37,7 @@ ShopKeep.prototype.react_tell = function (m)
             var output = "";
             for(var itemId in this.items)
                 if(this.prices[itemId])
-                    output += format("*    %s (%d) - %s\n\n", itemId, this.items[itemId],
+                    output += format("\t%s (%d) - %s\n\n", itemId, this.items[itemId],
                         core.hashMap(this.prices[itemId], vkString).join(","));
             if (output.length == 0)
                 output = " nothing";

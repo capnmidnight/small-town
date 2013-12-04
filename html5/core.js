@@ -62,7 +62,7 @@ exports.formatHash = function(formatter, hsh)
         if (strs.length > 0)
             return strs.join("\n\n");
     }
-    return "*    none";
+    return "\tnone";
 }
 
 exports.hashSatisfies = function(onHand, required)

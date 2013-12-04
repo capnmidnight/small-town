@@ -186,7 +186,7 @@ Body.prototype.cmd_help = function ()
             src = src.replace(", ", " ");
             src = src.replace(",", " ");
             cmd = cmd.replace("cmd_", "");
-            msg += format("*    %s %s\n\n", cmd, src);
+            msg += format("\t%s %s\n\n", cmd, src);
         }
     }
     this.sysMsg(msg);
@@ -194,18 +194,18 @@ Body.prototype.cmd_help = function ()
 
 function itemDescription(k, v)
 {
-    return format("*    %d %s - %s", v, k,
+    return format("\t%d %s - %s", v, k,
         (serverState.itemCatalogue[k] ? serverState.itemCatalogue[k].descrip : "(UNKNOWN)"));
 }
 
 function roomPeopleDescription(k, v)
 {
-    return format("*    %s%s", k, (serverState.users[k].hp > 0 ? "" : " (KNOCKED OUT)"));
+    return format("\t%s%s", k, (serverState.users[k].hp > 0 ? "" : " (KNOCKED OUT)"));
 }
 
 function exitDescription(k, v)
 {
-    return format("*    %s to %s", k, v.roomId);
+    return format("\t%s to %s", k, v.roomId);
 }
 
 function greaterThan(a, b) { return a > b; }
@@ -227,8 +227,7 @@ Body.prototype.cmd_look = function ()
             rm.exits,
             core.value,
             core.notEqual, null);
-        this.sysMsg(format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n"
-            + "***",
+        this.sysMsg(format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
             rm.descrip,
             core.formatHash(itemDescription, items),
             core.formatHash(roomPeopleDescription, people),
@@ -361,13 +360,13 @@ Body.prototype.cmd_make = function (recipeId)
 
 function equipDescription(k, v)
 {
-    return format("*    (%s) %s - %s", k, v,
+    return format("\t(%s) %s - %s", k, v,
         (serverState.itemCatalogue[v] ? serverState.itemCatalogue[v].descrip : "(UNKNOWN)"));
 }
 
 Body.prototype.cmd_inv = function ()
 {
-    this.sysMsg(format("Equipped:\n\n%s\n\nUnequipped:\n\n%s\n\n***",
+    this.sysMsg(format("Equipped:\n\n%s\n\nUnequipped:\n\n%s\n\n<hr>",
         core.formatHash(equipDescription, this.equipment),
         core.formatHash(itemDescription, this.items)));
 }
@@ -424,7 +423,7 @@ Body.prototype.cmd_remove = function (itemId)
 Body.prototype.cmd_who = function ()
 {
     var msg = "People online:\n\n";
-    msg += core.formatHash(function (k, v) { return format("*    %s - %s", k, v.roomId); }, serverState.users);
+    msg += core.formatHash(function (k, v) { return format("\t%s - %s", k, v.roomId); }, serverState.users);
     this.sysMsg(msg);
 }
 
