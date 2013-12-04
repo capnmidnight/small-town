@@ -1,18 +1,17 @@
 var http = require("http");
 var webServer = require("./webServer.js");
-var app = http.createServer(webServer);
 var socketsio = require("socket.io");
-var io = socketsio.listen(app);
-var fs = require("fs");
 var format = require("util").format;
 var serverState = require("./serverState.js");
-var core = require("./core.js");
 var readline = require('readline');
+var core = require('./core.js');
+
+var app = http.createServer(webServer);
+var io = socketsio.listen(app);
 var rl = readline.createInterface(process.stdin, process.stdout);
-var timer = null;
 var newConnections = {};
 
-var loop = function () {
+function loop() {
     try {
         serverState.pump(newConnections);
     }
@@ -30,7 +29,8 @@ var loop = function () {
 io.sockets.on("connection", function (socket) {
     socket.on("name", function (name) {
         console.log("naming", name);
-        if (serverState.users[name] || newConnections[name]) {
+        if (serverState.users[name]
+            || newConnections[name]) {
             console.log("old name");
             socket.emit("news", "Name is already in use, try another one.");
         }
@@ -43,11 +43,7 @@ io.sockets.on("connection", function (socket) {
     socket.emit("news", "Please enter a name.");
 });
 
-
-app.listen(8080);
-timer = setInterval(loop, 100);
-
-rl.setPrompt('MUDADMIN :> ');
+rl.setPrompt('MUD ADMIN :> ');
 rl.on('line', function (line) {
     var cmd = line.trim();
     console.log(cmd);
@@ -63,7 +59,14 @@ rl.on('line', function (line) {
     process.exit(0);
 });
 
+
+app.listen(8080);
+setInterval(loop, 100);
 rl.prompt();
+
+
+
+
 
 
 
