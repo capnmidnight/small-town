@@ -1,143 +1,49 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <title>JSMUD</title>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/client.js"></script>
     <script type="text/javascript">
-        var input, output, socket;
-        var userName = "";
-        var soFar = "";
-
-        function displayln(msg)
-        {
-            soFar += msg + "\n\n";
-            var lines = soFar.split("\n\n");
-            var listOn = false;
-            for (var i = 0; i < lines.length; ++i)
-            {
-                if (lines[i].indexOf("*   ") >= 0)
-                {
-                    lines[i] = lines[i].replace("*    ", listOn ? "<li>" : "<ul><li>") + "</li>";
-                    listOn = true;
-                }
-                else
-                {
-                    lines[i] = (listOn ? "</ul>" : "") + lines[i].replace("***", "<hr>") + "<br/>";
-                    listOn = false;
-                }
-            }
-            output.innerHTML = lines.join("\n");
-            output.scrollTop = output.scrollHeight;
-        }
-
-        function submitCommand(evt)
-        {
-            if (evt.keyCode == 13)
-            {
-                enterCommand();
-                evt.preventDefault();
-                return false;
-            }
-            return true;
-        }
-
-        function enterCommand()
-        {
-            var val = input.value.trim();
-            try
-            {
-                console.log((userName == "") ? "name" : "cmd", val);
-                socket.emit((userName == "") ? "name" : "cmd", val);
-                input.value = "";
-                input.focus();
-            }
-            catch (exp)
-            {
-                console.log(exp.message);
-            }
-        }
-
-        function setup(iId, oId)
-        {
-            try
-            {
-                input = document.getElementById(iId);
-                input.addEventListener("keypress", submitCommand, false);
-                output = document.getElementById(oId);
-            }
-            catch (exp)
-            {
-                console.log(exp.message);
-            }
-        }
-
-        function run()
-        {
-            try
-            {
-                socket = io.connect("http://localhost:8080/",
-                {
-                    "reconnect": true,
-                    "reconnection delay": 1000,
-                    "max reconnection attempts": 60
-                });
-                socket.on("connect", function ()
-                {
-                    displayln("Connected.");
-                });
-                socket.on("good name", function (data)
-                {
-                    displayln("Name accepted.");
-                    userName = data;
-                    socket.emit("cmd", "look");
-                });
-                socket.on("news", displayln);
-                socket.on("disconnect", function ()
-                {
-                    displayln("Disconnected.");
-                    userName = "";
-                });
-            }
-            catch (exp)
-            {
-                console.log(exp.message);
-            }
-        }
-
-        function load()
-        {
-            setup("input", "output");
-            run();
-            input.focus();
-        }
-
+    function load(i, o)
+    {
+      client.setup(i, o);
+      client.run();
+      input.focus();
+    }
     </script>
     <style type="text/css">
+        body{
+            padding:5em;
+        }
         body, #input, button
         {
-            color: #00ff00;
-            background-color: black;
+            color: black;
+            background-color: white;
         }
 
         #input, #output, #start, #enter
         {
             position: relative;
-            font-family: "Courier New";
+            font-family: Georgia, sans;
             font-size: 12pt;
             width: 100%;
         }
 
         #output
         {
-            height: 35em;
+            height: 25em;
             overflow-y: scroll;
         }
     </style>
 </head>
-<body onload="load()">
+<body onload="load('input', 'output')">
     <div id="output"></div>
     <input type="text" id="input" autocomplete="off">
     <button onclick="enterCommand()" id="enter">enter</button>
 </body>
 </html>
+
+
+
