@@ -5,11 +5,15 @@
 //  - items (optional): an associative array, combining
 //          item IDs and counts, for the room's selection
 //          of stuff.
-function Room(descrip, exits)
+function Room(descrip, exits, items)
 {
     this.descrip = descrip;
     this.exits = exits || {};
+    this.originalItems = items || {};
+    this.items = {};
     this.id = null;
 }
 
 module.exports = Room;
+
+

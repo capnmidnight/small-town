@@ -21,7 +21,7 @@ Scavenger.prototype.copyTo = function(obj)
 Scavenger.prototype.idleAction = function ()
 {
     var rm = serverState.rooms[this.roomId];
-    var items = core.hashMap(serverState.items[this.roomId], core.key);
+    var items = core.hashMap(rm.items, core.key);
     var item = core.selectRandom(items);
     var exits = core.hashMap(rm.exits, core.key);
     var exit = core.selectRandom(exits);

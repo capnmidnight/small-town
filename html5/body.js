@@ -217,7 +217,7 @@ Body.prototype.cmd_look = function ()
         this.sysMsg("What have you done!?");
     else
     {
-        var items = core.where(serverState.items[this.roomId], core.value, greaterThan, 0);
+        var items = core.where(rm.items, core.value, greaterThan, 0);
         var people = core.where(
             serverState.getPeopleIn(this.roomId),
             core.key,
@@ -274,7 +274,7 @@ Body.prototype.cmd_exit = function () { this.move("exit"); }
 Body.prototype.cmd_take = function (itemId)
 {
     var rm = serverState.rooms[this.roomId];
-    var items = serverState.items[this.roomId];
+    var items = rm.items;
     if (itemId == "all")
     {
         for (itemId in items)
@@ -298,8 +298,8 @@ Body.prototype.cmd_take = function (itemId)
 
 Body.prototype.cmd_drop = function (itemId)
 {
-    var items = serverState.items[this.roomId];
-    this.moveItem(itemId, this.items, items, "dropped", "in your inventory");
+    var rm = serverState.rooms[this.roomId];
+    this.moveItem(itemId, this.items, rm.items, "dropped", "in your inventory");
     var people = serverState.getPeopleIn(this.roomId);
     var m = new Message(this.id, "drop", [itemId]);
     for(var userId in people)
@@ -488,4 +488,5 @@ Body.prototype.cmd_loot = function(targetId)
 }
 
 module.exports = Body;
-
+
+

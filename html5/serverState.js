@@ -39,7 +39,7 @@ module.exports.rooms =
     + "However, you can run around in the few\n\n"
     + "rooms that exist and try to get a feel\n\n"
     + "for things!\n\n",
-              {"leave": new Exit("intro")}),
+      {"leave": new Exit("intro")}),
 
     "intro": new Room(
       "Introduction\n\n\n\nLearning the commands to the game important.\n\n"
@@ -50,18 +50,16 @@ module.exports.rooms =
     + "\n\n"
     + "You will have to take the items in this room\n\n"
     + "and make a key in order to exit.\n\n",
-               { "exit": new Exit("Main Square", "sword",
+      { "exit": new Exit("Main Square", "sword",
       "Don't forget to take the items (rusty metal"
     + "and steel-wool) and use them to make a sword.\n\n"
-    + "Try \"take all\" followed by \"make sword\".\n\n") }),
+    + "Try \"take all\" followed by \"make sword\".\n\n") },
+      {"steel-wool": 3, "rusty-metal": 1, "helmet": 1 }),
 
     "Main Square": new Room(
           "Main Square\n\n\n\n"
         + "Welcome! You made it! There is nowhere else to go. You are stuck here.")
 };
-
-module.exports.items = {};
-module.exports.everything = {"intro" : {"steel-wool": 3, "rusty-metal": 1, "helmet": 1 }};
 
 module.exports.lastSpawn = 0;
 module.exports.respawnRate = 5 * 60 * 1000; // 5 minutes worth of milliseconds
@@ -70,7 +68,7 @@ module.exports.respawn = function()
     var now = Date.now();
     if((now - this.lastSpawn) > this.respawnRate)
     {
-        loadItemCatalogue();
+        loadData();
         for(var userId in this.everyone)
         {
             if(!this.users[userId])
@@ -82,21 +80,20 @@ module.exports.respawn = function()
 
         for(var roomId in this.rooms)
         {
-            if(!this.items[roomId])
-                this.items[roomId] = {};
-            if(this.everything[roomId])
-                for(var itemId in this.everything[roomId])
-                    this.items[roomId][itemId] = this.everything[roomId][itemId];
+            var room = this.rooms[roomId];
+            for (var itemId in room.originalItems)
+                room.items[itemId] = room.originalItems[itemId];
         }
         this.lastSpawn = now;
     }
 };
 
-module.exports.itemCatalogue = {};
-function loadItemCatalogue() {
-  fs.readFile("itemCatalogue.txt", function(err, data){
+function loadIntoHash(hsh, fileName){
+  fs.readFile(fileName, function(err, data){
     if(!err){
-      module.exports.itemCatalogue = {};
+      for(var key in hsh)
+        delete hsh[key];
+
       var lines = String.prototype.split.call(data, "\n");
       for(var i = 0; i < lines.length; ++i){
         var line = lines[i].trim();
@@ -105,7 +102,7 @@ function loadItemCatalogue() {
           if(parts.length == 2){
             var name = parts[0];
             var itemScript = parts[1];
-            module.exports.itemCatalogue[name] = eval(itemScript);
+            hsh[name] = eval(itemScript);
           }
           else{
             console.log(parts.length, line);
@@ -114,6 +111,12 @@ function loadItemCatalogue() {
       }
     }
   });
+}
+
+module.exports.itemCatalogue = {};
+
+function loadData() {
+  loadIntoHash(module.exports.itemCatalogue, "itemCatalogue.txt");
 }
 
 module.exports.equipTypes = ["head", "eyes", "shoulders", "torso",
@@ -173,4 +176,5 @@ module.exports.pump = function(newConnections)
   }
 }
 
-
+
+
