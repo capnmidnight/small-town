@@ -212,7 +212,7 @@ function greaterThan(a, b) { return a > b; }
 
 Body.prototype.cmd_look = function ()
 {
-    var rm = serverState.rooms[this.roomId];
+    var rm = serverState.getRoom(this.roomId);
     if (!rm)
         this.sysMsg("What have you done!?");
     else
@@ -237,9 +237,9 @@ Body.prototype.cmd_look = function ()
 
 Body.prototype.move = function (dir)
 {
-    var rm = serverState.rooms[this.roomId];
+    var rm = serverState.getRoom(this.roomId);
     var exit = rm.exits[dir];
-    var exitRoom = exit && serverState.rooms[exit.roomId];
+    var exitRoom = exit && serverState.getRoom(exit.roomId);
     if (!exit
         || !exitRoom
         || exit.key
@@ -272,7 +272,7 @@ Body.prototype.cmd_exit = function () { this.move("exit"); }
 
 Body.prototype.cmd_take = function (itemId)
 {
-    var rm = serverState.rooms[this.roomId];
+    var rm = serverState.getRoom(this.roomId);
     var items = rm.items;
     if (itemId == "all")
     {
@@ -297,7 +297,7 @@ Body.prototype.cmd_take = function (itemId)
 
 Body.prototype.cmd_drop = function (itemId)
 {
-    var rm = serverState.rooms[this.roomId];
+    var rm = serverState.getRoom(this.roomId);
     this.moveItem(itemId, this.items, rm.items, "dropped", "in your inventory");
     var people = serverState.getPeopleIn(this.roomId);
     var m = new Message(this.id, "drop", [itemId]);
@@ -315,7 +315,7 @@ Body.prototype.moveItem = function (itm, from, to, actName, locName, amt)
 
 Body.prototype.cmd_give = function (targetId, itemId)
 {
-    var rm = serverState.rooms[this.roomId];
+    var rm = serverState.getRoom(this.roomId);
     var people = serverState.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)

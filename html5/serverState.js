@@ -10,6 +10,8 @@ var Item = require("./item.js");
 var Recipe = require("./recipe.js");
 var core = require("./core.js");
 var format = require("util").format;
+var StringDecoder = require("string_decoder").StringDecoder;
+var decoder = new StringDecoder("utf8");
 
 module.exports.users = {};
 module.exports.everyone =
@@ -30,39 +32,17 @@ module.exports.everyone =
     "doug": new Aggressor("Main Square", 10, null, { "tool": "sword" })
 };
 
-module.exports.rooms =
-{
-    "welcome": new Room(
-      "Welcome!\n\n\n\nWelcome to a very simple, Multi-User\n\n"
-    + "Dungeon that I have created. This MUD\n\n"
-    + "is almost completely useless at this time.\n\n"
-    + "However, you can run around in the few\n\n"
-    + "rooms that exist and try to get a feel\n\n"
-    + "for things!\n\n",
-      {"leave": new Exit("intro")}),
-
-    "intro": new Room(
-      "Introduction\n\n\n\nLearning the commands to the game important.\n\n"
-    + "You can see all of the commands you're\n\n"
-    + "capable of by typing <strong>help</strong> in the command\n\n"
-    + "box below and either hitting your enter key\n\n"
-    + "or tapping the enter button.\n\n"
-    + "\n\n"
-    + "You will have to take the items in this room\n\n"
-    + "and make a key in order to exit.\n\n",
-      { "exit": new Exit("Main Square", "sword",
-      "Don't forget to take the items (rusty metal"
-    + "and steel-wool) and use them to make a sword.\n\n"
-    + "Try \"take all\" followed by \"make sword\".\n\n") },
-      {"steel-wool": 3, "rusty-metal": 1, "helmet": 1 }),
-
-    "Main Square": new Room(
-          "Main Square\n\n\n\n"
-        + "Welcome! You made it! There is nowhere else to go. You are stuck here.")
+module.exports.rooms ={};
+module.exports.getRoom = function (roomId) {
+    if (!this.rooms[roomId]) {
+        var data = decoder.write(fs.readFileSync(format("rooms/%s.js", roomId)));
+        this.rooms[roomId] = eval(data);
+    }
+    return this.rooms[roomId];
 };
 
 module.exports.lastSpawn = 0;
-module.exports.respawnRate = 5 * 60 * 1000; // 5 minutes worth of milliseconds
+module.exports.respawnRate = 10 * 1000; // 5 minutes worth of milliseconds
 module.exports.respawn = function()
 {
     var now = Date.now();
@@ -80,9 +60,27 @@ module.exports.respawn = function()
 
         for(var roomId in this.rooms)
         {
-            var room = this.rooms[roomId];
-            for (var itemId in room.originalItems)
-                room.items[itemId] = room.originalItems[itemId];
+            var curItems = {};
+            var old = 0;
+            for (var itemId in this.rooms[roomId].items) {
+                curItems[itemId] = this.rooms[roomId].items[itemId];
+                ++old;
+            }
+
+            delete this.rooms[roomId];
+            var room = this.getRoom(roomId);
+            var orig = 0;
+            var n = 0;
+
+            for (var itemId in curItems) {
+                if (!room.items[itemId]) {
+                    ++n;
+                    room.items[itemId] = curItems[itemId];
+                }
+                else ++orig;
+            }
+
+            console.log(format("loaded room %s with %d old items: %d original items, %d new items", roomId, old, orig, n));
         }
         this.lastSpawn = now;
     }
@@ -94,7 +92,7 @@ function loadIntoHash(hsh, fileName){
       for(var key in hsh)
         delete hsh[key];
 
-      var lines = String.prototype.split.call(data, "\n");
+      var lines = decoder.write(data).split("\n");
       for(var i = 0; i < lines.length; ++i){
         var line = lines[i].trim();
         if(line.length > 0) {

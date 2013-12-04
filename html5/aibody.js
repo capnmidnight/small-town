@@ -62,7 +62,7 @@ AIBody.prototype.cmd = function(msg)
 
 AIBody.prototype.idleAction = function ()
 {
-    var rm = serverState.rooms[this.roomId];
+    var rm = serverState.getRoom(this.roomId);
     var exits = core.hashMap(rm.exits, core.key);
     var exit = core.selectRandom(exit);
     if(exit)

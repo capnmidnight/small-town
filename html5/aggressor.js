@@ -30,7 +30,7 @@ Aggressor.prototype.copyTo = function(obj)
 
 Aggressor.prototype.idleAction = function ()
 {
-    var rm = serverState.rooms[this.roomId];
+    var rm = serverState.getRoom(this.roomId);
     var people = core.hashMap(serverState.getPeopleIn(this.roomId), core.key);
     var target = core.selectRandom(people);
     var exits = core.hashMap(rm.exits, core.key);
