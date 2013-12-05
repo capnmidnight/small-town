@@ -68,15 +68,12 @@ Body.prototype.doCommand = function ()
     {
         var tokens = str.split(" ");
 
-        var cmd = tokens[0].toLowerCase();
+        var cmd = tokens[0];
         var params = tokens.slice(1);
         if (cmd == "say" || cmd == "yell")
             params = [params.join(" ")];
         else if (cmd == "tell" && params.length > 0)
             params = [params[0], params.slice(1).join(" ")];
-        else
-            for(var i = 0; i < params.length; ++i)
-                params[i] = params[i].toLowerCase();
 
         var proc = this["cmd_" + cmd];
         if (!proc)
