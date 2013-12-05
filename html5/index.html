@@ -1,46 +1,82 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" />
     <title>JSMUD</title>
     <link href='http://fonts.googleapis.com/css?family=Eagle+Lake' rel='stylesheet' type='text/css'>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/client.js"></script>
     <script type="text/javascript">
-    function load(i, o)
-    {
-      client.setup(i, o);
-      client.run();
-      input.focus();
-    }
-    addEventListener("keypress", function () { input.focus(); });
+        function load(i, o) {
+            client.setup(i, o);
+            client.run();
+            input.focus();
+        }
+        function focuser() { input.focus(); }
+        addEventListener("keypress", focuser);
+        addEventListener("touchup", focuser);
+        addEventListener("mouseup", focuser);
     </script>
     <style type="text/css">
-        body{
-            padding:5em;
-        }
-        body, #input, button
+        *
         {
+            padding: 0;
+            margin: 0;
+            font-family: "Eagle Lake", Georgia, sans;
             color: #3e3223;
             background-color: #b6d6b6;
+            border: 0;
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
         }
 
-        #input, #output, #start, #enter
+        #output, #input
         {
-            position: relative;
-            font-family: "Eagle Lake", Georgia, sans;
-            font-size: 12pt;
+            width: 95%;
         }
-        #input{
-            border:0;
-        }
+
         #output
         {
-            height: 25em;
-            overflow-y: hidden;
-            padding:1em;
-            transition: all 3s ease;
+            overflow-y: scroll;
+            transition: opacity 3s ease;
         }
+
+        @media (min-width:320px)
+        { /* smartphones, iPhone, portrait 480x320 phones */
+            *
+            {
+                font-size: 8pt;
+            }
+
+            #output
+            {
+                padding: 0.5em;
+            }
+        }
+
+        @media (min-width:641px)
+        { /* portrait tablets, portrait iPad, landscape e-readers, landscape 800x480 or 854x480 phones */
+            *
+            {
+                font-size: 12pt;
+            }
+
+            #output
+            {
+                padding: 3em;
+            }
+        }
+
+        @media (min-width:1281px)
+        { /* hi-res laptops and desktops */
+            #output
+            {
+                padding: 5em;
+            }
+        }
+
         .fadeIn
         {
             opacity: 0.0;
@@ -48,18 +84,11 @@
             -moz-transition: opacity 1s;
             transition: opacity 1s ease;
         }
-        .opaque{
-            opacity: 1;
-        }
     </style>
 </head>
 <body onload="load('input', 'output')">
-    <div id="output"></div><br />
+    <div id="output"></div>
     <input type="text" id="input" autocomplete="off" placeholder="<disconnected>">
     <!-- <button onclick="enterCommand()" id="enter">enter</button> -->
 </body>
 </html>
-
-
-
-

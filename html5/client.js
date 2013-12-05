@@ -11,18 +11,12 @@ var client = (function () {
         if (linesToDisplay.length > 0) {
             var elem = document.createElement("div");
             var line = linesToDisplay.shift();
-            var n = 0;
             elem.className = "fadeIn";
             output.appendChild(elem);
             setTimeout(function () {
                 elem.style.opacity = 1.0;
             }, 1);
-            var timer = setInterval(function () {
-                if (n <= line.length)
-                    elem.innerHTML = line.substring(0, n++);
-                else
-                    clearInterval(timer);
-            }, 10);
+            elem.innerHTML = line;
             output.scrollTop = output.scrollHeight;
         }
     }
@@ -56,6 +50,13 @@ var client = (function () {
             input = document.getElementById(iId);
             input.addEventListener("keypress", submitCommand, false);
             output = document.getElementById(oId);
+            var curHeight = window.innerHeight;
+            var resizer = function () {
+                output.style.height = (window.innerHeight - 30) + "px";
+                output.style.width = (window.innerWidth - 10) + "px";
+            }
+            resizer();
+            window.addEventListener("resize", resizer);
         }
         catch (exp) {
             console.log(exp.message);
