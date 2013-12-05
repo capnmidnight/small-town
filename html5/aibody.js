@@ -10,8 +10,7 @@ var format = require("util").format;
 //  occur on a set time frequency.
 //      - parameters are the same as the Body class. AIBody is
 //                          a subclass of Body
-function AIBody(roomId, hp, items, equipment, id)
-{
+function AIBody(roomId, hp, items, equipment, id) {
     Body.call(this, roomId, hp, items, equipment, id);
     this.dt = Math.floor(Math.random() * 5) * 200 + 5000;
     this.lastTime = Date.now();
@@ -22,8 +21,7 @@ module.exports = AIBody;
 
 AIBody.prototype = Object.create(Body.prototype);
 
-AIBody.prototype.copyTo = function(obj)
-{
+AIBody.prototype.copyTo = function (obj) {
     AIBody.call(obj, this.roomId, this.hp, this.items, this.equipment, this.id);
 }
 
@@ -38,15 +36,13 @@ AIBody.prototype.copyTo = function(obj)
 // interact with the world in the same way that users
 // do. However, AI characters can see everything
 // in the game.
-AIBody.prototype.update = function ()
-{
+AIBody.prototype.update = function () {
     var now = Date.now();
 
     while (this.msgQ.length > 0)
         this.react(this.msgQ.shift());
 
-    if ((now - this.lastTime) >= this.dt)
-    {
+    if ((now - this.lastTime) >= this.dt) {
         if (this.hp > 0)
             this.idleAction();
         this.lastTime = now;
@@ -55,48 +51,41 @@ AIBody.prototype.update = function ()
 
 // simplifies adding commands to the command queue.
 // - parameters are the same as for format(template, [args...])
-AIBody.prototype.cmd = function(msg)
-{
+AIBody.prototype.cmd = function (msg) {
     this.inputQ.push(msg);
 }
 
-AIBody.prototype.idleAction = function ()
-{
+AIBody.prototype.idleAction = function () {
     var rm = serverState.getRoom(this.roomId);
     var exits = core.hashMap(rm.exits, core.key);
     var exit = core.selectRandom(exit);
-    if(exit)
+    if (exit)
         this.cmd(exit);
 }
 
 // checks to see if there is a reaction registered
 // for the message type, then fires the reaction
-AIBody.prototype.react = function (m)
-{
+AIBody.prototype.react = function (m) {
     var handler = "react_" + m.message;
     if (this[handler])
         this[handler](m);
 }
 
-AIBody.prototype.react_damage = function (m)
-{
+AIBody.prototype.react_damage = function (m) {
     this.cmd(format("yell Ouch! Stop it, %s!", m.fromId));
 }
 
-AIBody.prototype.react_attack = function (m)
-{
+AIBody.prototype.react_attack = function (m) {
     this.cmd(format("say Whoa, settle down, %s!", m.fromId));
 }
 
 // A friendly greeting!
-AIBody.prototype.react_say = function (m)
-{
+AIBody.prototype.react_say = function (m) {
     if (m.payload[0] == "hello")
         this.cmd("say Hi!");
 }
 
-AIBody.prototype.react_yell = function(m)
-{
-    if(!(serverState.users[m.fromId] instanceof AIBody))
+AIBody.prototype.react_yell = function (m) {
+    if (!(serverState.users[m.fromId] instanceof AIBody))
         this.cmd("yell SHADDAP!");
 }
