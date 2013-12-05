@@ -9,6 +9,7 @@ var Room = require("./room.js");
 var Exit = require("./exit.js");
 var Item = require("./item.js");
 var Recipe = require("./recipe.js");
+var Message = require("./message.js");
 var core = require("./core.js");
 var format = require("util").format;
 var StringDecoder = require("string_decoder").StringDecoder;
@@ -157,7 +158,10 @@ module.exports.pump = function(newConnections)
 {
   for(var id in newConnections)
   {
-    this.users[id] = new Body("welcome", 100, { "gold": 10 }, null, id, newConnections[id]);
+      this.users[id] = new Body("welcome", 100, { "gold": 10 }, null, id, newConnections[id]);
+      var m = new Message(id, "join");
+      for (var userId in this.users)
+          this.users[userId].informUser(m);
     delete newConnections[id];
   }
   this.respawn();
