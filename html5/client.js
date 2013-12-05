@@ -64,7 +64,7 @@ var client = (function () {
 
     this.run = function () {
         try {
-            socket = io.connect(document.location,
+            socket = io.connect(document.location.hostname,
                                 {
                                     "reconnect": true,
                                     "reconnection delay": 1000,
