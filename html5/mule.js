@@ -40,36 +40,38 @@ Mule.prototype.saySomething = function(targetId){
 Mule.prototype.react_tell = function (m){
     console.log("TARGET", this.targetId, "MSG", m);
     if(m.payload.length > 0){
-        switch(m.payload[0]){
-            case "follow":
-                if(!this.targetId)
-                {
-                    console.log("Mule following", m.fromId);
-                    this.targetId = m.fromId;
-                    this.saySomething(m.fromId);
-                }
-                break;
-            case "heel":
-                if(m.fromId == this.targetId)
-                {
-                    console.log("Mule no longer following", m.fromId);
-                    delete this.targetId;
-                    this.saySomething(m.fromId);
-                }
-                break;
-            case "inv":
-                if(m.fromId == this.targetId)
-                {
-                    var output = "";
-                    for(var itemId in this.items)
-                        output += format("\t%s (%d)\n\n", itemId, this.items[itemId]);
-                    if (output.length == 0)
-                        output = " nothing";
-                    else
-                        output = "\n\n" + output;
-                    this.cmd(format("tell %s %s:%s", m.fromId, this.say, output));
-                }
-                break;
+        var msg = m.payload[0];
+        if(!this.targetId)
+        {
+            if(msg == "follow")
+            {
+                this.targetId = m.fromId;
+                this.saySomething(m.fromId);
+            }
+        }
+        else
+        {
+            if(msg == "heel")
+            {
+                delete this.targetId;
+                this.saySomething(m.fromId);
+            }
+            else if(msg.indexOf("drop") == 0)
+            {
+                this.cmd(msg);
+                this.saySomething(m.fromId);
+            }
+            else if(msg == "inv")
+            {
+                var output = "";
+                for(var itemId in this.items)
+                    output += format("\t%s (%d)\n\n", itemId, this.items[itemId]);
+                if (output.length == 0)
+                    output = " nothing";
+                else
+                    output = "\n\n" + output;
+                this.cmd(format("tell %s %s:%s", m.fromId, this.say, output));
+            }
         }
     }
     else
