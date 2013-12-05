@@ -2,6 +2,7 @@ var fs = require("fs");
 var Body = require("./body.js");
 var AIBody = require("./aibody.js");
 var Aggressor = require("./aggressor.js");
+var Mule = require("./mule.js");
 var ShopKeep = require ("./shopkeep.js");
 var Scavenger = require ("./scavenger.js");
 var Room = require("./room.js");
@@ -11,28 +12,28 @@ var Recipe = require("./recipe.js");
 var core = require("./core.js");
 var format = require("util").format;
 var StringDecoder = require("string_decoder").StringDecoder;
+var Moniker = require('moniker');
 var decoder = new StringDecoder("utf8");
 
 module.exports.users = {};
-module.exports.everyone =
-{
-    "dave": new ShopKeep("Main Square", 10,
+module.exports.everyone = {};
+module.exports.everyone[Moniker.choose()] =
+    new ShopKeep("Market", 10,
     {
         "bird": 10,
         "steel-wool": 10,
-        "health-potion": 3
+        "small-potion": 3
     },
     {
         "bird": { "gold": 1 },
         "steel-wool": { "gold": 2 },
-        "health-potion": {"gold": 3}
-    }),
-    "mark": new Scavenger("Main Square", 10),
-    "carl": new AIBody("Main Square", 10),
-    "doug": new Aggressor("Main Square", 10, null, { "tool": "sword" })
-};
+        "small-potion": {"gold": 3 }
+    });
+module.exports.everyone[Moniker.choose()] = new Scavenger("Main Square", 10);
+module.exports.everyone[Moniker.choose()] = new AIBody("Main Square", 10);
+module.exports.everyone[Moniker.choose()] = new Mule("Main Square", 10, "naaay", { "apple": 5, "log": 3 });
 
-module.exports.rooms ={};
+module.exports.rooms = {};
 module.exports.getRoom = function (roomId) {
     if (!this.rooms[roomId]) {
         var data = decoder.write(fs.readFileSync(format("rooms/%s.js", roomId)));

@@ -91,24 +91,29 @@ Body.prototype.doCommand = function ()
     }
 }
 
-Body.prototype.cmd_buy = function (targetId, itemId)
+Body.prototype.exchange = function(targetId, itemId, verb, dir)
 {
     var people = serverState.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)
-        this.sysMsg(format("%s is not here to buy from.", targetId));
+        this.sysMsg(format("%s is not here to %s %s.", targetId, verb, dir));
     else
-        target.informUser(new Message(this.id, "buy", [itemId]));
+        target.informUser(new Message(this.id, verb, [itemId]));
+}
+
+Body.prototype.cmd_buy = function (targetId, itemId)
+{
+    this.exchange(targetId, itemId, "buy", "from");
 }
 
 Body.prototype.cmd_sell = function (targetId, itemId)
 {
-    var people = serverState.getPeopleIn(this.roomId);
-    var target = people[targetId];
-    if (!target)
-        this.sysMsg(format("%s is not here to sell to.", targetId));
-    else
-        target.informUser(new Message(this.id, "sell", [itemId]));
+    this.exchange(targetId, itemId, "sell", "to");
+}
+
+Body.prototype.cmd_retrieve = function(targetId, itemId)
+{
+    this.exchange(targetId, itemId, "retrieve", "from");
 }
 
 Body.prototype.cmd_yell = function (msg)
@@ -245,7 +250,7 @@ Body.prototype.move = function (dir)
     else
     {
         var people = serverState.getPeopleIn(this.roomId);
-        var m = new Message(this.id, "left");
+        var m = new Message(this.id, "left", [dir]);
         for(var userId in people)
             people[userId].informUser(m);
         this.roomId = exit.roomId;

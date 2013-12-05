@@ -32,13 +32,13 @@ Aggressor.prototype.idleAction = function ()
 {
     var rm = serverState.getRoom(this.roomId);
     var people = core.hashMap(serverState.getPeopleIn(this.roomId), core.key);
-    var target = core.selectRandom(people);
+    var targetId = core.selectRandom(people);
     var exits = core.hashMap(rm.exits, core.key);
     var exit = core.selectRandom(exits);
-    if(!this.moving && target)
+    if(!this.moving && targetId)
     {
         this.cmd("say RAAAARGH!");
-        this.cmd(format("attack %s", core.selectRandom(people)));
+        this.cmd(format("attack %s", targetId));
     }
     else if(exit)
         this.cmd(exit);

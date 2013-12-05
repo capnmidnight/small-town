@@ -14,7 +14,7 @@ function AIBody(roomId, hp, items, equipment, id) {
     Body.call(this, roomId, hp, items, equipment, id);
     this.dt = Math.floor(Math.random() * 5) * 200 + 5000;
     this.lastTime = Date.now();
-    this.target = null;
+    this.targetId = null;
 }
 
 module.exports = AIBody;
