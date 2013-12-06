@@ -14,11 +14,12 @@ var core = require("./core.js");
 var format = require("util").format;
 var StringDecoder = require("string_decoder").StringDecoder;
 var Moniker = require('moniker');
+var storage = require("node-persist");
 var decoder = new StringDecoder("utf8");
 
 module.exports.users = {};
 module.exports.everyone = {};
-module.exports.everyone[Moniker.choose()] =
+module.exports.everyone["Roland"] =
     new ShopKeep("Market", 10,
     {
         "bird": 10,
@@ -30,9 +31,9 @@ module.exports.everyone[Moniker.choose()] =
         "steel-wool": { "gold": 2 },
         "small-potion": {"gold": 3 }
     });
-module.exports.everyone[Moniker.choose()] = new Scavenger("Main Square", 10);
-module.exports.everyone[Moniker.choose()] = new AIBody("Main Square", 10);
-module.exports.everyone[Moniker.choose()] = new Mule("Main Square", 10, "naaay", { "apple": 5, "log": 3 });
+module.exports.everyone["Begbie"] = new Scavenger("Main Square", 10);
+module.exports.everyone["Virginia"] = new AIBody("Main Square", 10);
+module.exports.everyone["mule"] = new Mule("Main Square", 10, "naaay", { "apple": 5, "log": 3 });
 
 module.exports.rooms = {};
 module.exports.getRoom = function (roomId) {
@@ -158,7 +159,19 @@ module.exports.pump = function(newConnections)
 {
   for(var id in newConnections)
   {
-      this.users[id] = new Body("welcome", 100, { "gold": 10 }, null, id, newConnections[id]);
+      var roomId = "welcome";
+      var hp = 100;
+      var items = {"gold":10};
+      var equip = null;
+      var curUser = storage.getItem(id);
+      if(curUser)
+      {
+          roomId = curUser.roomId;
+          hp = curUser.hp;
+          items = curUser.items;
+          equip = curUser.equipment;
+      }
+      this.users[id] = new Body(roomId, hp, items, equip, id, newConnections[id]);
       var m = new Message(id, "join");
       for (var userId in this.users)
           this.users[userId].informUser(m);
@@ -169,6 +182,7 @@ module.exports.pump = function(newConnections)
     var body = this.users[bodyId];
     if (body.quit) {
       console.log(format("%s quit", bodyId));
+      storage.setItem(bodyId, body);
       delete this.users[bodyId];
     }
     else {
@@ -178,6 +192,3 @@ module.exports.pump = function(newConnections)
     }
   }
 }
-
-
-
