@@ -45,7 +45,7 @@ module.exports.getRoom = function (roomId) {
 };
 
 module.exports.lastSpawn = 0;
-module.exports.respawnRate = 10 * 1000; // 5 minutes worth of milliseconds
+module.exports.respawnRate = 5 * 60 * 1000; // 5 minutes worth of milliseconds
 module.exports.respawn = function()
 {
     var now = Date.now();
@@ -82,8 +82,6 @@ module.exports.respawn = function()
                 }
                 else ++orig;
             }
-
-            console.log(format("loaded room %s with %d old items: %d original items, %d new items", roomId, old, orig, n));
         }
         this.lastSpawn = now;
     }
@@ -104,9 +102,6 @@ function loadIntoHash(hsh, fileName){
             var name = parts[0];
             var itemScript = parts[1];
             hsh[name] = eval(itemScript);
-          }
-          else{
-            console.log(parts.length, line);
           }
         }
       }
@@ -175,13 +170,13 @@ module.exports.pump = function(newConnections)
       var m = new Message(id, "join");
       for (var userId in this.users)
           this.users[userId].informUser(m);
-    delete newConnections[id];
+      delete newConnections[id];
   }
   this.respawn();
   for (var bodyId in this.users) {
     var body = this.users[bodyId];
     if (body.quit) {
-      console.log(format("%s quit", bodyId));
+      core.log(format("%s quit", bodyId));
       storage.setItem(bodyId, body);
       delete this.users[bodyId];
     }

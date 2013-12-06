@@ -1,15 +1,22 @@
 var http = require("http");
 var webServer = require("./webServer.js");
-var socketsio = require("socket.io");
+var socketio = require("socket.io");
 var format = require("util").format;
 var serverState = require("./serverState.js");
 var readline = require('readline');
 var core = require('./core.js');
 
 var app = http.createServer(webServer);
-var io = socketsio.listen(app);
+var io = socketio.listen(app);
 var rl = readline.createInterface(process.stdin, process.stdout);
 var newConnections = {};
+
+if(process.argv.indexOf("--headless") > -1)
+{
+    var devnull = function(){};
+    core.log = devnull;
+    io.set("log level", 0);
+}
 
 function loop() {
     try {
@@ -28,14 +35,14 @@ function loop() {
 
 io.sockets.on("connection", function (socket) {
     socket.on("name", function (name) {
-        console.log("naming", name);
+        core.log("naming", name);
         if (serverState.users[name]
             || newConnections[name]) {
-            console.log("old name");
+            core.log("old name");
             socket.emit("news", "Name is already in use, try another one.");
         }
         else {
-            console.log("new name");
+            core.log("new name");
             newConnections[name] = socket;
             socket.emit("good name", name);
         }
@@ -43,26 +50,28 @@ io.sockets.on("connection", function (socket) {
     socket.emit("news", "Please enter a name.");
 });
 
-rl.setPrompt('MUD ADMIN :> ');
-rl.on('line', function (line) {
-    var cmd = line.trim();
-    console.log(cmd);
-    try {
-        console.log(eval(cmd));
-    }
-    catch (exp) {
-        process.stderr.write(exp.message + "\n");
-    }
+if(process.argv.indexOf("--headless") == -1)
+{
+    rl.setPrompt('MUD ADMIN :> ');
+    rl.on('line', function (line) {
+        var cmd = line.trim();
+        core.log(cmd);
+        try {
+            core.log(eval(cmd));
+        }
+        catch (exp) {
+            process.stderr.write(exp.message + "\n");
+        }
+        rl.prompt();
+    }).on('close', function () {
+        core.log('Have a great day!');
+        process.exit(0);
+    });
     rl.prompt();
-}).on('close', function () {
-    console.log('Have a great day!');
-    process.exit(0);
-});
-
+}
 
 app.listen(8080);
 setInterval(loop, 100);
-rl.prompt();
 
 
 
@@ -70,4 +79,5 @@ rl.prompt();
 
 
 
-
+
+

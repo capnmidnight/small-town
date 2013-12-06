@@ -1,8 +1,9 @@
 var fs = require("fs");
 var mime = require("mime");
+var core = require("./core.js");
 
 module.exports = function(req, res) {
-    console.log("REQUEST:", req.method, req.url);
+    core.log("REQUEST:", req.method, req.url);
     if (req.method === "GET" && req.url[0] === "/") {
         if (req.url.length == 1)
             req.url += "index.html";

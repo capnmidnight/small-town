@@ -1,5 +1,5 @@
 var client = (function () {
-    var input, output, socket;
+    var input, output, userStatus, socket;
     var userName = "";
     var linesToDisplay = [];
 
@@ -35,7 +35,6 @@ var client = (function () {
     function enterCommand() {
         var val = input.value.trim();
         try {
-            console.log((userName == "") ? "name" : "cmd", val);
             socket.emit((userName == "") ? "name" : "cmd", val);
             input.value = "";
             input.focus();
@@ -45,11 +44,12 @@ var client = (function () {
         }
     }
 
-    this.setup = function (iId, oId) {
+    this.setup = function (iId, oId, usId) {
         try {
             input = document.getElementById(iId);
             input.addEventListener("keypress", submitCommand, false);
             output = document.getElementById(oId);
+            userStatus = document.getElementById(usId);
             var curHeight = window.innerHeight;
             var resizer = function () {
                 output.style.height = (window.innerHeight - 30) + "px";
@@ -81,6 +81,9 @@ var client = (function () {
                 userName = data;
             });
             socket.on("news", displayln);
+            socket.on("userStatus", function(data){
+                userStatus.innerHTML = data;
+            });
             socket.on("disconnect", function () {
                 displayln("Disconnected.");
                 input.placeholder = "<disconnected>";

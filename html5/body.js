@@ -39,7 +39,7 @@ var Body = function(roomId, hp, items, equipment, id, socket)
         });
         this.socket.on("disconnect", function ()
         {
-            console.log("user disconnected:", body.id);
+            core.log("user disconnected:", body.id);
             body.cmd_quit();
         });
     }
@@ -155,12 +155,12 @@ Body.prototype.update = function ()
 {
     if(this.socket && this.msgQ.length > 0)
     {
-        var msg = this.msgQ.map(function(m){
-            return format("%s %s %s\n\n", m.fromId, m.message, m.payload.join(" "));
-        }).join("\n\n");
-
-        this.msgQ = [];
-        this.socket.emit("news", format("%s%s (%d) :>", msg, this.id, this.hp));
+        while(this.msgQ.length > 0)
+        {
+            var m = this.msgQ.shift();
+            this.socket.emit(m.type, format("%s %s %s", m.fromId, m.message, m.payload.join(" ")));
+        }
+        this.socket.emit("userStatus", format("%s (%d) :>", this.id, this.hp));
     }
 }
 

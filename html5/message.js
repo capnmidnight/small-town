@@ -7,11 +7,12 @@
 //  - msg: the actual message, what happened.
 //  - payload (optional): an array that provides detailed information
 //          about the message.
-function Message(fromId, msg, payload)
+function Message(fromId, msg, payload, type)
 {
     this.fromId = fromId;
     this.message = msg;
     this.payload = payload || [];
+    this.type = type || "news";
 }
 
 module.exports = Message;

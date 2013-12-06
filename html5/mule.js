@@ -38,7 +38,6 @@ Mule.prototype.saySomething = function(targetId){
 }
 
 Mule.prototype.react_tell = function (m){
-    console.log("TARGET", this.targetId, "MSG", m);
     if(m.payload.length > 0){
         var msg = m.payload[0];
         if(!this.targetId)
