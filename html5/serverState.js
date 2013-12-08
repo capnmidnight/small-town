@@ -167,7 +167,7 @@ module.exports.pump = function(newConnections)
           equip = curUser.equipment;
       }
       this.users[id] = new Body(roomId, hp, items, equip, id, newConnections[id]);
-      var m = new Message(id, "join");
+      var m = new Message(id, "join", null, "chat");
       for (var userId in this.users)
           this.users[userId].informUser(m);
       delete newConnections[id];

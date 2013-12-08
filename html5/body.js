@@ -98,7 +98,7 @@ Body.prototype.exchange = function(targetId, itemId, verb, dir)
     if (!target)
         this.sysMsg(format("%s is not here to %s %s.", targetId, verb, dir));
     else
-        target.informUser(new Message(this.id, verb, [itemId]));
+        target.informUser(new Message(this.id, verb, [itemId], "chat"));
 }
 
 Body.prototype.cmd_buy = function (targetId, itemId)
@@ -118,14 +118,14 @@ Body.prototype.cmd_retrieve = function(targetId, itemId)
 
 Body.prototype.cmd_yell = function (msg)
 {
-    var m = new Message(this.id, "yell", [msg]);
+    var m = new Message(this.id, "yell", [msg], "chat");
     for(var userId in serverState.users)
         serverState.users[userId].informUser(m);
 }
 
 Body.prototype.cmd_say = function (msg)
 {
-    var m = new Message(this.id, "say", [msg]);
+    var m = new Message(this.id, "say", [msg], "chat");
     var people = serverState.getPeopleIn(this.roomId);
     if(people)
         for(var userId in people)
@@ -142,7 +142,7 @@ Body.prototype.cmd_tell = function (targetId, msg)
     }
     else
     {
-        target.informUser(new Message(this.id, "tell", [msg]));
+        target.informUser(new Message(this.id, "tell", [msg], "chat"));
     }
 }
 
@@ -158,6 +158,7 @@ Body.prototype.update = function ()
         while(this.msgQ.length > 0)
         {
             var m = this.msgQ.shift();
+            core.log(m.type, m.fromId, m.message);
             this.socket.emit(m.type, format("%s %s %s", m.fromId, m.message, m.payload.join(" ")));
         }
         this.socket.emit("userStatus", format("%s (%d) :>", this.id, this.hp));
@@ -166,7 +167,7 @@ Body.prototype.update = function ()
 
 Body.prototype.cmd_quit = function ()
 {
-    var m = new Message(this.id, ["quit"]);
+    var m = new Message(this.id, ["quit"], "chat");
     for(var userId in serverState.users)
         serverState.users[userId].informUser(m);
     this.quit = true;
@@ -229,11 +230,13 @@ Body.prototype.cmd_look = function ()
             rm.exits,
             core.value,
             core.notEqual, null);
-        this.sysMsg(format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
-            rm.descrip,
-            core.formatHash(itemDescription, items),
-            core.formatHash(roomPeopleDescription, people),
-            core.formatHash(exitDescription, exits)));
+        this.informUser(new Message("",
+            format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
+                rm.descrip,
+                core.formatHash(itemDescription, items),
+                core.formatHash(roomPeopleDescription, people),
+                core.formatHash(exitDescription, exits)),
+            null, "news"));
     }
 }
 
@@ -250,12 +253,12 @@ Body.prototype.move = function (dir)
     else
     {
         var people = serverState.getPeopleIn(this.roomId);
-        var m = new Message(this.id, "left", [dir]);
+        var m = new Message(this.id, "left", [dir], "chat");
         for(var userId in people)
             people[userId].informUser(m);
         this.roomId = exit.roomId;
         people = serverState.getPeopleIn(this.roomId);
-        m = new Message(this.id, "entered");
+        m = new Message(this.id, "entered", null, "chat");
         for(var userId in people)
             people[userId].informUser(m);
         this.cmd_look();
@@ -281,7 +284,7 @@ Body.prototype.cmd_take = function (itemId)
         for (itemId in items)
         {
             var people = serverState.getPeopleIn(this.roomId);
-            var m = new Message(this.id, "take", [itemId]);
+            var m = new Message(this.id, "take", [itemId], "chat");
             for(var userId in people)
                 people[userId].informUser(m);
             this.moveItem(itemId, items, this.items, "picked up", "here", items[itemId]);
@@ -290,7 +293,7 @@ Body.prototype.cmd_take = function (itemId)
     else
     {
         var people = serverState.getPeopleIn(this.roomId);
-        var m = new Message(this.id, "take", [itemId]);
+        var m = new Message(this.id, "take", [itemId], "chat");
         for(var userId in people)
             people[userId].informUser(m);
         this.moveItem(itemId, items, this.items, "picked up", "here");
@@ -302,7 +305,7 @@ Body.prototype.cmd_drop = function (itemId)
     var rm = serverState.getRoom(this.roomId);
     this.moveItem(itemId, this.items, rm.items, "dropped", "in your inventory");
     var people = serverState.getPeopleIn(this.roomId);
-    var m = new Message(this.id, "drop", [itemId]);
+    var m = new Message(this.id, "drop", [itemId], "chat");
     for(var userId in people)
         people[userId].informUser(m);
 }
@@ -325,7 +328,7 @@ Body.prototype.cmd_give = function (targetId, itemId)
     else
     {
         this.moveItem(itemId, this.items, target.items, format("gave to %s", targetId), "in your inventory");
-        var m = new Message(this.id, "give", [targetId, itemId]);
+        var m = new Message(this.id, "give", [targetId, itemId], "chat");
         for(var userId in people)
             people[userId].informUser(m);
     }
@@ -354,7 +357,7 @@ Body.prototype.cmd_make = function (recipeId)
             this.sysMsg(format("You created %d %s(s).", recipe.results[itemId], itemId));
         }
         var people = serverState.getPeopleIn(this.roomId);
-        var m = new Message(this.id, "make", [recipeId]);
+        var m = new Message(this.id, "make", [recipeId], "chat");
         for(var userId in people)
             people[userId].informUser(m);
     }
@@ -462,10 +465,10 @@ Body.prototype.cmd_attack = function (targetId)
         }
         atk = Math.max(atk - def, 0);
         target.hp -= atk;
-        var m = new Message(this.id, "attack", [targetId]);
+        var m = new Message(this.id, "attack", [targetId], "chat");
         for(var userId in people)
             people[userId].informUser(m);
-        target.informUser(new Message(this.id, "damage", [atk]));
+        target.informUser(new Message(this.id, "damage", [atk], "chat"));
         this.sysMsg(format("You attacked %s with %s for %d damage.", targetId, wpnId, atk));
     }
 }

@@ -13,8 +13,6 @@ var newConnections = {};
 
 if(process.argv.indexOf("--headless") > -1)
 {
-    var devnull = function(){};
-    core.log = devnull;
     io.set("log level", 0);
 }
 
@@ -27,8 +25,8 @@ function loop() {
         console.error(format("%s:%d \"%s\"", exp.fileName, exp.lineNumber,  exp.message));
       }
       else{
-        Error.captureStackTrace(exp);
-        console.error(exp.stack);
+        console.error(exp.message);
+        console.trace();
       }
     }
 };
@@ -72,12 +70,3 @@ if(process.argv.indexOf("--headless") == -1)
 
 app.listen(8080);
 setInterval(loop, 100);
-
-
-
-
-
-
-
-
-

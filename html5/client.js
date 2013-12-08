@@ -1,23 +1,44 @@
 var client = (function () {
-    var input, output, userStatus, socket;
+    var input, userStatus, socket, listeners = {};
     var userName = "";
-    var linesToDisplay = [];
 
-    function displayln(msg) {
-        linesToDisplay = msg.split("\n\n");
+    function SocketListener(boxId, socket) {
+        this.box = document.getElementById(boxId);
+        listeners[boxId] = this;
+        this.lines = [];
+        var b = this;
+        socket.on(boxId, function(data) {
+            b.enq(data);
+        });
+        var resizer = function () {
+            b.box.style.width = (window.innerWidth - 10) + "px";
+            b.box.style.height = (window.innerHeight - 30) + "px";
+        }
+        resizer();
+        window.addEventListener("resize", resizer);
     }
 
-    function display() {
-        if (linesToDisplay.length > 0) {
+    SocketListener.prototype.enq = function(data) {
+        this.lines = this.lines.concat(data.split("\n\n"));
+    };
+
+    SocketListener.prototype.next = function() {
+        if(this.lines.length > 0) {
             var elem = document.createElement("div");
-            var line = linesToDisplay.shift();
+            var line = this.lines.shift();
             elem.className = "fadeIn";
-            output.appendChild(elem);
+            this.box.appendChild(elem);
             setTimeout(function () {
                 elem.style.opacity = 1.0;
             }, 1);
             elem.innerHTML = line;
-            output.scrollTop = output.scrollHeight;
+            this.box.scrollTop = this.box.scrollHeight;
+        }
+    };
+
+    function display() {
+        for(var id in listeners) {
+            listeners[id].next();
         }
     }
 
@@ -44,19 +65,12 @@ var client = (function () {
         }
     }
 
-    this.setup = function (iId, oId, usId) {
+    this.setup = function (iId, usId) {
         try {
             input = document.getElementById(iId);
             input.addEventListener("keypress", submitCommand, false);
-            output = document.getElementById(oId);
             userStatus = document.getElementById(usId);
             var curHeight = window.innerHeight;
-            var resizer = function () {
-                output.style.height = (window.innerHeight - 30) + "px";
-                output.style.width = (window.innerWidth - 10) + "px";
-            }
-            resizer();
-            window.addEventListener("resize", resizer);
         }
         catch (exp) {
             console.log(exp.message);
@@ -66,26 +80,27 @@ var client = (function () {
     this.run = function () {
         try {
             socket = io.connect(document.location.hostname,
-                                {
-                                    "reconnect": true,
-                                    "reconnection delay": 1000,
-                                    "max reconnection attempts": 60
-                                });
+            {
+                "reconnect": true,
+                "reconnection delay": 1000,
+                "max reconnection attempts": 60
+            });
             socket.on("connect", function () {
-                displayln("Connected.");
+                listeners.news.enq("Connected.");
                 input.placeholder = "<enter name>";
             });
+            new SocketListener("chat", socket);
+            new SocketListener("news", socket);
             socket.on("good name", function (data) {
-                displayln("Name accepted.");
+                listeners.news.enq("Name accepted.");
                 input.placeholder = "<enter command>";
                 userName = data;
             });
-            socket.on("news", displayln);
             socket.on("userStatus", function(data){
                 userStatus.innerHTML = data;
             });
             socket.on("disconnect", function () {
-                displayln("Disconnected.");
+                listeners.news.enq("Disconnected.");
                 input.placeholder = "<disconnected>";
                 userName = "";
             });

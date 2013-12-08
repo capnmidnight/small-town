@@ -8,8 +8,8 @@
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/client.js"></script>
     <script type="text/javascript">
-        function load(i, o, u) {
-            client.setup(i, o, u);
+        function load(i, u) {
+            client.setup(i, u);
             client.run();
             input.focus();
         }
@@ -23,8 +23,9 @@
 
     </style>
 </head>
-<body onload="load('input', 'output', 'playerStatus')">
-    <div id="output"></div>
+<body onload="load('input', 'playerStatus')">
+    <div id="news"></div>
     <span id="playerStatus"></span><input type="text" id="input" autocomplete="off" placeholder="<disconnected>">
+    <div id="chat"></div>
 </body>
 </html>

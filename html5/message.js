@@ -12,7 +12,7 @@ function Message(fromId, msg, payload, type)
     this.fromId = fromId;
     this.message = msg;
     this.payload = payload || [];
-    this.type = type || "news";
+    this.type = type || "chat";
 }
 
 module.exports = Message;
