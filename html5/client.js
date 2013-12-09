@@ -103,6 +103,7 @@ var client = (function () {
                 listeners.news.enq("Disconnected.");
                 input.placeholder = "<disconnected>";
                 userName = "";
+                userStatus.innerHTML = "";
             });
         }
         catch (exp) {

@@ -3,8 +3,8 @@ var Body = require("./body.js");
 var AIBody = require("./aibody.js");
 var Aggressor = require("./aggressor.js");
 var Mule = require("./mule.js");
-var ShopKeep = require ("./shopkeep.js");
-var Scavenger = require ("./scavenger.js");
+var ShopKeep = require("./shopkeep.js");
+var Scavenger = require("./scavenger.js");
 var Room = require("./room.js");
 var Exit = require("./exit.js");
 var Item = require("./item.js");
@@ -29,7 +29,7 @@ module.exports.everyone["Roland"] =
     {
         "bird": { "gold": 1 },
         "steel-wool": { "gold": 2 },
-        "small-potion": {"gold": 3 }
+        "small-potion": { "gold": 3 }
     });
 module.exports.everyone["Begbie"] = new Scavenger("Main Square", 10);
 module.exports.everyone["Virginia"] = new AIBody("Main Square", 10);
@@ -46,23 +46,18 @@ module.exports.getRoom = function (roomId) {
 
 module.exports.lastSpawn = 0;
 module.exports.respawnRate = 5 * 60 * 1000; // 5 minutes worth of milliseconds
-module.exports.respawn = function()
-{
+module.exports.respawn = function () {
     var now = Date.now();
-    if((now - this.lastSpawn) > this.respawnRate)
-    {
+    if ((now - this.lastSpawn) > this.respawnRate) {
         loadData();
-        for(var userId in this.everyone)
-        {
-            if(!this.users[userId])
-            {
+        for (var userId in this.everyone) {
+            if (!this.users[userId]) {
                 this.users[userId] = this.everyone[userId].copy();
                 this.everyone[userId].copyTo(this.users[userId]);
             }
         }
 
-        for(var roomId in this.rooms)
-        {
+        for (var roomId in this.rooms) {
             var curItems = {};
             var old = 0;
             for (var itemId in this.rooms[roomId].items) {
@@ -87,32 +82,32 @@ module.exports.respawn = function()
     }
 };
 
-function loadIntoHash(hsh, fileName){
-  fs.readFile(fileName, function(err, data){
-    if(!err){
-      for(var key in hsh)
-        delete hsh[key];
+function loadIntoHash(hsh, fileName) {
+    fs.readFile(fileName, function (err, data) {
+        if (!err) {
+            for (var key in hsh)
+                delete hsh[key];
 
-      var lines = decoder.write(data).split("\n");
-      for(var i = 0; i < lines.length; ++i){
-        var line = lines[i].trim();
-        if(line.length > 0) {
-          var parts = line.split(":");
-          if(parts.length == 2){
-            var name = parts[0];
-            var itemScript = parts[1];
-            hsh[name] = eval(itemScript);
-          }
+            var lines = decoder.write(data).split("\n");
+            for (var i = 0; i < lines.length; ++i) {
+                var line = lines[i].trim();
+                if (line.length > 0) {
+                    var parts = line.split(":");
+                    if (parts.length == 2) {
+                        var name = parts[0];
+                        var itemScript = parts[1];
+                        hsh[name] = eval(itemScript);
+                    }
+                }
+            }
         }
-      }
-    }
-  });
+    });
 }
 
 module.exports.itemCatalogue = {};
 
 function loadData() {
-  loadIntoHash(module.exports.itemCatalogue, "itemCatalogue.txt");
+    loadIntoHash(module.exports.itemCatalogue, "itemCatalogue.txt");
 }
 
 module.exports.equipTypes = ["head", "eyes", "shoulders", "torso",
@@ -134,8 +129,7 @@ module.exports.recipes =
         { "sword": 1 })
 };
 
-module.exports.getPeopleIn = function (roomId)
-{
+module.exports.getPeopleIn = function (roomId) {
     return core.where(
         this.users,
         function (k, v) { return v.roomId; },
@@ -150,40 +144,38 @@ setIds(module.exports.everyone);
 setIds(module.exports.recipes);
 setIds(module.exports.rooms);
 
-module.exports.pump = function(newConnections)
-{
-  for(var id in newConnections)
-  {
-      var roomId = "welcome";
-      var hp = 100;
-      var items = {"gold":10};
-      var equip = null;
-      var curUser = storage.getItem(id);
-      if(curUser)
-      {
-          roomId = curUser.roomId;
-          hp = curUser.hp;
-          items = curUser.items;
-          equip = curUser.equipment;
-      }
-      this.users[id] = new Body(roomId, hp, items, equip, id, newConnections[id]);
-      var m = new Message(id, "join", null, "chat");
-      for (var userId in this.users)
-          this.users[userId].informUser(m);
-      delete newConnections[id];
-  }
-  this.respawn();
-  for (var bodyId in this.users) {
-    var body = this.users[bodyId];
-    if (body.quit) {
-      core.log(format("%s quit", bodyId));
-      storage.setItem(bodyId, body);
-      delete this.users[bodyId];
+module.exports.pump = function (newConnections) {
+    for (var id in newConnections) {
+        var roomId = "welcome";
+        var hp = 100;
+        var items = { "gold": 10 };
+        var equip = null;
+        var curUser = storage.getItem(id);
+        if (curUser) {
+            roomId = curUser.roomId;
+            hp = curUser.hp;
+            items = curUser.items;
+            equip = curUser.equipment;
+        }
+        this.users[id] = new Body(roomId, hp, items, equip, id, newConnections[id]);
+        var m = new Message(id, "join", [roomId], "chat");
+        for (var userId in this.users)
+            this.users[userId].informUser(m);
+        delete newConnections[id];
     }
-    else {
-      body.update();
-      while (body.inputQ.length > 0)
-        body.doCommand();
+    this.respawn();
+    for (var bodyId in this.users) {
+        var body = this.users[bodyId];
+        if (body.quit) {
+            core.log(format("%s quit", bodyId));
+            storage.setItem(bodyId, body);
+            this.users[bodyId].socket.disconnect();
+            delete this.users[bodyId];
+        }
+        else {
+            body.update();
+            while (body.inputQ.length > 0)
+                body.doCommand();
+        }
     }
-  }
 }
