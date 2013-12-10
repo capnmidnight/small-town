@@ -39,7 +39,6 @@ var Body = function(roomId, hp, items, equipment, id, socket)
         });
         this.socket.on("disconnect", function ()
         {
-            core.log("user disconnected:", body.id);
             body.cmd_quit();
         });
     }
@@ -158,7 +157,6 @@ Body.prototype.update = function ()
         while(this.msgQ.length > 0)
         {
             var m = this.msgQ.shift();
-            core.log(m.type, m.fromId, m.message);
             this.socket.emit(m.type, format("%s %s %s", m.fromId, m.message, m.payload.join(" ")));
         }
         this.socket.emit("userStatus", format("%s (%d) :>", this.id, this.hp));

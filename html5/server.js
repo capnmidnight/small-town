@@ -15,6 +15,10 @@ if(process.argv.indexOf("--headless") > -1)
 {
     io.set("log level", 0);
 }
+else
+{
+    io.set("log level", 2);
+}
 
 function loop() {
     try {
@@ -33,14 +37,11 @@ function loop() {
 
 io.sockets.on("connection", function (socket) {
     socket.on("name", function (name) {
-        core.log("naming", name);
         if (serverState.users[name]
             || newConnections[name]) {
-            core.log("old name");
             socket.emit("news", "Name is already in use, try another one.");
         }
         else {
-            core.log("new name");
             newConnections[name] = socket;
             socket.emit("good name", name);
         }
@@ -62,7 +63,7 @@ if(process.argv.indexOf("--headless") == -1)
         }
         rl.prompt();
     }).on('close', function () {
-        core.log('Have a great day!');
+        serverState.write();
         process.exit(0);
     });
     rl.prompt();

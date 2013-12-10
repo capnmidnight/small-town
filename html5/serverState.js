@@ -17,6 +17,10 @@ var Moniker = require('moniker');
 var storage = require("node-persist");
 var decoder = new StringDecoder("utf8");
 
+module.exports.write = function() {
+    storage.persist();
+};
+
 module.exports.users = {};
 module.exports.everyone = {};
 module.exports.everyone["Roland"] =
@@ -176,7 +180,6 @@ module.exports.pump = function(newConnections)
   for (var bodyId in this.users) {
     var body = this.users[bodyId];
     if (body.quit) {
-      core.log(format("%s quit", bodyId));
       storage.setItem(bodyId, body);
       delete this.users[bodyId];
     }
