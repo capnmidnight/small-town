@@ -1,25 +1,64 @@
+ ________________________
+/                    //-\\
+|                    || ||
+\____________________\__/|
+   |  ___  __ __ __   __ |
+   | /___| || || |\   || |
+   | ||_   || || ||\  || |
+   | |__|  || || ||\\ || |
+   | ||    ||_|| || \\|| |
+   | ||    \___/ ||  \|| |
+   |  ___   __     _ __  |
+   | /___|  ||   //___|  |
+   | ||     ||  //       |
+   | |==    ||  ||       |___
+   | ||     ||  \\____   |/  \
+   | ||     ||   \\___|  || ||
+   \_____________________\\_//
+
+   This pathetic ASCII art
+   took longer to make than
+   the project itself.
+
+   This is a really shitty
+   name for a game.
 
 
-   ___________________________
-  /    __                     \
-  |   /  | /  / / /   /   | / |
-  |  /__/ /__/ / /   /    |/  |
-  | /    /  / / /__ /__   /   |
-  |                           |
-  |                    _      |
-  |     /| /|   /  /  / \     |
-  |    / |/ |  /  /  /   |    |
-  |   /     | /__/  /___/     |
-  \___________________________/
+FUNFIC: A MUD written for Node.js with Socket.IO
 
-
-PROJECT: philly_mud
-AUTHOR: Sean T. McBeth (sean.mcbeth@gmail.com)
-DATE: 9/20/2011		
+COMMANDS:
+    buy targetId itemId
+    sell targetId itemId
+    yell msg
+    say msg
+    tell targetId msg
+    quit
+    help
+    look
+    north
+    east
+    south
+    west
+    leave
+    up
+    down
+    enter
+    exit
+    take itemId
+    drop itemId
+    give targetId itemId
+    make recipeId
+    inv
+    drink itemId
+    equip itemId
+    remove itemId
+    who
+    attack targetId
+    loot targetId
 
 DESCRIPTION:
-philly_mud is a basic Multi-User Dungeon/Dimension/Domain
-written in PLT Racket, a dialect of Scheme. It serves as
+philly_mud starts as a basic Multi-User Dungeon/Dimension/Domain
+written in PLT Racket, a dialect of Scheme. It served as
 a test-bed project for me to learn Scheme in a more directed
 and meaningful way. I hate how programming tutorials always
 show these ridiculous examples that are completely devoid
@@ -27,26 +66,20 @@ of context. It's all "foo" this and "bar" that, disconnecting
 concept from context. I believe this to be both unnecessary
 and foolish.
 
+I got bored with Scheme and wanted to start learning more about
+dynamic web apps. So I ported my existing code from Racket
+to Node.JS, a process that took about a whole day on an airplane.
+I've been extending it from there, with an emphasis on trying
+to use 3rd party libraries for as much as possible.
+
 GOALS:
-1. Learn Scheme
+1. Learn Node.js
 2. Bring the MUD form to a new generation
 3. Let other people participate in its creation
-4. Make something about the things I love about Philadelphia
 
 LINKS:
-You can get the Racket programming language and the DrRacket
-editor here:
-	http://racket-lang.org/
-
-Its very thorough, if somewhat obtuse, documentation starts here:
-	http://docs.racket-lang.org/
-
-If you're new to programming, you probably want to start here:
-	http://docs.racket-lang.org/quick/index.html
-
-But otherwise, if you're a long-time programmer who is just new
-to Racket, you would probably prefer to start here:
-	http://docs.racket-lang.org/guide/index.html
+You can learn more about Node.js here:
+	http://nodejs.org/
 
 I'm not going to link you to any particular MUDs. The ones 
 I used to play are no longer running, and the ones that are
