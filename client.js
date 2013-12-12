@@ -19,6 +19,9 @@ var client = (function () {
     }
 
     SocketListener.prototype.enq = function(data) {
+		for(var boxId in listeners)
+			listeners[boxId].box.style.opacity = 0.25;
+		this.box.style.opacity = 1;
         this.lines = this.lines.concat(data.split("\n\n"));
     };
 

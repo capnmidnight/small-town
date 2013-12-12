@@ -174,12 +174,13 @@ Body.prototype.cmd_quit = function ()
 Body.prototype.cmd_help = function ()
 {
     var msg = "Available commands:\n\n";
+    var row = "";
+    var lines = [];
     for (var cmd in this)
     {
-        if(cmd.indexOf("cmd_") >= 0)
+		if(cmd.indexOf("cmd_") >= 0)
         {
-            var func = this[cmd];
-            var src = func.toString();
+            var src = this[cmd].toString();
             var j = src.indexOf(")");
             src = src.substring(0, j);
             src = src.replace("function ", "");
@@ -187,9 +188,19 @@ Body.prototype.cmd_help = function ()
             src = src.replace(", ", " ");
             src = src.replace(",", " ");
             cmd = cmd.replace("cmd_", "");
-            msg += format("\t%s %s\n\n", cmd, src);
-        }
-    }
+            var line = cmd + src;
+            lines.push(line);
+		}
+	}
+	lines.sort();
+	
+    var c = 0;
+    var cols = [[],[],[]];
+    for(var i = 0; i < lines.length; ++i)
+		cols[i%cols.length].push(lines[i]);
+		
+	cols = cols.map(function(col){return "<div style=\"display:inline-block;margin-right:1em;text-align:left\">" + col.join("<br>") + "</div>";});
+	msg += "<div>" + cols.join("") + "</div>";
     this.sysMsg(msg);
 }
 
@@ -492,3 +503,4 @@ Body.prototype.cmd_loot = function(targetId)
 module.exports = Body;
 
 
+

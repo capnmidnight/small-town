@@ -33,13 +33,16 @@ html, body, #input
 {
     position: absolute;
     top: 0;
-    left: 0;
+    right: 0;
     text-align: right;
 }
 
 #news, #chat
 {
     overflow-y: scroll;
+}
+#news>div, #chat>div
+{
     transition: opacity 3s ease;
 }
 
