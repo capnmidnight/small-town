@@ -193,14 +193,7 @@ Body.prototype.cmd_help = function ()
 		}
 	}
 	lines.sort();
-	
-    var c = 0;
-    var cols = [[],[],[]];
-    for(var i = 0; i < lines.length; ++i)
-		cols[i%cols.length].push(lines[i]);
-		
-	cols = cols.map(function(col){return "<div style=\"display:inline-block;margin-right:1em;text-align:left\">" + col.join("<br>") + "</div>";});
-	msg += "<div>" + cols.join("") + "</div>";
+	msg += "<div class=\"three-columns\">" + lines.join("<br>") + "</div>";
     this.sysMsg(msg);
 }
 
