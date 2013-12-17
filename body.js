@@ -235,10 +235,12 @@ Body.prototype.cmd_look = function ()
             core.key,
             core.notEqual,
             this.id);
-        var exits = core.where(
-            rm.exits,
-            core.value,
-            core.notEqual, null);
+        var exits = {};
+        for(var exitId in rm.exits)
+            if(rm.exits[exitId]
+                && core.hashSatisfies(this.equipment, rm.exits[exitId].cloak))
+                exits[exitId] = rm.exits[exitId];
+
         this.informUser(new Message("",
             format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
                 rm.descrip,
@@ -503,4 +505,5 @@ Body.prototype.cmd_loot = function(targetId)
 module.exports = Body;
 
 
-
+
+

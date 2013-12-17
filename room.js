@@ -1,3 +1,5 @@
+var fs = require("fs");
+
 // Room class
 //  - descrip: the description of the room, that will get
 //          printed for the user when they "look".
@@ -7,7 +9,7 @@
 //          of stuff.
 function Room(descrip, exits, items)
 {
-    this.descrip = descrip;
+    this.descrip = descrip || "no information";
     this.exits = exits || {};
     this.items = items || {};
     this.id = null;
@@ -15,4 +17,8 @@ function Room(descrip, exits, items)
 
 module.exports = Room;
 
+// loads a room from a text file in the rough room format:
+//  https://github.com/capnmidnight/philly_mud/issues/5
+Room.load = function(filename){
 
+};
