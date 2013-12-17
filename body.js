@@ -237,9 +237,11 @@ Body.prototype.cmd_look = function ()
             this.id);
         var exits = {};
         for(var exitId in rm.exits)
-            if(rm.exits[exitId]
-                && core.hashSatisfies(this.equipment, rm.exits[exitId].cloak))
-                exits[exitId] = rm.exits[exitId];
+        {
+			var exit = rm.exits[exitId];
+            if(exit && (!exit.cloak || this.items[exit.cloak]))
+                exits[exitId] = exit;
+		}
 
         this.informUser(new Message("",
             format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
@@ -258,8 +260,7 @@ Body.prototype.move = function (dir)
     var exitRoom = exit && serverState.getRoom(exit.roomId);
     if (!exit
         || !exitRoom
-        || exit.key
-            && !this.items[exit.key])
+        || (exit.key && !this.items[exit.key]))
         this.sysMsg(format("You can't go %s. %s.", dir, ((exit && exit.key) ? exit.lockMsg : "")));
     else
     {

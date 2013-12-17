@@ -3,21 +3,19 @@
 //  Exits are uni-directional. An exit from Room A to Room B does
 //  not automatically create a path from Room B to Room A.
 //  - roomId: the room to which this Exit links
-//  - key (optional): a hash of itemIds and counts that must be
-//          in the user's inventory for them to be allowed through
-//          the door.
+//  - key (optional): an itemId that must be the user's inventory
+//          for them to be allowed through the door.
 //  - lockMsg (optional): the message to display to the user if
 //          they try to go through the exit but don't have the
 //          key item. Use this to create puzzle hints.
-//  - cloak (optional): a hash of itemIds and counts that must be
-//          in the user's inventory for them to be allowed to
-//          *see* the door.
+//  - cloak (optional): an itemId that must be in the user's
+//          inventory for them to be allowed to *see* the door.
 function Exit(roomId, key, lockMsg, cloak)
 {
     this.roomId = roomId;
-    this.key = key || {};
-    this.lockMsg = lockMsg;
-    this.cloak = cloak || {};
+    this.key = key;
+    this.lockMsg = lockMsg || "The way is locked";
+    this.cloak = cloak;
     this.id = null;
 }
 
