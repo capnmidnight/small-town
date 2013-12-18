@@ -13,13 +13,7 @@ var Message = require("./message.js");
 var core = require("./core.js");
 var format = require("util").format;
 var StringDecoder = require("string_decoder").StringDecoder;
-var Moniker = require('moniker');
-var storage = require("node-persist");
 var decoder = new StringDecoder("utf8");
-
-module.exports.write = function() {
-    storage.persist();
-};
 
 module.exports.users = {};
 module.exports.everyone = {};
@@ -156,14 +150,6 @@ module.exports.pump = function(newConnections)
       var hp = 100;
       var items = {"gold":10};
       var equip = null;
-      var curUser = storage.getItem(id);
-      if(curUser)
-      {
-          roomId = curUser.roomId;
-          hp = curUser.hp;
-          items = curUser.items;
-          equip = curUser.equipment;
-      }
       this.users[id] = new Body(roomId, hp, items, equip, id, newConnections[id]);
       var m = new Message(id, "join", null, "chat");
       for (var userId in this.users)
@@ -174,7 +160,6 @@ module.exports.pump = function(newConnections)
   for (var bodyId in this.users) {
     var body = this.users[bodyId];
     if (body.quit) {
-      storage.setItem(bodyId, body);
       this.users[bodyId].socket.disconnect();
       delete this.users[bodyId];
     }

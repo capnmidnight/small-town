@@ -5,9 +5,7 @@
     "readme": "./README.md",
     "dependencies": {
         "socket.io": "latest",
-        "mime": "latest",
-        "node-persist": "latest",
-        "moniker": "latest"
+        "mime": "latest"
     },
 
     "description": "A Multi-User Dungeon written in node.js.",

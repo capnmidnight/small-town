@@ -223,7 +223,7 @@ Body.prototype.cmd_help = function ()
     var lines = [];
     for (var cmd in this)
     {
-		if(cmd.indexOf("cmd_") >= 0)
+        if(cmd.indexOf("cmd_") >= 0)
         {
             var src = this[cmd].toString();
             var j = src.indexOf(")");
@@ -235,10 +235,10 @@ Body.prototype.cmd_help = function ()
             cmd = cmd.replace("cmd_", "");
             var line = cmd + src;
             lines.push(line);
-		}
-	}
-	lines.sort();
-	msg += "<div class=\"columns\">" + lines.join("<br>") + "</div>";
+        }
+    }
+    lines.sort();
+    msg += "<div class=\"columns\">" + lines.join("<br>") + "</div>";
     this.sysMsg(msg);
 }
 
@@ -278,10 +278,10 @@ Body.prototype.cmd_look = function ()
         var exits = {};
         for(var exitId in rm.exits)
         {
-			var exit = rm.exits[exitId];
+            var exit = rm.exits[exitId];
             if(exit && (!exit.cloak || this.items[exit.cloak]))
                 exits[exitId] = exit;
-		}
+        }
 
         this.informUser(new Message("",
             format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
@@ -318,26 +318,26 @@ Body.prototype.move = function (dir)
 }
 
 function direxplain(dir){
-	return format("Use: \"%s\"\n\n"
+    return format("Use: \"%s\"\n\n"
 +"Move through the exit labeled \"%s\". If the exit is locked and the user doesn't have the key for the lock, the user will not change rooms.\n\n", dir, dir);
 }
 function movedir(dir){
-	return function(){ this.move(dir); };
+    return function(){ this.move(dir); };
 }
 var dirs = ["north", "east", "south", "west", "leave", "up", "down", "enter", "exit"];
 for(var i = 0; i < dirs.length; ++i)
 {
-	explain[dirs[i]] = direxplain(dirs[i]);
-	Body.prototype["cmd_" + dirs[i]] = movedir(dirs[i]);
+    explain[dirs[i]] = direxplain(dirs[i]);
+    Body.prototype["cmd_" + dirs[i]] = movedir(dirs[i]);
 }
 
 explain.explain = "I think you've figured it out by now.";
 Body.prototype.cmd_explain = function(cmd)
 {
-	if(explain[cmd])
-		this.sysMsg(format("%s: %s", cmd, explain[cmd]));
-	else
-		this.sysMsg(format("There is no command \"%s\"", cmd));
+    if(explain[cmd])
+        this.sysMsg(format("%s: %s", cmd, explain[cmd]));
+    else
+        this.sysMsg(format("There is no command \"%s\"", cmd));
 };
 
 explain.take = "Use: \"take &lt;item name&gt;\"\n\n"

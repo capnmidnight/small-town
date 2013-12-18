@@ -63,7 +63,6 @@ if(process.argv.indexOf("--headless") == -1)
         }
         rl.prompt();
     }).on('close', function () {
-        serverState.write();
         process.exit(0);
     });
     rl.prompt();
