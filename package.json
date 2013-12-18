@@ -12,7 +12,7 @@
         "mocha": "latest"
     },
 
-    "description": "A Multi-User Dungeon written in node.js.",
+    "description": "A Multi-User Dungeon.",
     "keywords": ["MUD", "game", "dungeon","RPG", "dragon", "orc",
         "wizard", "warrior", "sword", "shield", "armor"],
 
@@ -26,6 +26,7 @@
 
     "main": "./server.js",
     "scripts": {
-        "start": "node server.js"
+        "start": "node server",
+        "test": "mocha"
     }
 }
