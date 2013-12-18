@@ -16,8 +16,8 @@ var StringDecoder = require("string_decoder").StringDecoder;
 var decoder = new StringDecoder("utf8");
 
 module.exports.users = {};
-module.exports.everyone = {};
-module.exports.everyone["Roland"] =
+module.exports.npcCatalogue = {};
+module.exports.npcCatalogue["Roland"] =
     new ShopKeep("Market", 10,
     {
         "bird": 10,
@@ -29,9 +29,9 @@ module.exports.everyone["Roland"] =
         "steel-wool": { "gold": 2 },
         "small-potion": { "gold": 3 }
     });
-module.exports.everyone["Begbie"] = new Scavenger("Main Square", 10);
-module.exports.everyone["Virginia"] = new AIBody("Main Square", 10);
-module.exports.everyone["mule"] = new Mule("Main Square", 10, "naaay", { "apple": 5, "log": 3 });
+module.exports.npcCatalogue["Begbie"] = new Scavenger("Main Square", 10);
+module.exports.npcCatalogue["Virginia"] = new AIBody("Main Square", 10);
+module.exports.npcCatalogue["mule"] = new Mule("Main Square", 10, "naaay", { "apple": 5, "log": 3 });
 
 module.exports.rooms = {};
 module.exports.getRoom = function (roomId) {
@@ -40,44 +40,6 @@ module.exports.getRoom = function (roomId) {
         this.rooms[roomId] = eval(data);
     }
     return this.rooms[roomId];
-};
-
-module.exports.lastSpawn = 0;
-module.exports.respawnRate = 5 * 60 * 1000; // 5 minutes worth of milliseconds
-module.exports.respawn = function () {
-    var now = Date.now();
-    if ((now - this.lastSpawn) > this.respawnRate) {
-        loadData();
-        for (var userId in this.everyone) {
-            if (!this.users[userId]) {
-                this.users[userId] = this.everyone[userId].copy();
-                this.everyone[userId].copyTo(this.users[userId]);
-            }
-        }
-
-        for (var roomId in this.rooms) {
-            var curItems = {};
-            var old = 0;
-            for (var itemId in this.rooms[roomId].items) {
-                curItems[itemId] = this.rooms[roomId].items[itemId];
-                ++old;
-            }
-
-            delete this.rooms[roomId];
-            var room = this.getRoom(roomId);
-            var orig = 0;
-            var n = 0;
-
-            for (var itemId in curItems) {
-                if (!room.items[itemId]) {
-                    ++n;
-                    room.items[itemId] = curItems[itemId];
-                }
-                else ++orig;
-            }
-        }
-        this.lastSpawn = now;
-    }
 };
 
 function loadIntoHash(hsh, fileName) {
@@ -138,7 +100,7 @@ module.exports.getPeopleIn = function (roomId) {
 function setIds(hsh) { for (var k in hsh) hsh[k].id = k; }
 
 setIds(module.exports.itemCatalogue);
-setIds(module.exports.everyone);
+setIds(module.exports.npcCatalogue);
 setIds(module.exports.recipes);
 setIds(module.exports.rooms);
 
@@ -159,8 +121,10 @@ module.exports.pump = function(newConnections)
   this.respawn();
   for (var bodyId in this.users) {
     var body = this.users[bodyId];
+    if(!body.db)
+		body.db = this;
     if (body.quit) {
-      this.users[bodyId].socket.disconnect();
+      body.socket.disconnect();
       delete this.users[bodyId];
     }
     else {
@@ -170,3 +134,41 @@ module.exports.pump = function(newConnections)
     }
   }
 }
+
+module.exports.lastSpawn = 0;
+module.exports.respawnRate = 5 * 60 * 1000; // 5 minutes worth of milliseconds
+module.exports.respawn = function () {
+    var now = Date.now();
+    if ((now - this.lastSpawn) > this.respawnRate) {
+        loadData();
+        for (var userId in this.npcCatalogue) {
+            if (!this.users[userId]) {
+                this.users[userId] = this.npcCatalogue[userId].copy();
+                this.npcCatalogue[userId].copyTo(this.users[userId]);
+            }
+        }
+
+        for (var roomId in this.rooms) {
+            var curItems = {};
+            var old = 0;
+            for (var itemId in this.rooms[roomId].items) {
+                curItems[itemId] = this.rooms[roomId].items[itemId];
+                ++old;
+            }
+
+            delete this.rooms[roomId];
+            var room = this.getRoom(roomId);
+            var orig = 0;
+            var n = 0;
+
+            for (var itemId in curItems) {
+                if (!room.items[itemId]) {
+                    ++n;
+                    room.items[itemId] = curItems[itemId];
+                }
+                else ++orig;
+            }
+        }
+        this.lastSpawn = now;
+    }
+};

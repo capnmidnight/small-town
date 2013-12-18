@@ -1,6 +1,5 @@
 var Message = require("./message.js");
 var core = require("./core.js");
-var serverState = require("./serverState.js");
 var format = require("util").format;
 
 var explain = {};
@@ -112,7 +111,7 @@ Body.prototype.doCommand = function ()
 
 Body.prototype.exchange = function(targetId, itemId, verb, dir)
 {
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)
         this.sysMsg(format("%s is not here to %s %s.", targetId, verb, dir));
@@ -157,15 +156,15 @@ Body.prototype.cmd_retrieve = function(targetId, itemId)
 }
 
 explain.yell = "Use: \"yell &lt;message&gt;\"\n\n"
-+"Send a message to everyone on the server.\n\n"
++"Send a message to all users on the server.\n\n"
 +"Example:\n\n"
-+"&gt; yell Hello, everyone. How are you doing?\n\n"
++"&gt; yell Hello, how are you doing?\n\n"
 +"&lt; carlos yell SHADDAP!";
 Body.prototype.cmd_yell = function (msg)
 {
     var m = new Message(this.id, "yell", [msg], "chat");
-    for(var userId in serverState.users)
-        serverState.users[userId].informUser(m);
+    for(var userId in this.db.users)
+        this.db.users[userId].informUser(m);
 }
 
 explain.say = "Use: \"say &lt;message&gt;\"\n\n"
@@ -176,7 +175,7 @@ explain.say = "Use: \"say &lt;message&gt;\"\n\n"
 Body.prototype.cmd_say = function (msg)
 {
     var m = new Message(this.id, "say", [msg], "chat");
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     if(people)
         for(var userId in people)
             people[userId].informUser(m);
@@ -189,7 +188,7 @@ explain.tell = "Use: \"tell &lt;target name&gt; &lt;message&gt;\"\n\n"
 +"&lt; carlos tell player naaaay!";
 Body.prototype.cmd_tell = function (targetId, msg)
 {
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)
     {
@@ -209,8 +208,8 @@ explain.quit = "Use: \"quit\"\n\n"
 Body.prototype.cmd_quit = function ()
 {
     var m = new Message(this.id, ["quit"], "chat");
-    for(var userId in serverState.users)
-        serverState.users[userId].informUser(m);
+    for(var userId in this.db.users)
+        this.db.users[userId].informUser(m);
     this.quit = true;
 }
 
@@ -242,15 +241,9 @@ Body.prototype.cmd_help = function ()
     this.sysMsg(msg);
 }
 
-function itemDescription(k, v)
-{
-    return format("\t%d %s - %s", v, k,
-        (serverState.itemCatalogue[k] ? serverState.itemCatalogue[k].descrip : "(UNKNOWN)"));
-}
-
 function roomPeopleDescription(k, v)
 {
-    return format("\t%s%s", k, (serverState.users[k].hp > 0 ? "" : " (KNOCKED OUT)"));
+    return format("\t%s%s", k, (v.hp > 0 ? "" : " (KNOCKED OUT)"));
 }
 
 function exitDescription(k, v)
@@ -264,14 +257,14 @@ explain.look = "Use: \"look\"\n\n"
 +"See a description of the current room.";
 Body.prototype.cmd_look = function ()
 {
-    var rm = serverState.getRoom(this.roomId);
+    var rm = this.db.getRoom(this.roomId);
     if (!rm)
         this.sysMsg("What have you done!?");
     else
     {
         var items = core.where(rm.items, core.value, greaterThan, 0);
         var people = core.where(
-            serverState.getPeopleIn(this.roomId),
+            this.db.getPeopleIn(this.roomId),
             core.key,
             core.notEqual,
             this.id);
@@ -282,11 +275,15 @@ Body.prototype.cmd_look = function ()
             if(exit && (!exit.cloak || this.items[exit.cloak]))
                 exits[exitId] = exit;
         }
-
+        var db = this.db;
         this.informUser(new Message("",
             format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
                 rm.descrip,
-                core.formatHash(itemDescription, items),
+                core.formatHash(function(k, v)
+                {
+                    return format("\t%d %s - %s", v, k,
+                        (db.itemCatalogue[k] ? db.itemCatalogue[k].descrip : "(UNKNOWN)"));
+                }, items),
                 core.formatHash(roomPeopleDescription, people),
                 core.formatHash(exitDescription, exits)),
             null, "news"));
@@ -295,21 +292,21 @@ Body.prototype.cmd_look = function ()
 
 Body.prototype.move = function (dir)
 {
-    var rm = serverState.getRoom(this.roomId);
+    var rm = this.db.getRoom(this.roomId);
     var exit = rm.exits[dir];
-    var exitRoom = exit && serverState.getRoom(exit.roomId);
+    var exitRoom = exit && this.db.getRoom(exit.roomId);
     if (!exit
         || !exitRoom
         || (exit.key && !this.items[exit.key]))
         this.sysMsg(format("You can't go %s. %s.", dir, ((exit && exit.key) ? exit.lockMsg : "")));
     else
     {
-        var people = serverState.getPeopleIn(this.roomId);
+        var people = this.db.getPeopleIn(this.roomId);
         var m = new Message(this.id, "left", [dir], "chat");
         for(var userId in people)
             people[userId].informUser(m);
         this.roomId = exit.roomId;
-        people = serverState.getPeopleIn(this.roomId);
+        people = this.db.getPeopleIn(this.roomId);
         m = new Message(this.id, "entered", null, "chat");
         for(var userId in people)
             people[userId].informUser(m);
@@ -348,13 +345,13 @@ explain.take = "Use: \"take &lt;item name&gt;\"\n\n"
 +"&lt; player take hat";
 Body.prototype.cmd_take = function (itemId)
 {
-    var rm = serverState.getRoom(this.roomId);
+    var rm = this.db.getRoom(this.roomId);
     var items = rm.items;
     if (itemId == "all")
     {
         for (itemId in items)
         {
-            var people = serverState.getPeopleIn(this.roomId);
+            var people = this.db.getPeopleIn(this.roomId);
             var m = new Message(this.id, "take", [itemId], "chat");
             for(var userId in people)
                 people[userId].informUser(m);
@@ -363,7 +360,7 @@ Body.prototype.cmd_take = function (itemId)
     }
     else
     {
-        var people = serverState.getPeopleIn(this.roomId);
+        var people = this.db.getPeopleIn(this.roomId);
         var m = new Message(this.id, "take", [itemId], "chat");
         for(var userId in people)
             people[userId].informUser(m);
@@ -379,9 +376,9 @@ explain.drop = "Use: \"drop &lt;item name&gt;\"\n\n"
 +"&lt; player drop hat";
 Body.prototype.cmd_drop = function (itemId)
 {
-    var rm = serverState.getRoom(this.roomId);
+    var rm = this.db.getRoom(this.roomId);
     this.moveItem(itemId, this.items, rm.items, "dropped", "in your inventory");
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var m = new Message(this.id, "drop", [itemId], "chat");
     for(var userId in people)
         people[userId].informUser(m);
@@ -403,8 +400,8 @@ explain.give = "Use: \"give &lt;target name&gt; &lt;item name&gt;\"\n\n"
 +"&lt; player give carlos hat";
 Body.prototype.cmd_give = function (targetId, itemId)
 {
-    var rm = serverState.getRoom(this.roomId);
-    var people = serverState.getPeopleIn(this.roomId);
+    var rm = this.db.getRoom(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)
         this.sysMsg(format("%s is not here", targetId));
@@ -425,7 +422,7 @@ explain.make = "Use: \"make &lt;item name&gt;\"\n\n"
 +"&lt; player receive hat";
 Body.prototype.cmd_make = function (recipeId)
 {
-    var recipe = serverState.recipes[recipeId];
+    var recipe = this.db.recipes[recipeId];
     if(!recipe)
         this.sysMsg(format("%s isn't a recipe.", recipeId));
     if (!core.hashSatisfies(this.items, recipe.tools))
@@ -445,26 +442,29 @@ Body.prototype.cmd_make = function (recipeId)
             core.inc(this.items, itemId, recipe.results[itemId]);
             this.sysMsg(format("You created %d %s(s).", recipe.results[itemId], itemId));
         }
-        var people = serverState.getPeopleIn(this.roomId);
+        var people = this.db.getPeopleIn(this.roomId);
         var m = new Message(this.id, "make", [recipeId], "chat");
         for(var userId in people)
             people[userId].informUser(m);
     }
 }
 
-function equipDescription(k, v)
-{
-    return format("\t(%s) %s - %s", k, v,
-        (serverState.itemCatalogue[v] ? serverState.itemCatalogue[v].descrip : "(UNKNOWN)"));
-}
-
 explain.make = "Use: \"inv\"\n\n"
 +"View what you have in your inventory";
 Body.prototype.cmd_inv = function ()
 {
+    var db = this.db;
     this.sysMsg(format("Equipped:\n\n%s\n\nUnequipped:\n\n%s\n\n<hr>",
-        core.formatHash(equipDescription, this.equipment),
-        core.formatHash(itemDescription, this.items)));
+        core.formatHash(function (k, v)
+        {
+            return format("\t(%s) %s - %s", k, v,
+                (db.itemCatalogue[v] ? db.itemCatalogue[v].descrip : "(UNKNOWN)"));
+        }, this.equipment),
+        core.formatHash(function(k, v)
+        {
+            return format("\t%d %s - %s", v, k,
+                (db.itemCatalogue[k] ? db.itemCatalogue[k].descrip : "(UNKNOWN)"));
+        }, this.items)));
 }
 
 
@@ -476,7 +476,7 @@ explain.drink = "Use: \"drink &lt;item name&gt;\"\n\n"
 +"&lt; Health restored by 10 points.";
 Body.prototype.cmd_drink = function(itemId)
 {
-    var item = serverState.itemCatalogue[itemId];
+    var item = this.db.itemCatalogue[itemId];
     if(!this.items[itemId])
         this.sysMsg(format("You don't have a %s to drink.", itemId));
     else if(item.equipType != "food")
@@ -498,10 +498,10 @@ explain.equip = "Use: \"equip &lt;item name&gt;\"\n\n"
 Body.prototype.cmd_equip = function (itemId)
 {
     var itmCount = this.items[itemId];
-    var itm = serverState.itemCatalogue[itemId];
+    var itm = this.db.itemCatalogue[itemId];
     if (itmCount === undefined || itmCount <= 0)
         this.sysMsg(format("You don't have the %s.", itemId));
-    else if (serverState.equipTypes.indexOf(itm.equipType) < 0)
+    else if (this.db.equipTypes.indexOf(itm.equipType) < 0)
         this.sysMsg(format("You can't equip the %s.", itemId));
     else
     {
@@ -535,11 +535,11 @@ Body.prototype.cmd_remove = function (itemId)
 }
 
 explain.who = "Use: \"who\"\n\n"
-+"List everyone who is online, and where they are located.";
++"List all users who are online, and where they are located.";
 Body.prototype.cmd_who = function ()
 {
     var msg = "People online:\n\n";
-    msg += core.formatHash(function (k, v) { return format("\t%s - %s", k, v.roomId); }, serverState.users);
+    msg += core.formatHash(function (k, v) { return format("\t%s - %s", k, v.roomId); }, this.db.users);
     this.sysMsg(msg);
 }
 
@@ -550,7 +550,7 @@ explain.attack = "Use: \"attack &lt;target name&gt;\"\n\n"
 +"Targets with armor equipped take less damage.";
 Body.prototype.cmd_attack = function (targetId)
 {
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)
         this.sysMsg(format("%s is not here to attack.", targetId));
@@ -560,7 +560,7 @@ Body.prototype.cmd_attack = function (targetId)
         var wpnId = this.equipment["tool"];
         if (wpnId)
         {
-            var wpn = serverState.itemCatalogue[wpnId];
+            var wpn = this.db.itemCatalogue[wpnId];
             if (wpn)
                 atk += wpn.strength;
         }
@@ -568,12 +568,12 @@ Body.prototype.cmd_attack = function (targetId)
             wpnId = "bare fists";
 
         var def = 0;
-        for(var i = 0; i < serverState.armorTypes.length; ++i)
+        for(var i = 0; i < this.db.armorTypes.length; ++i)
         {
-            var armId = target.equipment[serverState.armorTypes[i]];
+            var armId = target.equipment[this.db.armorTypes[i]];
             if(armId)
             {
-                var arm = serverState.itemCatalogue[armId];
+                var arm = this.db.itemCatalogue[armId];
                 if(arm)
                     def += arm.strength;
             }
@@ -596,7 +596,7 @@ explain.loot = "Use: \"loot &lt;target name&gt;\"\n\n"
 +"&lt; player looted a bird";
 Body.prototype.cmd_loot = function(targetId)
 {
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var target = people[targetId];
     if(!target)
         this.sysMsg(format("%s is not here to loot.", targetId));

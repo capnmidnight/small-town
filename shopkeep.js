@@ -1,6 +1,5 @@
 var AIBody = require("./aibody.js");
 var core = require("./core.js");
-var serverState = require("./serverState.js");
 var format = require("util").format;
 
 function ShopKeep(roomId, hp, items, prices, equipment, id)
@@ -27,7 +26,7 @@ ShopKeep.prototype.copyTo = function(obj)
 function vkString(k, v){return format("%d %s", v, k);}
 ShopKeep.prototype.react_tell = function (m)
 {
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var target = people[m.fromId];
     if (target)
     {
@@ -52,7 +51,7 @@ ShopKeep.prototype.react_tell = function (m)
 
 ShopKeep.prototype.react_buy = function (m)
 {
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var target = people[m.fromId];
     if (target)
     {
@@ -74,7 +73,7 @@ ShopKeep.prototype.react_buy = function (m)
 
 ShopKeep.prototype.react_sell = function (m)
 {
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var target = people[m.fromId];
     if (target)
     {
@@ -101,7 +100,7 @@ ShopKeep.prototype.react_sell = function (m)
 
 ShopKeep.prototype.cmd_buy = function(targetId, itemId)
 {
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var target = people[targetId];
     var item = this.items[itemId];
     var price = this.prices[itemId];
@@ -115,7 +114,7 @@ ShopKeep.prototype.cmd_buy = function(targetId, itemId)
 
 ShopKeep.prototype.cmd_sell = function(targetId, itemId)
 {
-    var people = serverState.getPeopleIn(this.roomId);
+    var people = this.db.getPeopleIn(this.roomId);
     var target = people[targetId];
     var item = this.items[itemId];
     var price = this.prices[itemId];

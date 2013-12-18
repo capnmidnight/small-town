@@ -1,6 +1,5 @@
 var AIBody = require("./aibody.js");
 var core = require("./core.js");
-var serverState = require("./serverState.js");
 var format = require("util").format;
 
 function Scavenger(roomId, hp, items, equipment, id)
@@ -20,7 +19,7 @@ Scavenger.prototype.copyTo = function(obj)
 
 Scavenger.prototype.idleAction = function ()
 {
-    var rm = serverState.getRoom(this.roomId);
+    var rm = this.db.getRoom(this.roomId);
     var items = core.hashMap(rm.items, core.key);
     var item = core.selectRandom(items);
     var exits = core.hashMap(rm.exits, core.key);

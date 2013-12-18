@@ -1,6 +1,5 @@
 var Body = require("./body.js");
 var core = require("./core.js");
-var serverState = require("./serverState.js");
 var format = require("util").format;
 
 //  AIBody class
@@ -56,7 +55,7 @@ AIBody.prototype.cmd = function (msg) {
 }
 
 AIBody.prototype.idleAction = function () {
-    var rm = serverState.getRoom(this.roomId);
+    var rm = this.db.getRoom(this.roomId);
     var exits = core.hashMap(rm.exits, core.key);
     var exit = core.selectRandom(exit);
     if (exit)
@@ -86,6 +85,6 @@ AIBody.prototype.react_say = function (m) {
 }
 
 AIBody.prototype.react_yell = function (m) {
-    if (!(serverState.users[m.fromId] instanceof AIBody))
+    if (!(this.db.users[m.fromId] instanceof AIBody))
         this.cmd("yell SHADDAP!");
 }

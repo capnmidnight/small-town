@@ -1,6 +1,5 @@
 var AIBody = require("./aibody.js");
 var core = require("./core.js");
-var serverState = require("./serverState.js");
 var format = require("util").format;
 
 // Aggressor class
@@ -30,8 +29,8 @@ Aggressor.prototype.copyTo = function(obj)
 
 Aggressor.prototype.idleAction = function ()
 {
-    var rm = serverState.getRoom(this.roomId);
-    var people = core.hashMap(serverState.getPeopleIn(this.roomId), core.key);
+    var rm = this.db.getRoom(this.roomId);
+    var people = core.hashMap(this.db.getPeopleIn(this.roomId), core.key);
     var targetId = core.selectRandom(people);
     var exits = core.hashMap(rm.exits, core.key);
     var exit = core.selectRandom(exits);

@@ -1,6 +1,5 @@
 ﻿var AIBody = require("./aibody.js");
 var core = require("./core.js");
-var serverState = require("./serverState.js");
 var format = require("util").format;
 
 // Mule class
@@ -89,7 +88,7 @@ Mule.prototype.react_retrieve = function (m)
         this.saySomething(m.fromId);
     else
     {
-        var people = serverState.getPeopleIn(this.roomId);
+        var people = this.db.getPeopleIn(this.roomId);
         var target = people[m.fromId];
         if (target)
         {

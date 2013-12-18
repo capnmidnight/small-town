@@ -7,6 +7,10 @@
         "socket.io": "latest",
         "mime": "latest"
     },
+    
+    "devDependencies": {
+        "mocha": "latest"
+    },
 
     "description": "A Multi-User Dungeon written in node.js.",
     "keywords": ["MUD", "game", "dungeon","RPG", "dragon", "orc",
