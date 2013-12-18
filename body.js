@@ -46,6 +46,24 @@ var Body = function(roomId, hp, items, equipment, id, socket)
     }
 }
 
+Body.prototype.informUser = function (msg)
+{
+    this.msgQ.push(msg);
+}
+
+Body.prototype.update = function ()
+{
+    if(this.socket && this.msgQ.length > 0)
+    {
+        while(this.msgQ.length > 0)
+        {
+            var m = this.msgQ.shift();
+            this.socket.emit(m.type, format("%s %s %s", m.fromId, m.message, m.payload.join(" ")));
+        }
+        this.socket.emit("userStatus", format("%s (%d) :>", this.id, this.hp));
+    }
+}
+
 Body.prototype.copyTo = function(obj)
 {
     Body.call(obj, this.roomId, this.hp, this.items, this.equipment, this.id);
@@ -107,23 +125,42 @@ explain.buy = "Use: \"buy &lt;target name&gt; &lt;item name&gt;\"\n\n"
 +"Use \"tell &lt;target name&gt; inv\" to see what they have for sale.\n\n"
 +"Example:\n\n"
 +"&gt; buy carlos hat\n\n"
-+"&lt; carlos take sean 5 gold\n\n"
-+"&lt; carlos give sean hat";
++"&lt; carlos take player 5 gold\n\n"
++"&lt; carlos give player hat";
 Body.prototype.cmd_buy = function (targetId, itemId)
 {
     this.exchange(targetId, itemId, "buy", "from");
 }
 
+explain.sell = "Use: \"sell &lt;target name&gt; &lt;item name&gt;\"\n\n"
++"Ask to sell an item to someone. The target will check to see if you have the item and it can meet the cost, and automatically make the exchange if so.\n\n"
++"Use \"tell &lt;target name&gt; inv\" to see what they have the price for your item.\n\n"
++"Example:\n\n"
++"&gt; sell carlos hat\n\n"
++"&lt; carlos give player 5 gold\n\n"
++"&lt; carlos take player hat";
 Body.prototype.cmd_sell = function (targetId, itemId)
 {
     this.exchange(targetId, itemId, "sell", "to");
 }
 
+explain.retrieve = "Use: \"retrieve &lt;target name&gt; &lt;item name&gt;\"\n\n"
++"Ask your mule to give you an item it is holding for you. The target must know that it is your mule before it will give you the item.\n\n"
++"Use \"tell &lt;target name&gt; inv\" to see what they are carrying for you. The target must know that it is your mule bfore it will tell you what it is carrying.\n\n"
++"Mules are following you if they weren't following anyone when you told them to follow you, e.g. \"tell &lt;target name&gt; follow\"\n\n"
++"Example:\n\n"
++"&gt; retrieve carlos hat\n\n"
++"&lt; carlos give player hat";
 Body.prototype.cmd_retrieve = function(targetId, itemId)
 {
     this.exchange(targetId, itemId, "retrieve", "from");
 }
 
+explain.yell = "Use: \"yell &lt;message&gt;\"\n\n"
++"Send a message to everyone on the server.\n\n"
++"Example:\n\n"
++"&gt; yell Hello, everyone. How are you doing?\n\n"
++"&lt; carlos yell SHADDAP!";
 Body.prototype.cmd_yell = function (msg)
 {
     var m = new Message(this.id, "yell", [msg], "chat");
@@ -131,6 +168,11 @@ Body.prototype.cmd_yell = function (msg)
         serverState.users[userId].informUser(m);
 }
 
+explain.say = "Use: \"say &lt;message&gt;\"\n\n"
++"Say something out loud. Only the people in the room with you will be able to hear it.\n\n"
++"Example:\n\n"
++"&gt; say Hello\n\n"
++"&lt; carlos say Hi!";
 Body.prototype.cmd_say = function (msg)
 {
     var m = new Message(this.id, "say", [msg], "chat");
@@ -140,6 +182,11 @@ Body.prototype.cmd_say = function (msg)
             people[userId].informUser(m);
 }
 
+explain.tell = "Use: \"tell &lt;target name&gt; &lt;message&gt;\"\n\n"
++"Send a private message to someone in the room.\n\n"
++"Example:\n\n"
++"&gt; tell carlos follow\n\n"
++"&lt; carlos tell player naaaay!";
 Body.prototype.cmd_tell = function (targetId, msg)
 {
     var people = serverState.getPeopleIn(this.roomId);
@@ -154,24 +201,11 @@ Body.prototype.cmd_tell = function (targetId, msg)
     }
 }
 
-Body.prototype.informUser = function (msg)
-{
-    this.msgQ.push(msg);
-}
-
-Body.prototype.update = function ()
-{
-    if(this.socket && this.msgQ.length > 0)
-    {
-        while(this.msgQ.length > 0)
-        {
-            var m = this.msgQ.shift();
-            this.socket.emit(m.type, format("%s %s %s", m.fromId, m.message, m.payload.join(" ")));
-        }
-        this.socket.emit("userStatus", format("%s (%d) :>", this.id, this.hp));
-    }
-}
-
+explain.quit = "Use: \"quit\"\n\n"
++"Quit playing the game.\n\n"
++"Example:\n\n"
++"&gt; quit\n\n"
++"&lt; player quit";
 Body.prototype.cmd_quit = function ()
 {
     var m = new Message(this.id, ["quit"], "chat");
@@ -180,6 +214,8 @@ Body.prototype.cmd_quit = function ()
     this.quit = true;
 }
 
+explain.help = "Use: \"help\"\n\n"
++"Show all of the commands available to the user.";
 Body.prototype.cmd_help = function ()
 {
     var msg = "Available commands:\n\n";
@@ -224,6 +260,8 @@ function exitDescription(k, v)
 
 function greaterThan(a, b) { return a > b; }
 
+explain.look = "Use: \"look\"\n\n"
++"See a description of the current room.";
 Body.prototype.cmd_look = function ()
 {
     var rm = serverState.getRoom(this.roomId);
@@ -279,16 +317,21 @@ Body.prototype.move = function (dir)
     }
 }
 
-Body.prototype.cmd_north = function () { this.move("north"); }
-Body.prototype.cmd_east = function () { this.move("east"); }
-Body.prototype.cmd_south = function () { this.move("south"); }
-Body.prototype.cmd_west = function () { this.move("west"); }
-Body.prototype.cmd_leave = function () { this.move("leave"); }
-Body.prototype.cmd_up = function () { this.move("up"); }
-Body.prototype.cmd_down = function () { this.move("down"); }
-Body.prototype.cmd_enter = function () { this.move("enter"); }
-Body.prototype.cmd_exit = function () { this.move("exit"); }
+function direxplain(dir){
+	return format("Use: \"%s\"\n\n"
++"Move through the exit labeled \"%s\". If the exit is locked and the user doesn't have the key for the lock, the user will not change rooms.\n\n", dir, dir);
+}
+function movedir(dir){
+	return function(){ this.move(dir); };
+}
+var dirs = ["north", "east", "south", "west", "leave", "up", "down", "enter", "exit"];
+for(var i = 0; i < dirs.length; ++i)
+{
+	explain[dirs[i]] = direxplain(dirs[i]);
+	Body.prototype["cmd_" + dirs[i]] = movedir(dirs[i]);
+}
 
+explain.explain = "I think you've figured it out by now.";
 Body.prototype.cmd_explain = function(cmd)
 {
 	if(explain[cmd])
@@ -297,6 +340,12 @@ Body.prototype.cmd_explain = function(cmd)
 		this.sysMsg(format("There is no command \"%s\"", cmd));
 };
 
+explain.take = "Use: \"take &lt;item name&gt;\"\n\n"
++"Take an item from the room.\n\n"
++"Use \"look\" to see what is in the room.\n\n"
++"Example:\n\n"
++"&gt; take hat\n\n"
++"&lt; player take hat";
 Body.prototype.cmd_take = function (itemId)
 {
     var rm = serverState.getRoom(this.roomId);
@@ -322,6 +371,12 @@ Body.prototype.cmd_take = function (itemId)
     }
 }
 
+explain.drop = "Use: \"drop &lt;item name&gt;\"\n\n"
++"Drop an item from inventory into the room.\n\n"
++"Use \"inv\" to see what is inventory.\n\n"
++"Example:\n\n"
++"&gt; drop hat\n\n"
++"&lt; player drop hat";
 Body.prototype.cmd_drop = function (itemId)
 {
     var rm = serverState.getRoom(this.roomId);
@@ -340,6 +395,12 @@ Body.prototype.moveItem = function (itm, from, to, actName, locName, amt)
         this.sysMsg(format("There is no %s %s", itm, locName));
 }
 
+explain.give = "Use: \"give &lt;target name&gt; &lt;item name&gt;\"\n\n"
++"Give an item from your inventory to a person in the room.\n\n"
++"Use \"inv\" to see what is your inventory.\n\n"
++"Example:\n\n"
++"&gt; give carlos hat\n\n"
++"&lt; player give carlos hat";
 Body.prototype.cmd_give = function (targetId, itemId)
 {
     var rm = serverState.getRoom(this.roomId);
@@ -356,6 +417,12 @@ Body.prototype.cmd_give = function (targetId, itemId)
     }
 }
 
+explain.make = "Use: \"make &lt;item name&gt;\"\n\n"
++"If the ingredients and tools requirements are met for the recipe of the named item, then deducts the ingredients from the user's inventory and adds the recipe's result items to the user's inventory.\n\n"
++"Example:\n\n"
++"&gt; make hat\n\n"
++"&lt; player lose leather\n\n"
++"&lt; player receive hat";
 Body.prototype.cmd_make = function (recipeId)
 {
     var recipe = serverState.recipes[recipeId];
@@ -391,6 +458,8 @@ function equipDescription(k, v)
         (serverState.itemCatalogue[v] ? serverState.itemCatalogue[v].descrip : "(UNKNOWN)"));
 }
 
+explain.make = "Use: \"inv\"\n\n"
++"View what you have in your inventory";
 Body.prototype.cmd_inv = function ()
 {
     this.sysMsg(format("Equipped:\n\n%s\n\nUnequipped:\n\n%s\n\n<hr>",
@@ -398,6 +467,13 @@ Body.prototype.cmd_inv = function ()
         core.formatHash(itemDescription, this.items)));
 }
 
+
+explain.drink = "Use: \"drink &lt;item name&gt;\"\n\n"
++"Consume a potion to restore health.\n\n"
++"Example:\n\n"
++"&gt; drink potion\n\n"
++"&lt; player drink potion\n\n"
++"&lt; Health restored by 10 points.";
 Body.prototype.cmd_drink = function(itemId)
 {
     var item = serverState.itemCatalogue[itemId];
@@ -413,6 +489,12 @@ Body.prototype.cmd_drink = function(itemId)
     }
 }
 
+explain.equip = "Use: \"equip &lt;item name&gt;\"\n\n"
++"If the named item is a piece of equipment, readies the item for use. The item will no longer be considered in inventory.\n\n"
++"If there is already an item in the equipment slot, returns that old item to inventory first.\n\n"
++"Example:\n\n"
++"&gt; equip hat\n\n"
++"&lt; player equiped the hat as a helmet";
 Body.prototype.cmd_equip = function (itemId)
 {
     var itmCount = this.items[itemId];
@@ -432,6 +514,11 @@ Body.prototype.cmd_equip = function (itemId)
     }
 }
 
+explain.remove = "Use: \"remove &lt;item name&gt;\"\n\n"
++"Removes the item from use as equipment and returns it to inventory.\n\n"
++"Example:\n\n"
++"&gt; remove hat\n\n"
++"&lt; player removed the hat as a helmet";
 Body.prototype.cmd_remove = function (itemId)
 {
     for (var slot in this.equipment)
@@ -447,6 +534,8 @@ Body.prototype.cmd_remove = function (itemId)
     this.sysMsg(format("There is no %s to remove.", itemId));
 }
 
+explain.who = "Use: \"who\"\n\n"
++"List everyone who is online, and where they are located.";
 Body.prototype.cmd_who = function ()
 {
     var msg = "People online:\n\n";
@@ -455,6 +544,10 @@ Body.prototype.cmd_who = function ()
 }
 
 
+explain.attack = "Use: \"attack &lt;target name&gt;\"\n\n"
++"Strikes the target once in combat.\n\n"
++"Equipped weapons make the attacks perform more damage.\n\n"
++"Targets with armor equipped take less damage.";
 Body.prototype.cmd_attack = function (targetId)
 {
     var people = serverState.getPeopleIn(this.roomId);
@@ -495,6 +588,12 @@ Body.prototype.cmd_attack = function (targetId)
     }
 }
 
+explain.loot = "Use: \"loot &lt;target name&gt;\"\n\n"
++"If the target is knocked out after combat, takes everything it has as inventory and equipment.\n\n"
++"Example:\n\n"
++"&gt; loot carlos\n\n"
++"&lt; player looted a hat\n\n"
++"&lt; player looted a bird";
 Body.prototype.cmd_loot = function(targetId)
 {
     var people = serverState.getPeopleIn(this.roomId);
@@ -514,7 +613,3 @@ Body.prototype.cmd_loot = function(targetId)
 }
 
 module.exports = Body;
-
-
-
-
