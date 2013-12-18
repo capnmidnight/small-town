@@ -29,7 +29,7 @@ var client = (function () {
         if(this.lines.length > 0) {
             var elem = document.createElement("div");
             var line = this.lines.shift();
-            elem.className = "fadeIn";
+            elem.className = "fadeIn line";
             this.box.appendChild(elem);
             setTimeout(function () {
                 elem.style.opacity = 1.0;

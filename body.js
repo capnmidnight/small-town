@@ -3,6 +3,8 @@ var core = require("./core.js");
 var serverState = require("./serverState.js");
 var format = require("util").format;
 
+var explain = {};
+
 // Body class
 //  A person, notionally. Both PCs and NPCs are represented as
 //  Bodys right now, but NPCs get their inputQ filled by a different
@@ -100,6 +102,13 @@ Body.prototype.exchange = function(targetId, itemId, verb, dir)
         target.informUser(new Message(this.id, verb, [itemId], "chat"));
 }
 
+explain.buy = "Use: \"buy &lt;target name&gt; &lt;item name&gt;\"\n\n"
++"Ask to buy an item from someone. The target will check to see if you have the items to meet the cost, and automatically make the exchange if so.\n\n"
++"Use \"tell &lt;target name&gt; inv\" to see what they have for sale.\n\n"
++"Example:\n\n"
++"&gt; buy carlos hat\n\n"
++"&lt; carlos take sean 5 gold\n\n"
++"&lt; carlos give sean hat";
 Body.prototype.cmd_buy = function (targetId, itemId)
 {
     this.exchange(targetId, itemId, "buy", "from");
@@ -193,7 +202,7 @@ Body.prototype.cmd_help = function ()
 		}
 	}
 	lines.sort();
-	msg += "<div class=\"three-columns\">" + lines.join("<br>") + "</div>";
+	msg += "<div class=\"columns\">" + lines.join("<br>") + "</div>";
     this.sysMsg(msg);
 }
 
@@ -279,6 +288,14 @@ Body.prototype.cmd_up = function () { this.move("up"); }
 Body.prototype.cmd_down = function () { this.move("down"); }
 Body.prototype.cmd_enter = function () { this.move("enter"); }
 Body.prototype.cmd_exit = function () { this.move("exit"); }
+
+Body.prototype.cmd_explain = function(cmd)
+{
+	if(explain[cmd])
+		this.sysMsg(format("%s: %s", cmd, explain[cmd]));
+	else
+		this.sysMsg(format("There is no command \"%s\"", cmd));
+};
 
 Body.prototype.cmd_take = function (itemId)
 {
