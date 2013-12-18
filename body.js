@@ -182,11 +182,11 @@ Body.prototype.cmd_help = function ()
         {
             var src = this[cmd].toString();
             var j = src.indexOf(")");
-            src = src.substring(0, j);
-            src = src.replace("function ", "");
-            src = src.replace("(", " ");
-            src = src.replace(", ", " ");
-            src = src.replace(",", " ");
+            src = src.substring(0, j)
+                .replace("function ", "")
+                .replace("(", " ")
+                .replace(", ", " ")
+                .replace(",", " ");
             cmd = cmd.replace("cmd_", "");
             var line = cmd + src;
             lines.push(line);
