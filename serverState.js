@@ -29,15 +29,20 @@ module.exports.npcCatalogue["Roland"] =
         "steel-wool": { "gold": 2 },
         "small-potion": { "gold": 3 }
     });
-module.exports.npcCatalogue["Begbie"] = new Scavenger("Main Square", 10);
-module.exports.npcCatalogue["Virginia"] = new AIBody("Main Square", 10);
-module.exports.npcCatalogue["mule"] = new Mule("Main Square", 10, "naaay", { "apple": 5, "log": 3 });
 
 module.exports.rooms = {};
 module.exports.getRoom = function (roomId) {
     if (!this.rooms[roomId]) {
         var data = decoder.write(fs.readFileSync(format("rooms/%s.js", roomId)));
-        this.rooms[roomId] = eval(data);
+        var room = eval(data);
+        this.rooms[roomId] = room;
+        for(var userId in room.npcs) {
+			room.npcs[userId].id = userId;
+			if(!this.npcCatalogue[userId]) {
+				this.npcCatalogue[userId] = room.npcs[userId];
+				this.spawnNPC(userId);
+			}
+		}
     }
     return this.rooms[roomId];
 };
@@ -137,16 +142,18 @@ module.exports.pump = function(newConnections)
 
 module.exports.lastSpawn = 0;
 module.exports.respawnRate = 5 * 60 * 1000; // 5 minutes worth of milliseconds
+module.exports.spawnNPC = function(userId) {
+	if (!this.users[userId]) {
+		this.users[userId] = this.npcCatalogue[userId].copy();
+		this.npcCatalogue[userId].copyTo(this.users[userId]);
+	}
+};
 module.exports.respawn = function () {
     var now = Date.now();
     if ((now - this.lastSpawn) > this.respawnRate) {
         loadData();
-        for (var userId in this.npcCatalogue) {
-            if (!this.users[userId]) {
-                this.users[userId] = this.npcCatalogue[userId].copy();
-                this.npcCatalogue[userId].copyTo(this.users[userId]);
-            }
-        }
+        for (var userId in this.npcCatalogue)
+			this.spawnNPC(userId);
 
         for (var roomId in this.rooms) {
             var curItems = {};

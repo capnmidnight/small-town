@@ -7,11 +7,16 @@ var fs = require("fs");
 //  - items (optional): an associative array, combining
 //          item IDs and counts, for the room's selection
 //          of stuff.
-function Room(descrip, exits, items)
+//  - npcs (optional): an associative array, combining
+//			characters IDs and Body subclasses, for the 
+//			characters that start in this room (if defining,
+//			them in the room is most natural).
+function Room(descrip, exits, items, npcs)
 {
     this.descrip = descrip || "no information";
     this.exits = exits || {};
     this.items = items || {};
+    this.npcs = npcs || {};
     this.id = null;
 }
 
