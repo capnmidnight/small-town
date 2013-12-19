@@ -1,4 +1,4 @@
-﻿new Room(
+﻿new Room(serverState.rooms,
       "Welcome!\n\n\n\nWelcome to a very simple, Multi-User "
     + "Dungeon that I have created. This MUD "
     + "is almost completely useless at this time. "

@@ -15,7 +15,7 @@ describe("Thing", function(){
 		it("persists ID after set", function(){
 			var t = new Thing(db);
 			t.setId("t");
-			assert.equal(t.id, "t");
+			assert.strictEqual(t.id, "t");
 		});
 		
 		it("fails on second setId", function(){
@@ -97,7 +97,7 @@ describe("Thing", function(){
 			t1.setId("t1");
 			t2.setId("t2");
 			t1.setParent("t2");
-			assert.equal(t1.parentId, "t2");
+			assert.strictEqual(t1.parentId, "t2");
 		});
 		
 		it("allows Thing object directly", function(){
@@ -106,7 +106,7 @@ describe("Thing", function(){
 			t1.setId("t1");
 			t2.setId("t2");
 			t1.setParent(t2);
-			assert.equal(t1.parentId, "t2");
+			assert.strictEqual(t1.parentId, "t2");
 		});
 		
 		it("gets nothing if parent not set", function(){
@@ -121,7 +121,7 @@ describe("Thing", function(){
 			t2.setId("t2");
 			t1.setParent(t2);
 			var t3 = t1.getParent();
-			assert.equal(t3, t2);
+			assert.strictEqual(t3, t2);
 		});
 		
 		it("can be cleared", function(){
@@ -141,7 +141,7 @@ describe("Thing", function(){
 			t2.setId("t2");
 			t1.setParent(t2);
 			var ts = t2.getChildren();
-			assert.equal(ts.indexOf(t1), 0);
+			assert.strictEqual(ts.indexOf(t1), 0);
 		});
 		
 		it("no longer child once cleared", function(){
@@ -152,14 +152,14 @@ describe("Thing", function(){
 			t1.setParent(t2);
 			t1.clearParent();
 			var ts = t2.getChildren();
-			assert.equal(ts.indexOf(t1), -1);
+			assert.strictEqual(ts.indexOf(t1), -1);
 		});
 	});
 	
 	describe("children", function(){
 		it("has no starting children", function(){
 			var t = new Thing(db);
-			assert.equal(t.children.length, 0);
+			assert.strictEqual(t.children.length, 0);
 		});
 		
 		it("fails to add child if no ID is set", function(){
@@ -204,7 +204,7 @@ describe("Thing", function(){
 			t1.setId("t1");
 			t2.setId("t2");
 			t1.addChild("t2");
-			assert.equal(t1.children.indexOf("t2"), 0);
+			assert.strictEqual(t1.children.indexOf("t2"), 0);
 		});
 		
 		it("allows Thing object directly", function(){
@@ -213,12 +213,12 @@ describe("Thing", function(){
 			t1.setId("t1");
 			t2.setId("t2");
 			t1.addChild(t2);
-			assert.equal(t1.children.indexOf("t2"), 0);
+			assert.strictEqual(t1.children.indexOf("t2"), 0);
 		});
 		
 		it("gets nothing if children not set", function(){
 			var t = new Thing(db);
-			assert.equal(t.getChildren().length, 0);
+			assert.strictEqual(t.getChildren().length, 0);
 		});
 		
 		it("retrieves the same thing", function(){
@@ -228,7 +228,7 @@ describe("Thing", function(){
 			t2.setId("t2");
 			t1.addChild(t2);
 			var ts = t1.getChildren();
-			assert.equal(ts.indexOf(t2), 0);
+			assert.strictEqual(ts.indexOf(t2), 0);
 		});
 		
 		it("can be cleared by id", function(){
@@ -238,7 +238,7 @@ describe("Thing", function(){
 			t2.setId("t2");
 			t1.addChild(t2);
 			t1.removeChild("t2");
-			assert.equal(t1.children.length, 0);
+			assert.strictEqual(t1.children.length, 0);
 		});
 		
 		it("doesn't remove innocent bystanders", function(){
@@ -251,7 +251,7 @@ describe("Thing", function(){
 			t1.addChild(t2);
 			t1.addChild(t3);
 			t1.removeChild("t2");
-			assert.equal(t1.children.indexOf("t3"), 0);
+			assert.strictEqual(t1.children.indexOf("t3"), 0);
 		});
 		
 		it("can be cleared by value", function(){
@@ -261,7 +261,7 @@ describe("Thing", function(){
 			t2.setId("t2");
 			t1.addChild(t2);
 			t1.removeChild(t2);
-			assert.equal(t1.children.length, 0);
+			assert.strictEqual(t1.children.length, 0);
 		});
 		
 		it("becomes available as parent", function(){
@@ -271,7 +271,7 @@ describe("Thing", function(){
 			t2.setId("t2");
 			t1.addChild(t2);
 			var t3 = t2.getParent();
-			assert.equal(t3, t1);
+			assert.strictEqual(t3, t1);
 		});
 		
 		it("no longer parent once cleared", function(){
@@ -296,7 +296,7 @@ describe("Thing", function(){
 			t1.setParent(t2);
 			t1.addChild(t3);
 			var t4 = t1.copy();
-			assert.equal(t4.__proto__, t1.__proto__);
+			assert.strictEqual(t4.__proto__, t1.__proto__);
 		});
 		
 		it("makes deep copy", function(){
@@ -348,7 +348,7 @@ describe("Thing", function(){
 			t1.setParent(t2);
 			t1.addChild(t3);
 			var t4 = t1.copy();
-			assert.equal(t4.getParent(), t1.getParent());
+			assert.strictEqual(t4.getParent(), t1.getParent());
 		});
 		
 		it("gets the same children", function(){
@@ -366,6 +366,13 @@ describe("Thing", function(){
 	});
 	
 	describe("Destroy", function(){
+		it("fails if ID not set", function(){
+			var t1 = new Thing(db);
+			assert.throws(function(){
+				t1.destroy();
+			});
+		});
+		
 		it("removes own parent", function(){
 			var t1 = new Thing(db);
 			var t2 = new Thing(db);
@@ -402,7 +409,7 @@ describe("Thing", function(){
 			t1.setParent(t2);
 			t1.addChild(t3);
 			t1.destroy();
-			assert.equal(t1.children.length, 0);
+			assert.strictEqual(t1.children.length, 0);
 		});
 		
 		it("removes from parent's children", function(){
@@ -415,7 +422,14 @@ describe("Thing", function(){
 			t1.setParent(t2);
 			t1.addChild(t3);
 			t1.destroy();
-			assert.equal(t2.children.length, 0);
+			assert.strictEqual(t2.children.length, 0);
+		});
+		
+		it("removes from database", function(){
+			var t1 = new Thing(db);
+			t1.setId("t1");
+			t1.destroy();
+			assert.ok(!db["t1"]);
 		});
 		
 		it("allows resetting of ID", function(){

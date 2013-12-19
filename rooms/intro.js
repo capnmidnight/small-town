@@ -1,4 +1,4 @@
-﻿new Room(
+﻿new Room(serverState.rooms,
       "Introduction\n\nLearning the commands to the game important.\n"
     + "You can see all of the commands you're\n"
     + "capable of by typing <strong>help</strong> in the command\n"

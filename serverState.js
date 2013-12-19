@@ -10,6 +10,7 @@ var Exit = require("./exit.js");
 var Item = require("./item.js");
 var Recipe = require("./recipe.js");
 var Message = require("./message.js");
+var assert = require("assert");
 var core = require("./core.js");
 var format = require("util").format;
 var StringDecoder = require("string_decoder").StringDecoder;
@@ -33,8 +34,10 @@ module.exports.npcCatalogue["Roland"] =
 module.exports.rooms = {};
 module.exports.getRoom = function (roomId) {
     if (!this.rooms[roomId]) {
+		var serverState = this;
         var data = decoder.write(fs.readFileSync(format("rooms/%s.js", roomId)));
         var room = eval(data);
+        room.setId(roomId);
         this.rooms[roomId] = room;
         for(var userId in room.npcs) {
 			room.npcs[userId].id = userId;
@@ -102,12 +105,18 @@ module.exports.getPeopleIn = function (roomId) {
         roomId);
 };
 
-function setIds(hsh) { for (var k in hsh) hsh[k].id = k; }
+function setIds(hsh) { 
+	for (var k in hsh) {
+		if(hsh[k].setId)
+			hsh[k].setId(k);
+		else
+			hsh[k].id = k; 
+	}
+}
 
 setIds(module.exports.itemCatalogue);
 setIds(module.exports.npcCatalogue);
 setIds(module.exports.recipes);
-setIds(module.exports.rooms);
 
 module.exports.pump = function(newConnections)
 {
@@ -160,11 +169,13 @@ module.exports.respawn = function () {
 
         for (var roomId in this.rooms) {
             var curItems = {};
-            for (var itemId in this.rooms[roomId].items)
-                curItems[itemId] = this.rooms[roomId].items[itemId];
-
-            delete this.rooms[roomId];
             var room = this.getRoom(roomId);
+            for (var itemId in room.items)
+                curItems[itemId] = room.items[itemId];
+            assert.strictEqual(room.db, this.rooms);
+            
+			room.destroy();			
+            room = this.getRoom(roomId);
 
             for (var itemId in curItems)
                 if (!room.items[itemId])

@@ -153,6 +153,7 @@ Thing.prototype.copy = function() {
  *  this will actually be useful or not.
  */
 Thing.prototype.destroy = function() {
+	assert.ok(this.id, "Can't destroy an uninitialized object");
     this.clearParent();
     for(var i = 0; i < this.children.length; ++i)
         this.db[this.children[i]].parentId = null;

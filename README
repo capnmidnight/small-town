@@ -56,7 +56,7 @@ COMMANDS:
     attack targetId
     loot targetId
 
-DESCRIPTION:
+description:
 philly_mud starts as a basic Multi-User Dungeon/Dimension/Domain
 written in PLT Racket, a dialect of Scheme. It served as
 a test-bed project for me to learn Scheme in a more directed

@@ -241,12 +241,12 @@ Body.prototype.cmd_help = function ()
     this.sysMsg(msg);
 }
 
-function roomPeopleDescription(k, v)
+function roomPeopledescription(k, v)
 {
     return format("\t%s%s", k, (v.hp > 0 ? "" : " (KNOCKED OUT)"));
 }
 
-function exitDescription(k, v)
+function exitdescription(k, v)
 {
     return format("\t%s to %s", k, v.roomId);
 }
@@ -278,14 +278,14 @@ Body.prototype.cmd_look = function ()
         var db = this.db;
         this.informUser(new Message("",
             format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
-                rm.descrip,
+                rm.description,
                 core.formatHash(function(k, v)
                 {
                     return format("\t%d %s - %s", v, k,
-                        (db.itemCatalogue[k] ? db.itemCatalogue[k].descrip : "(UNKNOWN)"));
+                        (db.itemCatalogue[k] ? db.itemCatalogue[k].description : "(UNKNOWN)"));
                 }, items),
-                core.formatHash(roomPeopleDescription, people),
-                core.formatHash(exitDescription, exits)),
+                core.formatHash(roomPeopledescription, people),
+                core.formatHash(exitdescription, exits)),
             null, "news"));
     }
 }
@@ -458,12 +458,12 @@ Body.prototype.cmd_inv = function ()
         core.formatHash(function (k, v)
         {
             return format("\t(%s) %s - %s", k, v,
-                (db.itemCatalogue[v] ? db.itemCatalogue[v].descrip : "(UNKNOWN)"));
+                (db.itemCatalogue[v] ? db.itemCatalogue[v].description : "(UNKNOWN)"));
         }, this.equipment),
         core.formatHash(function(k, v)
         {
             return format("\t%d %s - %s", v, k,
-                (db.itemCatalogue[k] ? db.itemCatalogue[k].descrip : "(UNKNOWN)"));
+                (db.itemCatalogue[k] ? db.itemCatalogue[k].description : "(UNKNOWN)"));
         }, this.items)));
 }
 

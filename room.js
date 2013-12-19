@@ -1,7 +1,9 @@
+var Thing = require("./thing.js");
 var fs = require("fs");
 
 // Room class
-//  - descrip: the description of the room, that will get
+//  - db: a database of all things
+//  - description: the description of the room, that will get
 //          printed for the user when they "look".
 //  - exits: an array of Exit objects
 //  - items (optional): an associative array, combining
@@ -11,16 +13,17 @@ var fs = require("fs");
 //			characters IDs and Body subclasses, for the 
 //			characters that start in this room (if defining,
 //			them in the room is most natural).
-function Room(descrip, exits, items, npcs)
+function Room(db, description, exits, items, npcs)
 {
-    this.descrip = descrip || "no information";
+    Thing.call(this, db, description);
     this.exits = exits || {};
     this.items = items || {};
     this.npcs = npcs || {};
-    this.id = null;
 }
-
 module.exports = Room;
+
+Room.prototype = Object.create(Thing.prototype);
+
 
 // loads a room from a text file in the rough room format:
 //  https://github.com/capnmidnight/philly_mud/issues/5
