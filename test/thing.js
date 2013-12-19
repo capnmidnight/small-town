@@ -42,6 +42,13 @@ describe("Thing", function(){
 			assert.ok(!t.parentId);
 		});
 		
+		it("doesn't error on empty clearing of parent", function(){
+			var t = new Thing();
+			assert.doesNotThrow(function(){
+				t.clearParent();
+			});
+		});
+		
 		it("fails to set parent if no ID is set", function(){
 			var t1 = new Thing();
 			var t2 = new Thing();
@@ -349,6 +356,69 @@ describe("Thing", function(){
 			t1.addChild(t3);
 			var t4 = t1.copy();
 			assert.deepEqual(t4.getChildren(), t1.getChildren());
+		});
+	});
+	
+	describe("Destroy", function(){
+		it("removes own parent", function(){
+			var t1 = new Thing();
+			var t2 = new Thing();
+			var t3 = new Thing();
+			t1.setId("t1");
+			t2.setId("t2");
+			t3.setId("t3");
+			t1.setParent(t2);
+			t1.addChild(t3);
+			t1.destroy();
+			assert.ok(!t1.parentId);
+		});
+		
+		it("removes child's parent", function(){
+			var t1 = new Thing();
+			var t2 = new Thing();
+			var t3 = new Thing();
+			t1.setId("t1");
+			t2.setId("t2");
+			t3.setId("t3");
+			t1.setParent(t2);
+			t1.addChild(t3);
+			t1.destroy();
+			assert.ok(!t3.parentId);
+		});
+		
+		it("removes own children", function(){
+			var t1 = new Thing();
+			var t2 = new Thing();
+			var t3 = new Thing();
+			t1.setId("t1");
+			t2.setId("t2");
+			t3.setId("t3");
+			t1.setParent(t2);
+			t1.addChild(t3);
+			t1.destroy();
+			assert.equal(t1.children.length, 0);
+		});
+		
+		it("removes from parent's children", function(){
+			var t1 = new Thing();
+			var t2 = new Thing();
+			var t3 = new Thing();
+			t1.setId("t1");
+			t2.setId("t2");
+			t3.setId("t3");
+			t1.setParent(t2);
+			t1.addChild(t3);
+			t1.destroy();
+			assert.equal(t2.children.length, 0);
+		});
+		
+		it("allows resetting of ID", function(){
+			var t1 = new Thing();
+			t1.setId("t1");
+			t1.destroy();
+			assert.doesNotThrow(function(){
+				t1.setId("t2");
+			});
 		});
 	});
 });

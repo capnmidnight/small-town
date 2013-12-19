@@ -127,3 +127,17 @@ Thing.prototype.copy = function() {
 	assert.deepEqual(this, obj);
 	return obj;
 };
+
+/*
+ * Thing::destroy method:
+ * 	Get rid of all references to the Thing in the graph. Don't know if
+ *  this will actually be useful or not.
+ */
+Thing.prototype.destroy = function() {
+	this.clearParent();
+	for(var i = 0; i < this.children.length; ++i)
+		everything[this.children[i]].parentId = null;
+	this.children = [];
+	delete everything[this.id];
+	this.id = null;
+};
