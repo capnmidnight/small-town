@@ -13,6 +13,7 @@ var assert = require('assert');
  *      prose text. One day, it might be more.
  */
 function Thing(db, description) {
+	assert.ok(db, "Need a database object");
     this.db = db;
     this.description = description || "(UNKNOWN)";
     this.id = null;
@@ -95,6 +96,19 @@ Thing.prototype.addChild = function(id) {
 Thing.prototype.getChildren = function(){
     var db = this.db;
     return this.children.map(function(id){return db[id];});
+};
+
+/*
+ * Thing::getChild method:
+ *  If id refers to a child object of this Thing, returns the full
+ *  object reference. Otherwise, returns null;
+ * 
+ *  - id: the id of the child object
+ */
+Thing.prototype.getChild = function(id){
+	if(this.children.indexOf(id) > -1)
+		return this.db[id];
+	return null;
 };
 
 /* Thing::clearParent method:

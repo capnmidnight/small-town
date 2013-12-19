@@ -1,3 +1,5 @@
+var Thing = require("./thing.js");
+
 // Item class
 //  - description: a description of the item, for printing in
 //          the room or inventory.
@@ -5,12 +7,13 @@
 //          list below.
 //  - strength: for whatever equipType is chosen, this is
 //          how well the item can do it.
-function Item(description, equipType, strength)
+function Item(db, description, equipType, strength)
 {
-    this.description = description;
+	Thing.call(this, db, description);
     this.equipType = equipType || "none";
     this.strength = strength || 0;
-    this.id = null;
 }
+
+Item.prototype = Object.create(Thing.prototype);
 
 module.exports = Item;

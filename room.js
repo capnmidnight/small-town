@@ -30,3 +30,7 @@ Room.prototype = Object.create(Thing.prototype);
 Room.load = function(filename){
 
 };
+
+Room.parse = function(text){
+	
+};

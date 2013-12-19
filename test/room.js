@@ -2,20 +2,17 @@ var Room = require("../room.js");
 var assert = require("assert");
 
 describe("Rooms", function(){
-	var state = {};
+	var serverState = {};
 	beforeEach(function(){
-		state.rooms = {};
+		serverState.rooms = {};
 	});
 	
 	describe("when destroyed", function(){
 		it("no longer exists", function(){
-			var serverState = state;
 			var room = new Room(serverState.rooms);
 			room.setId("test");
 			room.destroy();
 			assert.ok(!serverState.rooms.test);
-		});
-		
-	});
-	
+		});		
+	});	
 });

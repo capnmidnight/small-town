@@ -6,6 +6,13 @@ describe("Thing", function(){
 	beforeEach(function(){
 		db = {};
 	});
+	
+	it("fails without db", function(){
+		assert.throws(function(){
+			new Thing();
+		});
+	});
+	
 	describe("ids", function(){
 		it("has no ID to start", function(){
 			var t = new Thing(db);
@@ -362,6 +369,26 @@ describe("Thing", function(){
 			t1.addChild(t3);
 			var t4 = t1.copy();
 			assert.deepEqual(t4.getChildren(), t1.getChildren());
+		});
+		
+		it("can get one child", function(){
+			var t1 = new Thing(db);
+			var t2 = new Thing(db);
+			t1.setId("t1");
+			t2.setId("t2");
+			t1.addChild(t2);
+			var t3 = t1.getChild("t2");
+			assert.strictEqual(t3, t2);
+		});
+		
+		it("gets null if not a child", function(){
+			var t1 = new Thing(db);
+			var t2 = new Thing(db);
+			t1.setId("t1");
+			t2.setId("t2");
+			t1.addChild(t2);
+			var t3 = t1.getChild("t3");
+			assert.ok(!t3);
 		});
 	});
 	
