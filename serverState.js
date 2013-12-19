@@ -141,8 +141,11 @@ module.exports.pump = function(newConnections)
 }
 
 module.exports.lastSpawn = 0;
-module.exports.respawnRate = 5 * 60 * 1000; // 5 minutes worth of milliseconds
+module.exports.respawnRate = 1 * 60 * 1000; // 5 minutes worth of milliseconds
 module.exports.spawnNPC = function(userId) {
+	if(this.users[userId] && this.users[userId].hp <= 0)
+		delete this.users[userId];
+		
 	if (!this.users[userId]) {
 		this.users[userId] = this.npcCatalogue[userId].copy();
 		this.npcCatalogue[userId].copyTo(this.users[userId]);
