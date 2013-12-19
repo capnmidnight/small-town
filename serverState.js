@@ -141,7 +141,7 @@ module.exports.pump = function(newConnections)
 }
 
 module.exports.lastSpawn = 0;
-module.exports.respawnRate = 1 * 60 * 1000; // 5 minutes worth of milliseconds
+module.exports.respawnRate = 1 * 60 * 1000;
 module.exports.spawnNPC = function(userId) {
 	if(this.users[userId] && this.users[userId].hp <= 0)
 		delete this.users[userId];
@@ -160,24 +160,15 @@ module.exports.respawn = function () {
 
         for (var roomId in this.rooms) {
             var curItems = {};
-            var old = 0;
-            for (var itemId in this.rooms[roomId].items) {
+            for (var itemId in this.rooms[roomId].items)
                 curItems[itemId] = this.rooms[roomId].items[itemId];
-                ++old;
-            }
 
             delete this.rooms[roomId];
             var room = this.getRoom(roomId);
-            var orig = 0;
-            var n = 0;
 
-            for (var itemId in curItems) {
-                if (!room.items[itemId]) {
-                    ++n;
+            for (var itemId in curItems)
+                if (!room.items[itemId])
                     room.items[itemId] = curItems[itemId];
-                }
-                else ++orig;
-            }
         }
         this.lastSpawn = now;
     }
