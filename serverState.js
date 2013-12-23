@@ -15,7 +15,7 @@ var core = require("./core.js");
 var format = require("util").format;
 var StringDecoder = require("string_decoder").StringDecoder;
 var decoder = new StringDecoder("utf8");
-
+var serverState = module.exports;
 module.exports.users = {};
 module.exports.npcCatalogue = {};
 module.exports.npcCatalogue["Roland"] =
@@ -34,7 +34,6 @@ module.exports.npcCatalogue["Roland"] =
 module.exports.rooms = {};
 module.exports.getRoom = function (roomId) {
     if (!this.rooms[roomId]) {
-		var serverState = this;
         var data = decoder.write(fs.readFileSync(format("rooms/%s.js", roomId)));
         var room = eval(data);
         room.setId(roomId);
