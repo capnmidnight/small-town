@@ -93,7 +93,7 @@ module.exports.recipes =
         { "dead-bird": 1, "feather": 5 },
         { "sword": 1 }),
     "sword": new Recipe(
-        { "steel-wool": 3, "rusty-metal": 1 },
+        { "steel-wool": 1, "rusty-metal": 1 },
         { "sword": 1 })
 };
 
