@@ -9,8 +9,7 @@ describe("Rooms", function(){
 	
 	describe("when destroyed", function(){
 		it("no longer exists", function(){
-			var room = new Room(serverState.rooms);
-			room.setId("test");
+			var room = new Room(serverState.rooms, "test-room");
 			room.destroy();
 			assert.ok(!serverState.rooms.test);
 		});		

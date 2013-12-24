@@ -13,9 +13,9 @@ var fs = require("fs");
 //			characters IDs and Body subclasses, for the 
 //			characters that start in this room (if defining,
 //			them in the room is most natural).
-function Room(db, description, exits, items, npcs)
+function Room(db, id, description, exits, items, npcs)
 {
-    Thing.call(this, db, description);
+    Thing.call(this, db, id, description);
     this.exits = exits || {};
     this.items = items || {};
     this.npcs = npcs || {};

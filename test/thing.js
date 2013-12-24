@@ -14,148 +14,98 @@ describe("Thing", function(){
 	});
 	
 	describe("ids", function(){
-		it("has no ID to start", function(){
-			var t = new Thing(db);
-			assert.ok(!t.id);
-		});
-		
-		it("persists ID after set", function(){
-			var t = new Thing(db);
-			t.setId("t");
-			assert.strictEqual(t.id, "t");
-		});
-		
-		it("fails on second setId", function(){
-			var t = new Thing(db);
-			t.setId("t");
+		it("requires ID", function(){
 			assert.throws(function(){
-				t.setId("q");
+				var t = new Thing(db);
 			});
 		});
 		
+		it("persists ID", function(){
+			var t = new Thing(db, "t");
+			assert.strictEqual(t.id, "t");
+		});
+		
 		it("fails if id is reused", function(){
-			var t1 = new Thing(db);
-			t1.setId("t");
-			var t2 = new Thing(db);
+			var t1 = new Thing(db, "t1");
 			assert.throws(function(){
-				t2.setId("t");
+				new Thing(db, "t1");
 			});
 		});
 	});
 	
 	describe("parents", function(){
 		it("has no starting parent", function(){
-			var t = new Thing(db);
+			var t = new Thing(db, "t");
 			assert.ok(!t.parentId);
 		});
 		
 		it("doesn't error on empty clearing of parent", function(){
-			var t = new Thing(db);
+			var t = new Thing(db, "t");
 			assert.doesNotThrow(function(){
 				t.clearParent();
 			});
 		});
 		
-		it("fails to set parent if no ID is set", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			assert.throws(function(){
-				t1.setParent("t2");
-			});
-		});
-		
 		it("two Things share a db", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			assert.strictEqual(t1.db, t2.db);
 		});
 		
-		it("fails to set parent if only child ID is set", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			assert.throws(function(){
-				t1.setParent("t2");
-			});
-		});
-		
-		it("fails to set parent if only parent ID is set", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t2.setId("t2");
-			assert.throws(function(){
-				t1.setParent("t2");
-			});
-		});
-		
 		it("does not throw if parent is set after ID is set", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			assert.doesNotThrow(function(){
 				t1.setParent("t2");
 			});
 		});
 		
 		it("persists parent ID", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.setParent("t2");
 			assert.strictEqual(t1.parentId, "t2");
 		});
 		
 		it("allows Thing object directly", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.setParent(t2);
 			assert.strictEqual(t1.parentId, "t2");
 		});
 		
 		it("gets nothing if parent not set", function(){
-			var t = new Thing(db);
+			var t = new Thing(db, "t");
 			assert.ok(!t.getParent());
 		});
 		
 		it("retrieves the same thing", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.setParent(t2);
 			var t3 = t1.getParent();
 			assert.strictEqual(t3, t2);
 		});
 		
 		it("can be cleared", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.setParent(t2);
 			t1.clearParent();
 			assert.ok(!t1.getParent());
 		});
 		
 		it("becomes available as child", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.setParent(t2);
 			var ts = t2.getChildren();
 			assert.strictEqual(ts.indexOf(t1), 0);
 		});
 		
 		it("no longer child once cleared", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.setParent(t2);
 			t1.clearParent();
 			var ts = t2.getChildren();
@@ -165,39 +115,12 @@ describe("Thing", function(){
 	
 	describe("children", function(){
 		it("has no starting children", function(){
-			var t = new Thing(db);
+			var t = new Thing(db, "t");
 			assert.strictEqual(t.children.length, 0);
 		});
 		
-		it("fails to add child if no ID is set", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			assert.throws(function(){
-				t1.addChild("t2");
-			});
-		});
-		
-		it("fails to add child if only child ID is set", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			assert.throws(function(){
-				t1.addChild("t2");
-			});
-		});
-		
-		it("fails to add child if only parent ID is set", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t2.setId("t2");
-			assert.throws(function(){
-				t1.addChild("t2");
-			});
-		});
-		
 		it("fails to add child if child is not a Thing", function(){
-			var t1 = new Thing(db);
-			t1.setId("t1");
+			var t1 = new Thing(db, "t1");
 			var obj = {id:"obj", clearParent: function(){}};
 			db.obj = obj;
 			assert.throws(function(){
@@ -205,41 +128,25 @@ describe("Thing", function(){
 			});
 		});
 		
-		it("does not throw if child is added after ID is set", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			assert.doesNotThrow(function(){
-				t1.addChild("t2");
-			});
-		});
-		
 		it("persists child IDs", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.addChild("t2");
 			assert.strictEqual(t1.children.indexOf("t2"), 0);
 		});
 		
 		it("allows Thing object directly", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.addChild(t2);
 			assert.strictEqual(t1.children.indexOf("t2"), 0);
 		});
 		
 		it("allows subclasses of Thing", function(){
-			var t1 = new Thing(db);
-			function ThingA(db) { Thing.call(this, db);}
+			var t1 = new Thing(db, "t1");
+			function ThingA(db, id) { Thing.call(this, db, id);}
 			ThingA.prototype = Object.create(Thing.prototype);
-			var t2 = new ThingA(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t2 = new ThingA(db, "t2");
 			assert.doesNotThrow(function(){
 				t1.addChild(t2);
 				assert.strictEqual(t1.children.indexOf("t2"), 0);
@@ -247,37 +154,30 @@ describe("Thing", function(){
 		});
 		
 		it("gets nothing if children not set", function(){
-			var t = new Thing(db);
+			var t = new Thing(db, "t");
 			assert.strictEqual(t.getChildren().length, 0);
 		});
 		
 		it("retrieves the same thing", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.addChild(t2);
 			var ts = t1.getChildren();
 			assert.strictEqual(ts.indexOf(t2), 0);
 		});
 		
 		it("can be cleared by id", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.addChild(t2);
 			t1.removeChild("t2");
 			assert.strictEqual(t1.children.length, 0);
 		});
 		
 		it("doesn't remove innocent bystanders", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.addChild(t2);
 			t1.addChild(t3);
 			t1.removeChild("t2");
@@ -285,30 +185,24 @@ describe("Thing", function(){
 		});
 		
 		it("can be cleared by value", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.addChild(t2);
 			t1.removeChild(t2);
 			assert.strictEqual(t1.children.length, 0);
 		});
 		
 		it("becomes available as parent", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.addChild(t2);
 			var t3 = t2.getParent();
 			assert.strictEqual(t3, t1);
 		});
 		
 		it("no longer parent once cleared", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.addChild(t2);
 			t1.removeChild(t2);
 			assert.ok(!t2.getParent());
@@ -317,12 +211,9 @@ describe("Thing", function(){
 	
 	describe("copying", function(){
 		it("preserves prototype", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.setParent(t2);
 			t1.addChild(t3);
 			var t4 = t1.copy();
@@ -330,12 +221,9 @@ describe("Thing", function(){
 		});
 		
 		it("makes deep copy", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.setParent(t2);
 			t1.addChild(t3);
 			var t4 = t1.copy();
@@ -343,12 +231,9 @@ describe("Thing", function(){
 		});
 		
 		it("does not copy reference", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.setParent(t2);
 			t1.addChild(t3);
 			var t4 = t1.copy();
@@ -356,12 +241,9 @@ describe("Thing", function(){
 		});
 		
 		it("does not copy sub-references", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.setParent(t2);
 			t1.addChild(t3);
 			var t4 = t1.copy();
@@ -369,12 +251,9 @@ describe("Thing", function(){
 		});
 		
 		it("gets the same parent", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.setParent(t2);
 			t1.addChild(t3);
 			var t4 = t1.copy();
@@ -382,12 +261,9 @@ describe("Thing", function(){
 		});
 		
 		it("gets the same children", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.setParent(t2);
 			t1.addChild(t3);
 			var t4 = t1.copy();
@@ -395,41 +271,27 @@ describe("Thing", function(){
 		});
 		
 		it("can get one child", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.addChild(t2);
 			var t3 = t1.getChild("t2");
 			assert.strictEqual(t3, t2);
 		});
 		
 		it("gets null if not a child", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
 			t1.addChild(t2);
 			var t3 = t1.getChild("t3");
 			assert.ok(!t3);
 		});
 	});
 	
-	describe("Destroy", function(){
-		it("fails if ID not set", function(){
-			var t1 = new Thing(db);
-			assert.throws(function(){
-				t1.destroy();
-			});
-		});
-		
+	describe("Destroy", function(){		
 		it("removes own parent", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.setParent(t2);
 			t1.addChild(t3);
 			t1.destroy();
@@ -437,12 +299,9 @@ describe("Thing", function(){
 		});
 		
 		it("removes child's parent", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.setParent(t2);
 			t1.addChild(t3);
 			t1.destroy();
@@ -450,12 +309,9 @@ describe("Thing", function(){
 		});
 		
 		it("removes own children", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.setParent(t2);
 			t1.addChild(t3);
 			t1.destroy();
@@ -463,12 +319,9 @@ describe("Thing", function(){
 		});
 		
 		it("removes from parent's children", function(){
-			var t1 = new Thing(db);
-			var t2 = new Thing(db);
-			var t3 = new Thing(db);
-			t1.setId("t1");
-			t2.setId("t2");
-			t3.setId("t3");
+			var t1 = new Thing(db, "t1");
+			var t2 = new Thing(db, "t2");
+			var t3 = new Thing(db, "t3");
 			t1.setParent(t2);
 			t1.addChild(t3);
 			t1.destroy();
@@ -476,27 +329,25 @@ describe("Thing", function(){
 		});
 		
 		it("removes from database", function(){
-			var t1 = new Thing(db);
-			t1.setId("t1");
+			var t1 = new Thing(db, "t1");
 			t1.destroy();
 			assert.ok(!db["t1"]);
 		});
 		
 		it("allows resetting of ID", function(){
-			var t1 = new Thing(db);
-			t1.setId("t1");
+			var t1 = new Thing(db, "t1");
 			t1.destroy();
 			assert.doesNotThrow(function(){
-				t1.setId("t2");
+				t1 = new Thing(db, "t1");
 			});
 		});
 	});
 	
 	describe("ofType method", function(){
-		function ThingA(db){Thing.call(this, db)}; ThingA.prototype = Object.create(Thing.prototype);
-		function ThingB(db){Thing.call(this, db)}; ThingB.prototype = Object.create(Thing.prototype);
-		function ThingC(db){ThingB.call(this, db)}; ThingC.prototype = Object.create(ThingB.prototype);
-		function ThingD(db){Thing.call(this, db)}; ThingD.prototype = Object.create(Thing.prototype);
+		function ThingA(db, id){Thing.call(this, db, id)}; ThingA.prototype = Object.create(Thing.prototype);
+		function ThingB(db, id){Thing.call(this, db, id)}; ThingB.prototype = Object.create(Thing.prototype);
+		function ThingC(db, id){ThingB.call(this, db, id)}; ThingC.prototype = Object.create(ThingB.prototype);
+		function ThingD(db, id){Thing.call(this, db, id)}; ThingD.prototype = Object.create(Thing.prototype);
 		
 		var a1, a2, a3,
 			b1, b2, b3,
@@ -505,16 +356,16 @@ describe("Thing", function(){
 			
 		beforeEach(function(){
 			var db2 = {};
-			t = new Thing(db2); t.setId("t");
-			a1 = new ThingA(db2); a1.setId("a1");
-			a2 = new ThingA(db2); a2.setId("a2");
-			a3 = new ThingA(db2); a3.setId("a3");
-			b1 = new ThingB(db2); b1.setId("b1");
-			b2 = new ThingB(db2); b2.setId("b2");
-			b3 = new ThingB(db2); b3.setId("b3");
-			c1 = new ThingC(db2); c1.setId("c1");
-			c2 = new ThingC(db2); c2.setId("c2");
-			c3 = new ThingC(db2); c3.setId("c3");
+			t = new Thing(db2, "t");
+			a1 = new ThingA(db2, "a1");
+			a2 = new ThingA(db2, "a2");
+			a3 = new ThingA(db2, "a3");
+			b1 = new ThingB(db2, "b1");
+			b2 = new ThingB(db2, "b2");
+			b3 = new ThingB(db2, "b3");
+			c1 = new ThingC(db2, "c1");
+			c2 = new ThingC(db2, "c2");
+			c3 = new ThingC(db2, "c3");
 			
 			t.addChild(a1);
 			t.addChild(a2);

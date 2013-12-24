@@ -8,39 +8,28 @@ var assert = require('assert');
  *  spawned over time.
  * 
  *  - db: a database of all Things.
+ *  - id: the id to use for this Thing.
  *  - description (optional): every Thing has a physical meaning to it,
  *      that is expressed through a description. For now, this is just
  *      prose text. One day, it might be more.
  */
-function Thing(db, description) {
+function Thing(db, id, description) {
 	assert.ok(db, "Need a database object");
+	assert.ok(id, "Need an ID");
     this.db = db;
+    // don't allow reusing a Thing's id
+    assert.ok(!this.db[id], "Can't reuse a Thing's ID: " + id);
+    // don't allow resetting a Thing's id
+    assert.ok(!this.id, "Can't reset a Thing's ID.");
+    this.id = id;
+    this.db[this.id] = this;
     this.description = description || "(UNKNOWN)";
-    this.id = null;
     this.parentId = null;
     this.children = [];
 }
 
 //satisfy Node.js' odd module system.
 module.exports = Thing;
-/*
- * Thing::setId method:
- *  Keep track of every object by name, so that objects can be
- *  referenced without incurring cycles.
- * 
- *  Once an ID has been set, it cannot be changed. An assertion error
- *  will occur if you try.
- * 
- *  - id: the id to use for this Thing.
- */
-Thing.prototype.setId = function(id) {
-    // don't allow reusing a Thing's id
-    assert.ok(!this.db[id], "Can't reuse a Thing's ID.");
-    // don't allow resetting a Thing's id
-    assert.ok(!this.id, "Can't reset a Thing's ID.");
-    this.id = id;
-    this.db[this.id] = this;
-};
 
 /*
  * Thing::setParent method:
