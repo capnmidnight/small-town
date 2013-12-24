@@ -1,3 +1,5 @@
+var Thing = require("./thing.js");
+
 // Exit class:
 //  A doorway from one room to the other, with an optional lock.
 //  Exits are uni-directional. An exit from Room A to Room B does
@@ -10,13 +12,16 @@
 //          key item. Use this to create puzzle hints.
 //  - cloak (optional): an itemId that must be in the user's
 //          inventory for them to be allowed to *see* the door.
-function Exit(roomId, key, lockMsg, cloak)
+function Exit(db, roomId, key, lockMsg, cloak)
 {
+	Thing.call(this, db);
     this.roomId = roomId;
     this.key = key;
     this.lockMsg = lockMsg || "The way is locked";
     this.cloak = cloak;
     this.id = null;
 }
+
+Exit.prototype = Object.create(Thing.prototype);
 
 module.exports = Exit;

@@ -84,6 +84,7 @@ Thing.prototype.addChild = function(id) {
         id = id.id;
     var child = this.db[id];
     assert.ok(child, "Child doesn't exist");
+    assert.ok(child instanceof Thing, "Child must be a subtype of Thing");
     child.clearParent();
     child.parentId = this.id;
     this.children.push(id);
@@ -159,6 +160,19 @@ Thing.prototype.copy = function() {
     obj.db = db;
     this.db = db;
     return obj;
+};
+
+/*
+ * Thing::ofType method:
+ *  Retrieves an array of child Things that are of the type specified.
+ * 
+ *  - t: a function reference to the type of the object to retrieve.
+ */
+Thing.prototype.ofType = function(t){
+	var db = this.db;
+	return this.children
+		.map(function(id){ return db[id]; })
+		.filter(function(c){ return c instanceof t; });
 };
 
 /*

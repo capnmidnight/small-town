@@ -195,6 +195,16 @@ describe("Thing", function(){
 			});
 		});
 		
+		it("fails to add child if child is not a Thing", function(){
+			var t1 = new Thing(db);
+			t1.setId("t1");
+			var obj = {id:"obj", clearParent: function(){}};
+			db.obj = obj;
+			assert.throws(function(){
+				t1.addChild(obj);
+			});
+		});
+		
 		it("does not throw if child is added after ID is set", function(){
 			var t1 = new Thing(db);
 			var t2 = new Thing(db);
@@ -221,6 +231,19 @@ describe("Thing", function(){
 			t2.setId("t2");
 			t1.addChild(t2);
 			assert.strictEqual(t1.children.indexOf("t2"), 0);
+		});
+		
+		it("allows subclasses of Thing", function(){
+			var t1 = new Thing(db);
+			function ThingA(db) { Thing.call(this, db);}
+			ThingA.prototype = Object.create(Thing.prototype);
+			var t2 = new ThingA(db);
+			t1.setId("t1");
+			t2.setId("t2");
+			assert.doesNotThrow(function(){
+				t1.addChild(t2);
+				assert.strictEqual(t1.children.indexOf("t2"), 0);
+			});
 		});
 		
 		it("gets nothing if children not set", function(){
@@ -466,6 +489,114 @@ describe("Thing", function(){
 			assert.doesNotThrow(function(){
 				t1.setId("t2");
 			});
+		});
+	});
+	
+	describe("ofType method", function(){
+		function ThingA(db){Thing.call(this, db)}; ThingA.prototype = Object.create(Thing.prototype);
+		function ThingB(db){Thing.call(this, db)}; ThingB.prototype = Object.create(Thing.prototype);
+		function ThingC(db){ThingB.call(this, db)}; ThingC.prototype = Object.create(ThingB.prototype);
+		function ThingD(db){Thing.call(this, db)}; ThingD.prototype = Object.create(Thing.prototype);
+		
+		var a1, a2, a3,
+			b1, b2, b3,
+			c1, c2, c3,
+			t, db2;
+			
+		beforeEach(function(){
+			var db2 = {};
+			t = new Thing(db2); t.setId("t");
+			a1 = new ThingA(db2); a1.setId("a1");
+			a2 = new ThingA(db2); a2.setId("a2");
+			a3 = new ThingA(db2); a3.setId("a3");
+			b1 = new ThingB(db2); b1.setId("b1");
+			b2 = new ThingB(db2); b2.setId("b2");
+			b3 = new ThingB(db2); b3.setId("b3");
+			c1 = new ThingC(db2); c1.setId("c1");
+			c2 = new ThingC(db2); c2.setId("c2");
+			c3 = new ThingC(db2); c3.setId("c3");
+			
+			t.addChild(a1);
+			t.addChild(a2);
+			t.addChild(a3);
+			t.addChild(b1);
+			t.addChild(b2);
+			t.addChild(b3);
+			t.addChild(c1);
+			t.addChild(c2);
+			t.addChild(c3);
+		});
+		
+		it("gets everything with root", function(){
+			var cs = t.ofType(Thing);
+			assert.ok(cs.indexOf(a1) >= 0, "a1 not in array");
+			assert.ok(cs.indexOf(a2) >= 0, "a2 not in array");
+			assert.ok(cs.indexOf(a3) >= 0, "a3 not in array");
+			assert.ok(cs.indexOf(b1) >= 0, "b1 not in array");
+			assert.ok(cs.indexOf(b2) >= 0, "b2 not in array");
+			assert.ok(cs.indexOf(b3) >= 0, "b3 not in array");
+			assert.ok(cs.indexOf(c1) >= 0, "c1 not in array");
+			assert.ok(cs.indexOf(c2) >= 0, "c2 not in array");
+			assert.ok(cs.indexOf(c3) >= 0, "c3 not in array");
+		});
+		
+		it("gets 1st level subclasses", function(){
+			var cs = t.ofType(ThingA);
+			assert.ok(cs.indexOf(a1) >= 0, "a1 not in array");
+			assert.ok(cs.indexOf(a2) >= 0, "a2 not in array");
+			assert.ok(cs.indexOf(a3) >= 0, "a3 not in array");
+			
+			assert.equal(cs.indexOf(b1), -1, "b1 is in array");
+			assert.equal(cs.indexOf(b2), -1, "b2 is in array");
+			assert.equal(cs.indexOf(b3), -1, "b3 is in array");
+			assert.equal(cs.indexOf(c1), -1, "c1 is in array");
+			assert.equal(cs.indexOf(c2), -1, "c2 is in array");
+			assert.equal(cs.indexOf(c3), -1, "c3 is in array");
+		});
+		
+		
+		it("gets 1st level subclasses and it's subs", function(){
+			var cs = t.ofType(ThingB);
+						
+			assert.equal(cs.indexOf(a1), -1, "a1 is in array");
+			assert.equal(cs.indexOf(a2), -1, "a2 is in array");
+			assert.equal(cs.indexOf(a3), -1, "a3 is in array");
+			
+			assert.ok(cs.indexOf(b1) >= 0, "b1 not in array");
+			assert.ok(cs.indexOf(b2) >= 0, "b2 not in array");
+			assert.ok(cs.indexOf(b3) >= 0, "b3 not in array");
+			assert.ok(cs.indexOf(c1) >= 0, "c1 not in array");
+			assert.ok(cs.indexOf(c2) >= 0, "c2 not in array");
+			assert.ok(cs.indexOf(c3) >= 0, "c3 not in array");
+		});
+				
+		it("gets 2nd level subclass", function(){
+			var cs = t.ofType(ThingC);
+						
+			assert.equal(cs.indexOf(a1), -1, "a1 is in array");
+			assert.equal(cs.indexOf(a2), -1, "a2 is in array");
+			assert.equal(cs.indexOf(a3), -1, "a3 is in array");
+			assert.equal(cs.indexOf(b1), -1, "b1 is in array");
+			assert.equal(cs.indexOf(b2), -1, "b2 is in array");
+			assert.equal(cs.indexOf(b3), -1, "b3 is in array");
+			
+			assert.ok(cs.indexOf(c1) >= 0, "c1 not in array");
+			assert.ok(cs.indexOf(c2) >= 0, "c2 not in array");
+			assert.ok(cs.indexOf(c3) >= 0, "c3 not in array");
+		});
+		
+		it("gets nothing", function(){
+			var cs = t.ofType(ThingD);
+						
+			assert.equal(cs.indexOf(a1), -1, "a1 is in array");
+			assert.equal(cs.indexOf(a2), -1, "a2 is in array");
+			assert.equal(cs.indexOf(a3), -1, "a3 is in array");
+			assert.equal(cs.indexOf(b1), -1, "b1 is in array");
+			assert.equal(cs.indexOf(b2), -1, "b2 is in array");
+			assert.equal(cs.indexOf(b3), -1, "b3 is in array");
+			assert.equal(cs.indexOf(c1), -1, "c1 is in array");
+			assert.equal(cs.indexOf(c2), -1, "c2 is in array");
+			assert.equal(cs.indexOf(c3), -1, "c3 is in array");
 		});
 	});
 });
