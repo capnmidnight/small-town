@@ -1,19 +1,22 @@
 var Exit = require("../exit.js");
 var Thing = require("../thing.js");
 var Room = require("../room.js");
+var Body = require("../body.js");
 var assert = require("assert");
 
-describe("Exit", function(){
+describe("basic Exits", function(){
 	var db = null;
 	var room1 = null;
 	var room2 = null;
 	var x = null;
+	var user = null;
 	
 	beforeEach(function(){
 		db = {};
 		room1 = new Room(db, "room1");
 		room2 = new Room(db, "room2");
 		x = new Exit(db, "north", "room1", "room2");
+		user = new Body();
 	});
 
 	describe("degenerate conditions", function(){
@@ -25,31 +28,31 @@ describe("Exit", function(){
 		
 		it("requires id", function(){
 			assert.throws(function(){
-				new Exit(db);
+				new Exit({});
 			});
 		});
 		
 		it("requires from roomId", function(){
 			assert.throws(function(){
-				new Exit(db, "north");
+				new Exit({}, "north");
 			});
 		});
 		
 		it("requires to roomId", function(){
 			assert.throws(function(){
-				new Exit(db, "north", "room1");
+				new Exit({}, "north", "room1");
 			});
 		});
 		
 		it("requires an existing from room", function(){
 			assert.throws(function(){
-				new Exit(db, "north", "nonRoomId");
+				new Exit({}, "north", "nonRoomId");
 			});
 		});
 		
 		it("requires an existing to room", function(){
 			assert.throws(function(){
-				new Exit(db, "north", "room1", "nonRoomId");
+				new Exit({"room1":room1}, "north", "room1", "nonRoomId");
 			});
 		});
 	});
@@ -107,7 +110,7 @@ describe("Exit", function(){
 	});
 	
 	it("is visible by default", function(){
-//		var x = new Exit(db, "north", "room1", "room2"
+		
 		
 	});
 });
