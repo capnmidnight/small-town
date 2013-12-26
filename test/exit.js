@@ -196,9 +196,14 @@ describe("between two rooms", function(){
                 user.items.key = 1;
                 assert.ok(x.visibleTo(user));
             });
+            
+            it("is visible even if the item is equipped", function(){
+                user.equipment.key = 1;
+                assert.ok(x.visibleTo(user));
+            });
         });
         
-        describe("with two items for the cloak", function(){
+        describe("with two items for the cloak", function(){        
             var x = null;
             beforeEach(function(){
                 x = new Exit(db, "south", "room2", "room1", ["key", "jewel"]);
@@ -212,6 +217,18 @@ describe("between two rooms", function(){
             it("becomes visible if user has all of the cloak items", function(){
                 user.items.key = 1;
                 user.items.jewel = 1;
+                assert.ok(x.visibleTo(user));
+            });
+            
+            it("still visible if user has some of the key equipped", function(){
+                user.items.key = 1;
+                user.equipment.jewel = 1;
+                assert.ok(x.visibleTo(user));
+            });
+            
+            it("still visible if user has all of the key equipped", function(){
+                user.equipment.key = 1;
+                user.equipment.jewel = 1;
                 assert.ok(x.visibleTo(user));
             });
             
@@ -235,7 +252,77 @@ describe("between two rooms", function(){
             });
         });
         
-        describe("with no cloak", function(){
+        describe("with one item for the lock", function(){
+            var x = null;
+            beforeEach(function(){
+                x = new Exit(db, "south", "room2", "room1", null, ["key"]);
+            });
+        
+            it("is locked if the lock is set", function(){
+                assert.ok(!x.openTo(user));
+            });
+            
+            it("becomes unlocked if user has item", function(){
+                user.items.key = 1;
+                assert.ok(x.openTo(user));
+            });
+            
+            it("still unlocked if user has item equipped", function(){
+                user.equipment.key = 1;
+                assert.ok(x.openTo(user));
+            });
+        });
+        
+        describe("with two items for the lock", function(){        
+            var x = null;
+            beforeEach(function(){
+                x = new Exit(db, "south", "room2", "room1", null, ["key", "jewel"]);
+            });
+        
+            it("is locked if user only has some of the cloak items", function(){
+                user.items.key = 1;
+                assert.ok(!x.openTo(user));
+            });
+            
+            it("becomes unlocked if user has all of the cloak items", function(){
+                user.items.key = 1;
+                user.items.jewel = 1;
+                assert.ok(x.openTo(user));
+            });
+            
+            it("still unlocked if user has more than one of the items", function(){
+                user.items.key = 23;
+                user.items.jewel = 1;
+                assert.ok(x.openTo(user));
+            });
+            
+            it("still unlocked if user has one of the items equipped", function(){
+                user.equipment.key = 1;
+                user.items.jewel = 1;
+                assert.ok(x.openTo(user));
+            });
+            
+            it("still unlocked if user has all of the items equipped", function(){
+                user.equipment.key = 1;
+                user.equipment.jewel = 1;
+                assert.ok(x.openTo(user));
+            });
+            
+            it("still unlocked if user has more than one of each items", function(){
+                user.items.key = 23;
+                user.items.jewel = 17;
+                assert.ok(x.openTo(user));
+            });
+            
+            it("still unlocked if user has extra items", function(){
+                user.items.key = 1;
+                user.items.jewel = 1;
+                user.items.hat = 1;
+                assert.ok(x.openTo(user));
+            });
+        });
+        
+        describe("with no cloak or lock", function(){
             var x = null;
             beforeEach(function(){
                 x = new Exit(db, "north", "room1", "room2");
@@ -297,21 +384,5 @@ describe("between two rooms", function(){
                 assert.ok(x.visibleTo(user), "basic room isn't visible to basic user.");        
             });
         });
-        
-         describe("with one item for the lock", function(){
-            var x = null;
-            beforeEach(function(){
-                x = new Exit(db, "south", "room2", "room1", null, ["key"]);
-            });
-        
-            it("isn't visible if the cloak is set", function(){
-                assert.ok(!x.lockedTo(user));
-            });
-            
-            it("becomes visible if user has item", function(){
-                user.items.key = 1;
-                assert.ok(x.lockedTo(user));
-            });
-        });;
     });
 });

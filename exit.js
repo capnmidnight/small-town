@@ -97,7 +97,7 @@ Exit.prototype.visibleTo = function (user)
 	return checkKeyUnlocked(this.db, this.cloak, user);
 };
 
-Exit.prototype.lockedTo = function (user)
+Exit.prototype.openTo = function (user)
 {
 	return checkKeyUnlocked(this.db, this.key, user);
 };
