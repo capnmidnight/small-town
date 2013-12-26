@@ -8,7 +8,7 @@ var format = require("util").format;
 //  not automatically create a path from Room B to Room A.
 //
 //  - db: a database of all Things.
-//  - description: the name to use for this Exit.
+//  - direction: the name to use for this Exit.
 //  - fromRoomId: the room from which this Exit starts
 //  - toRoomId: the room to which this Exit links
 //  - cloak (optional): an itemId that must be in the user's
@@ -19,49 +19,70 @@ var format = require("util").format;
 //          they try to go through the exit but don't have the
 //          key item. Use this to create puzzle hints.
 //  - skipReverse (optional): if truish, don't create the reverse link.
-function Exit(db, description, fromRoomId, toRoomId, cloak, key, lockMsg, skipReverse)
+function Exit(db, direction, fromRoomId, toRoomId, cloak, key, lockMsg, skipReverse)
 {
-	check(db, fromRoomId, "from");
-	check(db, toRoomId, "to");
-	var id = format(
+    var id = direction && format(
 		"exit-%s-from-%s-to-%s", 
-		description, 
+		direction, 
 		fromRoomId, 
 		toRoomId);
-	Thing.call(this, db, id, description);
-    this.fromRoomId = fromRoomId;
-    this.toRoomId = toRoomId;
+    Thing.call(this, db, id, direction);
+    this.fromRoomId = checkRoomId(db, fromRoomId, "from");
+    this.toRoomId = checkRoomId(db, toRoomId, "to");
     this.key = key;
     this.lockMsg = lockMsg || "The way is locked";
-    this.cloak = cloak;
+    if(!(cloak instanceof Array))
+		cloak = cloak ? [cloak] : [];
+    this.cloak = cloak.map(function(itemId){
+		if(itemId.id)
+			itemId = itemId.id;
+		assert.ok(db[itemId]);
+		return itemId;
+	});
     this.setParent(fromRoomId);
     if(!skipReverse)
     {
-		var reverse = new Exit(db, reverseDirection[description], toRoomId, fromRoomId, cloak, key, lockMsg, true);
-		this.reverseId = reverse.id;
-	}
+        var reverse = new Exit(db, reverseDirection[direction], toRoomId, fromRoomId, cloak, key, lockMsg, true);
+        this.reverseId = reverse.id;
+    }
 }
 
-var reverseDirection = {
-	"north": "south",
-	"east": "west",
-	"south": "north",
-	"up": "down",
-	"down": "up",
-	"west": "east",
-	"exit": "enter",
-	"enter": "exit"
+var reverseDirection = 
+{
+    "north": "south",
+    "east": "west",
+    "south": "north",
+    "up": "down",
+    "down": "up",
+    "west": "east",
+    "exit": "enter",
+    "enter": "exit"
 };
 
-function check(db, roomId, name)
+function checkRoomId(db, roomId, name)
 {
-	assert.ok(roomId, name + "RoomId required");
-	assert.ok(db[roomId], 
-		"room \"" + roomId + "\" must exist before exit can be created.");
-	assert.ok(db[roomId] instanceof Room, 
-		"\"" + roomId + "\" must be a room.");
+	if(roomId.id)
+		roomId = roomId.id;
+		
+    assert.ok(roomId, name + "RoomId required");
+    assert.ok(db[roomId], 
+        "room \"" + roomId + "\" must exist before exit can be created.");
+    assert.ok(db[roomId] instanceof Room, 
+        "\"" + roomId + "\" must be a room.");
+        
+    return roomId;
 }
 
 Exit.prototype = Object.create(Thing.prototype);
-
 module.exports = Exit;
+
+Exit.prototype.visibleTo = function (user)
+{
+	if(user instanceof String)
+		user = this.db[user];
+	return this
+		.cloak
+		.reduce(function(prev, itemId){
+			return prev && (!!user.items[itemId] || !!user.equipment[itemId]);
+		}, true);
+};
