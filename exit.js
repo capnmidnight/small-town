@@ -2,24 +2,27 @@ var Thing = require("./thing.js");
 var Room = require("./room.js");
 var assert = require("assert");
 var format = require("util").format;
-// Exit class:
-//  A doorway from one room to the other, with an optional lock.
-//  Exits are uni-directional. An exit from Room A to Room B does
-//  not automatically create a path from Room B to Room A.
-//
-//  - db: a database of all Things.
-//  - direction: the name to use for this Exit.
-//  - fromRoomId: the room from which this Exit starts
-//  - toRoomId: the room to which this Exit links
-//  - cloak (optional): an itemId that must be in the user's
-//          inventory for them to be allowed to *see* the door.
-//  - key (optional): an itemId that must be the user's inventory
-//          for them to be allowed through the door.
-//  - lockMessage (optional): the message to display to the user if
-//          they try to go through the exit but don't have the
-//          key item. Use this to create puzzle hints.
-//  - skipReverse (optional): if truish, don't create the reverse link.
-function Exit(db, direction, fromRoomId, toRoomId, cloak, key, lockMessage, skipReverse)
+/* 
+ * Exit class:
+ *  A doorway from one room to the other, with an optional lock.
+ *  Exits are uni-directional. An exit from Room A to Room B does
+ *  not automatically create a path from Room B to Room A.
+ *
+ *  - db: a database of all Things.
+ *  - direction: the name to use for this Exit.
+ *  - fromRoomId: the room from which this Exit starts
+ *  - toRoomId: the room to which this Exit links
+ *  - options (optional): a hash of the following options 
+ *      - cloak (optional): an itemId that must be in the user's
+ *          inventory for them to be allowed to *see* the door.
+ *      - lock (optional): an itemId that must be the user's inventory
+ *          for them to be allowed through the door.
+ *      - lockMessage (optional): the message to display to the user if
+ *          they try to go through the exit but don't have the
+ *          key item. Use this to create puzzle hints.
+ *      - oneWay (optional): if truish, don't create the reverse link.
+ */
+function Exit(db, direction, fromRoomId, toRoomId, options)
 {
     var id = direction && format(
 		"exit-%s-from-%s-to-%s", 
@@ -30,23 +33,30 @@ function Exit(db, direction, fromRoomId, toRoomId, cloak, key, lockMessage, skip
     Thing.call(this, db, id, direction);
     this.fromRoomId = checkRoomId(db, fromRoomId, "from");
     this.toRoomId = checkRoomId(db, toRoomId, "to");
-    this.cloak = checkLockSet(db, cloak);
-	this.key = checkLockSet(db, key);
-    this.lockMessage = lockMessage || "The way is locked";
+    
+    options = options || {};
+    
+    this.cloak = checkLockSet(db, options.cloak);
+	this.lock = checkLockSet(db, options.lock);
+    this.lockMessage = options.lockMessage || "The way is locked";
     this.setParent(fromRoomId);
     
-    if(!skipReverse)
+    if(!options.oneWay)
     {
-        var reverse = new Exit(db, reverseDirection[direction], toRoomId, fromRoomId, cloak, key, lockMessage, true);
+		options.oneWay = true;
+        var reverse = new Exit(db, reverseDirection[direction], toRoomId, fromRoomId, options);
         this.reverseId = reverse.id;
     }
 }
 
-function checkLockSet(db, key)
+Exit.prototype = Object.create(Thing.prototype);
+module.exports = Exit;
+
+function checkLockSet(db, lock)
 {
-	if(!(key instanceof Array))
-		key = key ? [key] : [];
-    return key.map(function(itemId){
+	if(!(lock instanceof Array))
+		lock = lock ? [lock] : [];
+    return lock.map(function(itemId){
 		if(itemId.id)
 			itemId = itemId.id;
 		assert.ok(db[itemId]);
@@ -80,27 +90,24 @@ function checkRoomId(db, roomId, name)
     return roomId;
 }
 
-Exit.prototype = Object.create(Thing.prototype);
-module.exports = Exit;
-
-function checkKeyUnlocked (db, key, user)
+function checkLockOpen (db, lock, user)
 {
 	if(user instanceof String)
 		user = db[user];
-	return key.reduce(function(prev, itemId){
+	return lock.reduce(function(prev, itemId){
 			return prev && (!!user.items[itemId] || !!user.equipment[itemId]);
 	}, true);
 }
 
 Exit.prototype.visibleTo = function (user)
 {
-	return checkKeyUnlocked(this.db, this.cloak, user);
+	return checkLockOpen(this.db, this.cloak, user);
 };
 
 Exit.prototype.openTo = function (user)
 {
 	return this.visibleTo(user)
-		&& checkKeyUnlocked(this.db, this.key, user);
+		&& checkLockOpen(this.db, this.lock, user);
 };
 
 Exit.prototype.describeFor = function (user)

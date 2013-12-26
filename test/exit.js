@@ -75,37 +75,37 @@ describe("between two rooms", function(){
         
         it("doesn't accept undefined-item as cloak", function(){
             assert.throws(function(){
-                new Exit(db, "north", "room1", "room2", "hat");
+                new Exit(db, "north", "room1", "room2", {cloak: "hat"});
             });            
         });
         
         it("doesn't accept undefined-item array as cloak", function(){
             assert.throws(function(){
-                new Exit(db, "north", "room1", "room2", ["hat", "cat"]);
+                new Exit(db, "north", "room1", "room2", {cloak: ["hat", "cat"]});
             });            
         });
         
         it("doesn't accept ANY undefined-item array as cloak", function(){
             assert.throws(function(){
-                new Exit(db, "north", "room1", "room2", [item1, "cat"]);
+                new Exit(db, "north", "room1", "room2", {cloak: [item1, "cat"]});
             });            
         });
         
         it("doesn't accept undefined-item as lock", function(){
             assert.throws(function(){
-                new Exit(db, "north", "room1", "room2", null, "hat");
+                new Exit(db, "north", "room1", "room2", {lock: "hat"});
             });            
         });
         
         it("doesn't accept undefined-item array as lock", function(){
             assert.throws(function(){
-                new Exit(db, "north", "room1", "room2", null, ["hat", "cat"]);
+                new Exit(db, "north", "room1", "room2", {lock: ["hat", "cat"]});
             });            
         });
         
         it("doesn't accept ANY undefined-item array as lock", function(){
             assert.throws(function(){
-                new Exit(db, "north", "room1", "room2", null, [item1, "cat"]);
+                new Exit(db, "north", "room1", "room2", {lock: [item1, "cat"]});
             });            
         });
     });
@@ -131,25 +131,25 @@ describe("between two rooms", function(){
         
         it("allows id for cloak", function(){
             assert.doesNotThrow(function(){
-                new Exit(db, "north", room1, room2, "key");
+                new Exit(db, "north", room1, room2, {cloak: "key"});
             });
         });
         
         it("allows id array for cloak", function(){
             assert.doesNotThrow(function(){
-                new Exit(db, "north", room1, room2, ["key", "jewel"]);
+                new Exit(db, "north", room1, room2, {cloak: ["key", "jewel"]});
             });
         });
         
         it("allows ref for cloak", function(){
             assert.doesNotThrow(function(){
-                new Exit(db, "north", room1, room2, item1);
+                new Exit(db, "north", room1, room2, {cloak: item1});
             });
         });
         
         it("allows ref array for cloak", function(){
             assert.doesNotThrow(function(){
-                new Exit(db, "north", room1, room2, [item1, item2]);
+                new Exit(db, "north", room1, room2, {cloak: [item1, item2]});
             });
         });
     });
@@ -158,7 +158,7 @@ describe("between two rooms", function(){
         var x = null;
         
         beforeEach(function(){
-            x = new Exit(db, "south", "room1", "room2", null, null, null, true);
+            x = new Exit(db, "south", "room1", "room2", {oneWay: true});
         });
     
         it("doesn't set reverseId when asked", function(){
@@ -186,7 +186,7 @@ describe("between two rooms", function(){
             var x = null;
             var r = null;
             beforeEach(function(){
-                x = new Exit(db, "south", "room2", "room1", ["key"]);
+                x = new Exit(db, "south", "room2", "room1", {cloak: ["key"]});
                 r = db[x.reverseId];
             });
         
@@ -222,7 +222,7 @@ describe("between two rooms", function(){
             var x = null;
             var r = null;
             beforeEach(function(){
-                x = new Exit(db, "south", "room2", "room1", ["key", "jewel"]);
+                x = new Exit(db, "south", "room2", "room1", {cloak: ["key", "jewel"]});
                 r = db[x.reverseId];
             });
         
@@ -277,12 +277,12 @@ describe("between two rooms", function(){
             var x = null;
             var r = null;
             beforeEach(function(){
-                x = new Exit(db, "south", "room2", "room1", null, ["key"]);
+                x = new Exit(db, "south", "room2", "room1", {lock: ["key"]});
                 r = db[x.reverseId];
             });
             
             it("persists lock message", function(){
-                var x2 = new Exit(db, "north", room1, room2, null, item1, "lockity mclocked");
+                var x2 = new Exit(db, "north", room1, room2, {lock: item1, lockMessage: "lockity mclocked"});
                 assert.equal(x2.lockMessage, "lockity mclocked");
             });
         
@@ -301,7 +301,7 @@ describe("between two rooms", function(){
             });
             
             it("shares lock with reverse direction", function(){
-                assert.deepEqual(x.key, r.key);
+                assert.deepEqual(x.lock, r.lock);
             });
         });
         
@@ -309,7 +309,7 @@ describe("between two rooms", function(){
             var x = null;
             var r = null;
             beforeEach(function(){
-                x = new Exit(db, "south", "room2", "room1", null, ["key", "jewel"]);
+                x = new Exit(db, "south", "room2", "room1", {lock: ["key", "jewel"]});
                 r = db[x.reverseId];
             });
         
@@ -372,7 +372,7 @@ describe("between two rooms", function(){
             });
             
             it("shares lock with reverse direction", function(){
-                assert.deepEqual(x.key, r.key);
+                assert.deepEqual(x.lock, r.lock);
             });
         });
         
