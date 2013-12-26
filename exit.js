@@ -22,7 +22,7 @@ var format = require("util").format;
  *          key item. Use this to create puzzle hints.
  *      - oneWay (optional): if truish, don't create the reverse link.
  * 		- timeCloak (optional): a structure that defines a time period
- * 			on which the exit is visible or invisible:
+ * 			on which the exit is cloaked or visible:
  * 			- period: the total time the visibility cycle takes.
  * 			- shift (optional): an offset of time to push the start
  * 				of the phase away. Defaults to 0.
@@ -35,21 +35,18 @@ var format = require("util").format;
  * 				of the phase away. Defaults to 0.
  * 			- width (optional): the proportion of time of the cycle that
  * 				the phase is "on". Defaults to 0.5.
- *      - timeLockMessage (optional): the message to display to the user
- * 			if they try to go through the exit but it isn't open at this
- * 			time.
  */
 function Exit(db, direction, fromRoomId, toRoomId, options)
 {
+    this.fromRoomId = checkRoomId(db, fromRoomId, "from");
+    this.toRoomId = checkRoomId(db, toRoomId, "to");
     var id = direction && format(
 		"exit-%s-from-%s-to-%s", 
 		direction, 
-		fromRoomId, 
-		toRoomId);
+		this.fromRoomId, 
+		this.toRoomId);
 		
     Thing.call(this, db, id, direction);
-    this.fromRoomId = checkRoomId(db, fromRoomId, "from");
-    this.toRoomId = checkRoomId(db, toRoomId, "to");
     
     options = options || {};
     
@@ -59,7 +56,6 @@ function Exit(db, direction, fromRoomId, toRoomId, options)
     
     this.timeCloak = checkTimerSet(options.timeCloak);
     this.timeLock = checkTimerSet(options.timeLock);
-    this.timeLockMessage = options.timeLockMessage || "The exit is locked at this time";
     
     this.setParent(fromRoomId);
     
@@ -73,6 +69,139 @@ function Exit(db, direction, fromRoomId, toRoomId, options)
 
 Exit.prototype = Object.create(Thing.prototype);
 module.exports = Exit;
+
+function parseLocker(part, options, name)
+{
+	if(part === "with")
+	{
+		name = name.toLowerCase();
+		options[name] = [];
+	}
+	else if(part === "when")
+	{
+		name = "time" + name;
+		options[name] = {};
+	}
+	else if(part[0] === '"')
+	{
+		name = name.toLowerCase() + "Message";
+		options[name] = part.substring(1);
+	}
+	else
+		name = part;
+		
+	return name;
+}
+
+var parsers = 
+{
+	none: function(part, options)
+	{
+		return part;
+	},
+
+	to: function(part, options)
+	{
+		options.toRoomId = part;
+		return "none";
+	},
+	
+	cloaked: function(part, options)
+	{
+		return parseLocker(part, options, "Cloak");
+	},
+	
+	locked: function (part, options)
+	{
+		return parseLocker(part, options, "Lock");
+	},
+
+	lockMessage: function(part, options)
+	{
+		var state = "lockMessage";
+		if(part[part.length - 1] === '"')
+		{
+			part = part.substring(0, part.length - 1);
+			state = "locked";
+		}
+		options.lockMessage += " " + part;
+		return state;
+	},
+
+	cloak: function(itemId, options)
+	{
+		var state = "cloak";
+		if(itemId[itemId.length - 1] == ',')
+			itemId = itemId.substring(0, itemId.length - 1);
+		else
+			state = "cloaked";
+		options.cloak.push(itemId);
+		return state;
+	},
+
+	lock: function(itemId, options)
+	{
+		var state = "lock";
+		if(itemId[itemId.length - 1] == ',')
+			itemId = itemId.substring(0, itemId.length - 1);
+		else
+			state = "locked";
+		options.lock.push(itemId);
+		return state;
+	},
+
+	timeLock: function(number, options)
+	{
+		var state = "timeLock";
+		if(number[number.length - 1] === ',')
+			number = number.substring(0, number.length - 1);
+		else
+			state = "locked";
+		number *= 1;
+		if(!options.timeLock.period)
+			options.timeLock.period = number;
+		else if(!options.timeLock.width)
+			options.timeLock.width = number;
+		else if(!options.timeLock.shift)
+			options.timeLock.shift = number;
+		return state;
+	},
+
+	timeCloak: function(number, options)
+	{
+		var state = "timeCloak";
+		if(number[number.length - 1] === ',')
+			number = number.substring(0, number.length - 1);
+		else
+			state = "cloaked";
+		number *= 1;
+		if(!options.timeCloak.period)
+			options.timeCloak.period = number;
+		else if(!options.timeCloak.width)
+			options.timeCloak.width = number;
+		else if(!options.timeCloak.shift)
+			options.timeCloak.shift = number;
+		return state;
+	}
+};
+
+Exit.parse = function(db, fromRoomId, text)
+{
+	var options = {
+		oneWay: (text[0] == '-')
+	};
+	
+	if(options.oneWay)
+		text = text.substring(1);
+		
+	var parts = text.split(" ");
+	var direction = parts[0];
+	var state = "none";
+	for(var i = 1; i < parts.length; ++i)
+		state = parsers[state](parts[i], options);
+		
+	return new Exit(db, direction, fromRoomId, options.toRoomId, options);
+};
 
 function checkLockSet(db, lock)
 {
@@ -112,41 +241,42 @@ function checkRoomId(db, roomId, name)
     return roomId;
 }
 
-function checkLockOpen (db, lock, user)
+function checkLockClosed (db, lock, user)
 {
 	if(user instanceof String)
 		user = db[user];
-	return lock.reduce(function(prev, itemId){
-			return prev && (!!user.items[itemId] || !!user.equipment[itemId]);
+	return !lock.reduce(function(prev, itemId){
+			return prev && (user.items[itemId] || user.equipment[itemId]);
 	}, true);
 }
 
-Exit.prototype.isVisibleTo = function (user)
+Exit.prototype.isCloakedTo = function (user)
 {
-	return checkLockOpen(this.db, this.cloak, user);
+	return checkLockClosed(this.db, this.cloak, user);
 };
 
-Exit.prototype.isOpenTo = function (user)
+Exit.prototype.isLockedTo = function (user)
 {
-	return this.isVisibleTo(user)
-		&& checkLockOpen(this.db, this.lock, user);
+	return this.isCloakedTo(user)
+		|| checkLockClosed(this.db, this.lock, user);
 };
 
-function checkTimerSet(timer){
+function checkTimerSet(timer)
+{
 	timer = timer || {};
 	timer.period = timer.period || 1;
+	assert(timer.period > 0, "timer period must be greater than 0");
 	timer.shift = timer.shift || 0;
 	timer.width = timer.width || 0.5;
+	assert(timer.width > 0, "timer width must be > 0");
+	assert(timer.width <= 1, "timer width must be <= 1");
 	if(timer.period == 1)
 	{
 		timer.mid = 1;
 		timer.shift = 0;
+		timer.width = 0;
 	}
-	else
-	{
-		timer.mid = Math.floor(timer.period * timer.width);
-	}
-	delete timer.width;
+	timer.mid = Math.floor(timer.period * timer.width);
 	return timer;
 }
 
@@ -161,35 +291,36 @@ function checkTimerOn(timer, t)
 	return (t % timer.period) < timer.mid;
 }
 
-Exit.prototype.isVisibleAt = function(t)
+Exit.prototype.isCloakedAt = function(t)
 {
 	return checkTimerOn(this.timeCloak, t);
 };
 
-Exit.prototype.isOpenAt = function(t)
+Exit.prototype.isLockedAt = function(t)
 {
-	return this.isVisibleAt(t)
-		&& checkTimerOn(this.timeLock, t);
+	return this.isCloakedAt(t)
+		|| checkTimerOn(this.timeLock, t);
 };
 
-Exit.prototype.isVisible = function(user, t)
+Exit.prototype.isCloaked = function(user, t)
 {
-	return this.isVisibleTo(user)
-		&& this.isVisibleAt(t);
+	return this.isCloakedTo(user)
+		|| this.isCloakedAt(t);
 };
 
-Exit.prototype.isOpen = function(user, t)
+Exit.prototype.isLocked = function(user, t)
 {
-	return this.isOpenTo(user)
-		&& this.isOpenAt(t);
+	return this.isLockedTo(user)
+		|| this.isLockedAt(t);
 };
 
 Exit.prototype.describe = function (user, t)
 {
-	return this.isVisible(user, t)
-		&& format("%s to %s%s",
+	if(this.isCloaked(user, t))
+		return "";
+	else
+		return format("%s to %s%s",
 			this.description,
 			this.toRoomId,
-			this.isOpen(user, t) ? "" : " (LOCKED)")
-		|| "";
+			this.isLocked(user, t) ? " (LOCKED)" : "");
 };
