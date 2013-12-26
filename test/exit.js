@@ -84,6 +84,30 @@ describe("between two rooms", function(){
                 new Exit(db, "north", "room1", "room2", ["hat", "cat"]);
             });            
         });
+        
+        it("doesn't accept ANY undefined-item array as cloak", function(){
+            assert.throws(function(){
+                new Exit(db, "north", "room1", "room2", [item1, "cat"]);
+            });            
+        });
+        
+        it("doesn't accept undefined-item as lock", function(){
+            assert.throws(function(){
+                new Exit(db, "north", "room1", "room2", null, "hat");
+            });            
+        });
+        
+        it("doesn't accept undefined-item array as lock", function(){
+            assert.throws(function(){
+                new Exit(db, "north", "room1", "room2", null, ["hat", "cat"]);
+            });            
+        });
+        
+        it("doesn't accept ANY undefined-item array as lock", function(){
+            assert.throws(function(){
+                new Exit(db, "north", "room1", "room2", null, [item1, "cat"]);
+            });            
+        });
     });
     
     describe("mixing refs and ids", function(){
@@ -151,15 +175,14 @@ describe("between two rooms", function(){
                 "there shouldn't be any exits in room 2.");
         });
     });
-    
-    
+
     describe("when the user has no items", function(){
         var user = null;
         beforeEach(function(){
             user = new Body();
         });
         
-        describe("when the exit has one item for the cloak", function(){
+        describe("with one item for the cloak", function(){
             var x = null;
             beforeEach(function(){
                 x = new Exit(db, "south", "room2", "room1", ["key"]);
@@ -175,7 +198,7 @@ describe("between two rooms", function(){
             });
         });
         
-        describe("when exit has two items for the cloak", function(){
+        describe("with two items for the cloak", function(){
             var x = null;
             beforeEach(function(){
                 x = new Exit(db, "south", "room2", "room1", ["key", "jewel"]);
@@ -217,6 +240,7 @@ describe("between two rooms", function(){
             beforeEach(function(){
                 x = new Exit(db, "north", "room1", "room2");
             });
+            
             it("is a Thing", function(){
                 assert.ok(x instanceof Thing, "not a subclass of Thing");
             });
@@ -273,5 +297,21 @@ describe("between two rooms", function(){
                 assert.ok(x.visibleTo(user), "basic room isn't visible to basic user.");        
             });
         });
+        
+         describe("with one item for the lock", function(){
+            var x = null;
+            beforeEach(function(){
+                x = new Exit(db, "south", "room2", "room1", null, ["key"]);
+            });
+        
+            it("isn't visible if the cloak is set", function(){
+                assert.ok(!x.lockedTo(user));
+            });
+            
+            it("becomes visible if user has item", function(){
+                user.items.key = 1;
+                assert.ok(x.lockedTo(user));
+            });
+        });;
     });
 });

@@ -26,26 +26,33 @@ function Exit(db, direction, fromRoomId, toRoomId, cloak, key, lockMsg, skipReve
 		direction, 
 		fromRoomId, 
 		toRoomId);
+		
     Thing.call(this, db, id, direction);
     this.fromRoomId = checkRoomId(db, fromRoomId, "from");
     this.toRoomId = checkRoomId(db, toRoomId, "to");
-    this.key = key;
+    this.cloak = checkLockSet(db, cloak);
+	this.key = checkLockSet(db, key);
     this.lockMsg = lockMsg || "The way is locked";
-    if(!(cloak instanceof Array))
-		cloak = cloak ? [cloak] : [];
-    this.cloak = cloak.map(function(itemId){
-		if(itemId.id)
-			itemId = itemId.id;
-		assert.ok(db[itemId]);
-		return itemId;
-	});
     this.setParent(fromRoomId);
+    
     if(!skipReverse)
     {
         var reverse = new Exit(db, reverseDirection[direction], toRoomId, fromRoomId, cloak, key, lockMsg, true);
         this.reverseId = reverse.id;
     }
 }
+
+function checkLockSet(db, key)
+{
+	if(!(key instanceof Array))
+		key = key ? [key] : [];
+    return key.map(function(itemId){
+		if(itemId.id)
+			itemId = itemId.id;
+		assert.ok(db[itemId]);
+		return itemId;
+	});
+}	
 
 var reverseDirection = 
 {
@@ -76,13 +83,21 @@ function checkRoomId(db, roomId, name)
 Exit.prototype = Object.create(Thing.prototype);
 module.exports = Exit;
 
-Exit.prototype.visibleTo = function (user)
+function checkKeyUnlocked (db, key, user)
 {
 	if(user instanceof String)
-		user = this.db[user];
-	return this
-		.cloak
-		.reduce(function(prev, itemId){
+		user = db[user];
+	return key.reduce(function(prev, itemId){
 			return prev && (!!user.items[itemId] || !!user.equipment[itemId]);
-		}, true);
+	}, true);
+}
+
+Exit.prototype.visibleTo = function (user)
+{
+	return checkKeyUnlocked(this.db, this.cloak, user);
+};
+
+Exit.prototype.lockedTo = function (user)
+{
+	return checkKeyUnlocked(this.db, this.key, user);
 };
