@@ -21,6 +21,23 @@ var format = require("util").format;
  *          they try to go through the exit but don't have the
  *          key item. Use this to create puzzle hints.
  *      - oneWay (optional): if truish, don't create the reverse link.
+ * 		- timeCloak (optional): a structure that defines a time period
+ * 			on which the exit is visible or invisible:
+ * 			- period: the total time the visibility cycle takes.
+ * 			- shift (optional): an offset of time to push the start
+ * 				of the phase away. Defaults to 0.
+ * 			- width (optional): the proportion of time of the cycle that
+ * 				the phase is "on". Defaults to 0.5.
+ * 		- timeLocked (optional): a structure that defines a time period
+ * 			on which the exit is locked or unlocked:
+ * 			- period: the total time the lock cycle takes.
+ * 			- shift (optional): an offset of time to push the start
+ * 				of the phase away. Defaults to 0.
+ * 			- width (optional): the proportion of time of the cycle that
+ * 				the phase is "on". Defaults to 0.5.
+ *      - timeLockMessage (optional): the message to display to the user
+ * 			if they try to go through the exit but it isn't open at this
+ * 			time.
  */
 function Exit(db, direction, fromRoomId, toRoomId, options)
 {
@@ -38,7 +55,12 @@ function Exit(db, direction, fromRoomId, toRoomId, options)
     
     this.cloak = checkLockSet(db, options.cloak);
 	this.lock = checkLockSet(db, options.lock);
-    this.lockMessage = options.lockMessage || "The way is locked";
+    this.lockMessage = options.lockMessage || "You need a key to get through this exit.";
+    
+    this.timeCloak = checkTimerSet(options.timeCloak);
+    this.timeLock = checkTimerSet(options.timeLock);
+    this.timeLockMessage = options.timeLockMessage || "The exit is locked at this time";
+    
     this.setParent(fromRoomId);
     
     if(!options.oneWay)
@@ -56,10 +78,10 @@ function checkLockSet(db, lock)
 {
 	if(!(lock instanceof Array))
 		lock = lock ? [lock] : [];
-    return lock.map(function(itemId){
+	return lock.map(function(itemId){
 		if(itemId.id)
 			itemId = itemId.id;
-		assert.ok(db[itemId]);
+		assert.ok(db[itemId], itemId + " is not an item.");
 		return itemId;
 	});
 }	
@@ -99,23 +121,75 @@ function checkLockOpen (db, lock, user)
 	}, true);
 }
 
-Exit.prototype.visibleTo = function (user)
+Exit.prototype.isVisibleTo = function (user)
 {
 	return checkLockOpen(this.db, this.cloak, user);
 };
 
-Exit.prototype.openTo = function (user)
+Exit.prototype.isOpenTo = function (user)
 {
-	return this.visibleTo(user)
+	return this.isVisibleTo(user)
 		&& checkLockOpen(this.db, this.lock, user);
 };
 
-Exit.prototype.describeFor = function (user)
+function checkTimerSet(timer){
+	timer = timer || {};
+	timer.period = timer.period || 1;
+	timer.shift = timer.shift || 0;
+	timer.width = timer.width || 0.5;
+	if(timer.period == 1)
+	{
+		timer.mid = 1;
+		timer.shift = 0;
+	}
+	else
+	{
+		timer.mid = Math.floor(timer.period * timer.width);
+	}
+	delete timer.width;
+	return timer;
+}
+
+function checkTimerOn(timer, t)
 {
-	return this.visibleTo(user)
+	t -= timer.shift;
+	
+	// javascript's modulus operator doesn't work well for
+	// negative values.
+	while(t < 0) t += timer.period;
+	
+	return (t % timer.period) < timer.mid;
+}
+
+Exit.prototype.isVisibleAt = function(t)
+{
+	return checkTimerOn(this.timeCloak, t);
+};
+
+Exit.prototype.isOpenAt = function(t)
+{
+	return this.isVisibleAt(t)
+		&& checkTimerOn(this.timeLock, t);
+};
+
+Exit.prototype.isVisible = function(user, t)
+{
+	return this.isVisibleTo(user)
+		&& this.isVisibleAt(t);
+};
+
+Exit.prototype.isOpen = function(user, t)
+{
+	return this.isOpenTo(user)
+		&& this.isOpenAt(t);
+};
+
+Exit.prototype.describe = function (user, t)
+{
+	return this.isVisible(user, t)
 		&& format("%s to %s%s",
 			this.description,
 			this.toRoomId,
-			this.openTo(user) ? "" : " (LOCKED)")
+			this.isOpen(user, t) ? "" : " (LOCKED)")
 		|| "";
 };

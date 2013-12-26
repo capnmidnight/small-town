@@ -4,6 +4,7 @@ var Room = require("../room.js");
 var Body = require("../body.js");
 var Item = require("../item.js");
 var assert = require("assert");
+var format = require("util").format;
 
 describe("between two rooms", function(){
     var db = null;
@@ -162,7 +163,7 @@ describe("between two rooms", function(){
         });
     
         it("doesn't set reverseId when asked", function(){
-            assert.ok(!x.reverseId);
+            assert(!x.reverseId);
         });
     
         it("creates the specified direction", function(){
@@ -191,26 +192,26 @@ describe("between two rooms", function(){
             });
         
             it("isn't visible if the cloak is set", function(){
-                assert.ok(!x.visibleTo(user));
+                assert(!x.isVisibleTo(user));
             });
             
             it("is locked if not visible", function(){
-                assert.ok(!x.openTo(user));
+                assert(!x.isOpenTo(user));
             });
             
             it("becomes visible if user has item", function(){
                 user.items.key = 1;
-                assert.ok(x.visibleTo(user));
+                assert(x.isVisibleTo(user));
             });
             
             it("is visible even if the item is equipped", function(){
                 user.equipment.key = 1;
-                assert.ok(x.visibleTo(user));
+                assert(x.isVisibleTo(user));
             });
             
             it("is unlocked if visible", function(){
                 user.items.key = 1;
-                assert.ok(x.openTo(user));
+                assert(x.isOpenTo(user));
             });
             
             it("shares cloak with reverse direction", function(){
@@ -228,50 +229,114 @@ describe("between two rooms", function(){
         
             it("isn't visible if user only has some of the cloak items", function(){
                 user.items.key = 1;
-                assert.ok(!x.visibleTo(user));
+                assert(!x.isVisibleTo(user));
             });
             
             it("becomes visible if user has all of the cloak items", function(){
                 user.items.key = 1;
                 user.items.jewel = 1;
-                assert.ok(x.visibleTo(user));
+                assert(x.isVisibleTo(user));
             });
             
             it("still visible if user has some of the key equipped", function(){
                 user.items.key = 1;
                 user.equipment.jewel = 1;
-                assert.ok(x.visibleTo(user));
+                assert(x.isVisibleTo(user));
             });
             
             it("still visible if user has all of the key equipped", function(){
                 user.equipment.key = 1;
                 user.equipment.jewel = 1;
-                assert.ok(x.visibleTo(user));
+                assert(x.isVisibleTo(user));
             });
             
             it("still visible if user has more than one of one of the items", function(){
                 user.items.key = 23;
                 user.items.jewel = 1;
-                assert.ok(x.visibleTo(user));
+                assert(x.isVisibleTo(user));
             });
             
             it("still visible if user has more than one of each items", function(){
                 user.items.key = 23;
                 user.items.jewel = 17;
-                assert.ok(x.visibleTo(user));
+                assert(x.isVisibleTo(user));
             });
             
             it("still visible if user has extra items", function(){
                 user.items.key = 1;
                 user.items.jewel = 1;
                 user.items.hat = 1;
-                assert.ok(x.visibleTo(user));
+                assert(x.isVisibleTo(user));
             });
             
             it("shares cloak with reverse direction", function(){
                 assert.deepEqual(x.cloak, r.cloak);
             });
+            
+            it("is visible at any time", function(){
+				var t = [0, 10, 20, 29, 60, 61, 70, 88, 30, 35, 45, 59, 90, 92, 100, 119];
+				for(var i = 0; i < t.length; ++i)
+					assert(x.isVisibleAt(t[i]), 
+						format("expected to be visible at %ds", t[i]));
+			});
+            
+            it("is open at any time", function(){
+				var t = [0, 10, 20, 29, 60, 61, 70, 88, 30, 35, 45, 59, 90, 92, 100, 119];
+				for(var i = 0; i < t.length; ++i)
+					assert(x.isOpenAt(t[i]), 
+						format("expected to be visible at %ds", t[i]));
+			});
         });
+        
+        describe("with a basic timed cloak", function(){
+			var x = null;
+			beforeEach(function(){
+				x = new Exit(db, "east", room1, room2, {timeCloak: {period: 60}});
+			});
+			
+			it("is visible to the user", function(){
+				assert(x.isVisibleTo(user));
+			});
+			
+			it("is visible", function(){
+				var t = [0, 10, 20, 29, 60, 61, 70, 88];
+				for(var i = 0; i < t.length; ++i)
+					assert(x.isVisibleAt(t[i]), 
+						format("expected to be visible at %ds", t[i]));
+			});
+			
+			it("is not visible", function(){
+				var t = [30, 35, 45, 59, 90, 92, 100, 119];
+				for(var i = 0; i < t.length; ++i)
+					assert(!x.isVisibleAt(t[i]), 
+						format("expected to not be visible at %ds", t[i]));
+			});
+		});
+        
+        describe("with a shifted timed cloak", function(){
+			var x = null;
+			beforeEach(function(){
+				x = new Exit(db, "east", room1, room2, {timeCloak: {period: 60, shift: 12}});
+			});
+			
+			it("is visible to the user", function(){
+				assert(x.isVisibleTo(user));
+			});
+			
+			it("is visible", function(){
+				var t = [12, 22, 32, 41, 72, 73, 82, 100];
+				for(var i = 0; i < t.length; ++i)
+					assert(x.isVisibleAt(t[i]), 
+						format("expected to be visible at %ds", t[i]));
+			});
+			
+			it("is not visible", function(){
+				var t = [0, 11, 42, 47, 57, 71, 102, 104, 112, 131];
+				for(var i = 0; i < t.length; ++i)
+					assert(!x.isVisibleAt(t[i]), 
+						format("expected to not be visible at %ds", t[i]));
+			});
+		});
         
         describe("with one item for the lock", function(){
             var x = null;
@@ -287,17 +352,17 @@ describe("between two rooms", function(){
             });
         
             it("is locked if the lock is set", function(){
-                assert.ok(!x.openTo(user));
+                assert(!x.isOpenTo(user));
             });
             
             it("becomes unlocked if user has item", function(){
                 user.items.key = 1;
-                assert.ok(x.openTo(user));
+                assert(x.isOpenTo(user));
             });
             
             it("still unlocked if user has item equipped", function(){
                 user.equipment.key = 1;
-                assert.ok(x.openTo(user));
+                assert(x.isOpenTo(user));
             });
             
             it("shares lock with reverse direction", function(){
@@ -315,66 +380,91 @@ describe("between two rooms", function(){
         
             it("is locked if user only has some of the cloak items", function(){
                 user.items.key = 1;
-                assert.ok(!x.openTo(user));
+                assert(!x.isOpenTo(user));
             });
             
             it("becomes unlocked if user has all of the cloak items", function(){
                 user.items.key = 1;
                 user.items.jewel = 1;
-                assert.ok(x.openTo(user));
+                assert(x.isOpenTo(user));
             });
             
             it("still unlocked if user has more than one of the items", function(){
                 user.items.key = 23;
                 user.items.jewel = 1;
-                assert.ok(x.openTo(user));
+                assert(x.isOpenTo(user));
             });
             
             it("still unlocked if user has one of the items equipped", function(){
                 user.equipment.key = 1;
                 user.items.jewel = 1;
-                assert.ok(x.openTo(user));
+                assert(x.isOpenTo(user));
             });
             
             it("still unlocked if user has all of the items equipped", function(){
                 user.equipment.key = 1;
                 user.equipment.jewel = 1;
-                assert.ok(x.openTo(user));
+                assert(x.isOpenTo(user));
             });
             
             it("still unlocked if user has more than one of each items", function(){
                 user.items.key = 23;
                 user.items.jewel = 17;
-                assert.ok(x.openTo(user));
+                assert(x.isOpenTo(user));
             });
             
             it("still unlocked if user has extra items", function(){
                 user.items.key = 1;
                 user.items.jewel = 1;
                 user.items.hat = 1;
-                assert.ok(x.openTo(user));
+                assert(x.isOpenTo(user));
             });
             
             it("displays \"(LOCKED)\"", function(){
-                assert.equal(x.describeFor(user), "south to room1 (LOCKED)");
+                assert.equal(x.describe(user, 0), "south to room1 (LOCKED)");
             });
             
             it("no longer displays \"(LOCKED)\"", function(){
                 user.items.key = 1;
                 user.items.jewel = 1;
-                assert.equal(x.describeFor(user), "south to room1");
+                assert.equal(x.describe(user, 0), "south to room1");
             });
             
             it("no longer displays \"(LOCKED)\", even when equipped", function(){
                 user.equipment.key = 1;
                 user.equipment.jewel = 1;
-                assert.equal(x.describeFor(user), "south to room1");
+                assert.equal(x.describe(user, 0), "south to room1");
             });
             
             it("shares lock with reverse direction", function(){
                 assert.deepEqual(x.lock, r.lock);
             });
         });
+        
+        describe("with a basic timed lock", function(){
+			var x = null;
+			beforeEach(function(){
+				x = new Exit(db, "east", room1, room2, {timeLock: {period: 60}});
+			});
+			
+			it("is open to the user", function(){
+				assert(x.isOpenTo(user));
+			});
+			
+			it("is unlocked", function(){
+				var t = [0, 10, 20, 29, 60, 61, 70, 88];
+				for(var i = 0; i < t.length; ++i)
+					assert(x.isOpenAt(t[i]), 
+						format("expected to be visible at %ds", t[i]));
+			});
+			
+			it("is not open", function(){
+				var t = [30, 35, 45, 59, 90, 92, 100, 119];
+				for(var i = 0; i < t.length; ++i)
+					assert(!x.isOpenAt(t[i]), 
+						format("expected to not be visible at %ds", t[i]));
+			});
+		});
         
         describe("with no cloak or lock", function(){
             var x = null;
@@ -383,7 +473,7 @@ describe("between two rooms", function(){
             });
             
             it("is a Thing", function(){
-                assert.ok(x instanceof Thing, "not a subclass of Thing");
+                assert(x instanceof Thing, "not a subclass of Thing");
             });
             
             it("persists fromRoomId", function(){
@@ -406,14 +496,14 @@ describe("between two rooms", function(){
                 var rId = "exit-south-from-room2-to-room1";
                 var y = db[rId];
                 assert.strictEqual(x.reverseId, rId);
-                assert.ok(y, "reverse exit doesn't exist");
+                assert(y, "reverse exit doesn't exist");
                 assert.strictEqual(y.id, rId);
                 assert.strictEqual(y.fromRoomId, "room2");
                 assert.strictEqual(y.toRoomId, "room1");
             });
             
             it("makes room parent of exit", function(){
-                assert.ok(x.parentId);
+                assert(x.parentId);
                 assert.strictEqual(room1, x.getParent());
             });
             
@@ -435,11 +525,29 @@ describe("between two rooms", function(){
             });
             
             it("is visible by default", function(){
-                assert.ok(x.visibleTo(user), "basic room isn't visible to basic user.");        
+                assert(x.isVisibleTo(user), "basic room isn't visible to basic user.");
             });
             
+            it("is open by default", function(){
+                assert(x.isOpenTo(user), "basic room isn't open to basic user.");        
+            });
+            
+            it("is visible at any time", function(){
+				var t = [0, 10, 20, 29, 60, 61, 70, 88, 30, 35, 45, 59, 90, 92, 100, 119];
+				for(var i = 0; i < t.length; ++i)
+					assert(x.isVisibleAt(t[i]), 
+						format("expected to be visible at %ds", t[i]));
+			});
+            
+            it("is open at any time", function(){
+				var t = [0, 10, 20, 29, 60, 61, 70, 88, 30, 35, 45, 59, 90, 92, 100, 119];
+				for(var i = 0; i < t.length; ++i)
+					assert(x.isOpenAt(t[i]), 
+						format("expected to be visible at %ds", t[i]));
+			});
+            
             it("describes naturally", function(){
-                assert.equal(x.describeFor(user), "north to room2");
+                assert.equal(x.describe(user, 0), "north to room2");
             });
         });
     });
