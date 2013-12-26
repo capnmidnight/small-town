@@ -192,6 +192,10 @@ describe("between two rooms", function(){
                 assert.ok(!x.visibleTo(user));
             });
             
+            it("is locked if not visible", function(){
+                assert.ok(!x.openTo(user));
+            });
+            
             it("becomes visible if user has item", function(){
                 user.items.key = 1;
                 assert.ok(x.visibleTo(user));
@@ -200,6 +204,11 @@ describe("between two rooms", function(){
             it("is visible even if the item is equipped", function(){
                 user.equipment.key = 1;
                 assert.ok(x.visibleTo(user));
+            });
+            
+            it("is unlocked if visible", function(){
+                user.items.key = 1;
+                assert.ok(x.openTo(user));
             });
         });
         
@@ -320,6 +329,22 @@ describe("between two rooms", function(){
                 user.items.hat = 1;
                 assert.ok(x.openTo(user));
             });
+            
+            it("displays \"(LOCKED)\"", function(){
+                assert.equal(x.describeFor(user), "south to room1 (LOCKED)");
+            });
+            
+            it("no longer displays \"(LOCKED)\"", function(){
+                user.items.key = 1;
+                user.items.jewel = 1;
+                assert.equal(x.describeFor(user), "south to room1");
+            });
+            
+            it("no longer displays \"(LOCKED)\", even when equipped", function(){
+                user.equipment.key = 1;
+                user.equipment.jewel = 1;
+                assert.equal(x.describeFor(user), "south to room1");
+            });
         });
         
         describe("with no cloak or lock", function(){
@@ -382,6 +407,10 @@ describe("between two rooms", function(){
             
             it("is visible by default", function(){
                 assert.ok(x.visibleTo(user), "basic room isn't visible to basic user.");        
+            });
+            
+            it("describes naturally", function(){
+                assert.equal(x.describeFor(user), "north to room2");
             });
         });
     });

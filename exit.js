@@ -99,5 +99,16 @@ Exit.prototype.visibleTo = function (user)
 
 Exit.prototype.openTo = function (user)
 {
-	return checkKeyUnlocked(this.db, this.key, user);
+	return this.visibleTo(user)
+		&& checkKeyUnlocked(this.db, this.key, user);
+};
+
+Exit.prototype.describeFor = function (user)
+{
+	return this.visibleTo(user)
+		&& format("%s to %s%s",
+			this.description,
+			this.toRoomId,
+			this.openTo(user) ? "" : " (LOCKED)")
+		|| "";
 };
