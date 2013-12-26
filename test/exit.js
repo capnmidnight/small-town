@@ -159,16 +159,63 @@ describe("between two rooms", function(){
             user = new Body();
         });
         
-        it("isn't visible if the cloak is set", function(){
-            var x = new Exit(db, "south", "room2", "room1", ["key"]);
-            assert.ok(!x.visibleTo(user));
+        describe("when the exit has one item for the cloak", function(){
+            var x = null;
+            beforeEach(function(){
+                x = new Exit(db, "south", "room2", "room1", ["key"]);
+            });
+        
+            it("isn't visible if the cloak is set", function(){
+                assert.ok(!x.visibleTo(user));
+            });
+            
+            it("becomes visible if user has item", function(){
+                user.items.key = 1;
+                assert.ok(x.visibleTo(user));
+            });
         });
-    
-        describe("basic use", function(){
+        
+        describe("when exit has two items for the cloak", function(){
+            var x = null;
+            beforeEach(function(){
+                x = new Exit(db, "south", "room2", "room1", ["key", "jewel"]);
+            });
+        
+            it("isn't visible if user only has some of the cloak items", function(){
+                user.items.key = 1;
+                assert.ok(!x.visibleTo(user));
+            });
+            
+            it("becomes visible if user has all of the cloak items", function(){
+                user.items.key = 1;
+                user.items.jewel = 1;
+                assert.ok(x.visibleTo(user));
+            });
+            
+            it("still visible if user has more than one of one of the items", function(){
+                user.items.key = 23;
+                user.items.jewel = 1;
+                assert.ok(x.visibleTo(user));
+            });
+            
+            it("still visible if user has more than one of each items", function(){
+                user.items.key = 23;
+                user.items.jewel = 17;
+                assert.ok(x.visibleTo(user));
+            });
+            
+            it("still visible if user has extra items", function(){
+                user.items.key = 1;
+                user.items.jewel = 1;
+                user.items.hat = 1;
+                assert.ok(x.visibleTo(user));
+            });
+        });
+        
+        describe("with no cloak", function(){
             var x = null;
             beforeEach(function(){
                 x = new Exit(db, "north", "room1", "room2");
-                user = new Body();
             });
             it("is a Thing", function(){
                 assert.ok(x instanceof Thing, "not a subclass of Thing");
@@ -225,6 +272,6 @@ describe("between two rooms", function(){
             it("is visible by default", function(){
                 assert.ok(x.visibleTo(user), "basic room isn't visible to basic user.");        
             });
-        });    
+        });
     });
 });
