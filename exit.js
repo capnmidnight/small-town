@@ -15,11 +15,11 @@ var format = require("util").format;
 //          inventory for them to be allowed to *see* the door.
 //  - key (optional): an itemId that must be the user's inventory
 //          for them to be allowed through the door.
-//  - lockMsg (optional): the message to display to the user if
+//  - lockMessage (optional): the message to display to the user if
 //          they try to go through the exit but don't have the
 //          key item. Use this to create puzzle hints.
 //  - skipReverse (optional): if truish, don't create the reverse link.
-function Exit(db, direction, fromRoomId, toRoomId, cloak, key, lockMsg, skipReverse)
+function Exit(db, direction, fromRoomId, toRoomId, cloak, key, lockMessage, skipReverse)
 {
     var id = direction && format(
 		"exit-%s-from-%s-to-%s", 
@@ -32,12 +32,12 @@ function Exit(db, direction, fromRoomId, toRoomId, cloak, key, lockMsg, skipReve
     this.toRoomId = checkRoomId(db, toRoomId, "to");
     this.cloak = checkLockSet(db, cloak);
 	this.key = checkLockSet(db, key);
-    this.lockMsg = lockMsg || "The way is locked";
+    this.lockMessage = lockMessage || "The way is locked";
     this.setParent(fromRoomId);
     
     if(!skipReverse)
     {
-        var reverse = new Exit(db, reverseDirection[direction], toRoomId, fromRoomId, cloak, key, lockMsg, true);
+        var reverse = new Exit(db, reverseDirection[direction], toRoomId, fromRoomId, cloak, key, lockMessage, true);
         this.reverseId = reverse.id;
     }
 }

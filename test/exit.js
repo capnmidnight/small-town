@@ -184,8 +184,10 @@ describe("between two rooms", function(){
         
         describe("with one item for the cloak", function(){
             var x = null;
+            var r = null;
             beforeEach(function(){
                 x = new Exit(db, "south", "room2", "room1", ["key"]);
+                r = db[x.reverseId];
             });
         
             it("isn't visible if the cloak is set", function(){
@@ -210,12 +212,18 @@ describe("between two rooms", function(){
                 user.items.key = 1;
                 assert.ok(x.openTo(user));
             });
+            
+            it("shares cloak with reverse direction", function(){
+                assert.deepEqual(x.cloak, r.cloak);
+            });
         });
         
         describe("with two items for the cloak", function(){        
             var x = null;
+            var r = null;
             beforeEach(function(){
                 x = new Exit(db, "south", "room2", "room1", ["key", "jewel"]);
+                r = db[x.reverseId];
             });
         
             it("isn't visible if user only has some of the cloak items", function(){
@@ -259,12 +267,23 @@ describe("between two rooms", function(){
                 user.items.hat = 1;
                 assert.ok(x.visibleTo(user));
             });
+            
+            it("shares cloak with reverse direction", function(){
+                assert.deepEqual(x.cloak, r.cloak);
+            });
         });
         
         describe("with one item for the lock", function(){
             var x = null;
+            var r = null;
             beforeEach(function(){
                 x = new Exit(db, "south", "room2", "room1", null, ["key"]);
+                r = db[x.reverseId];
+            });
+            
+            it("persists lock message", function(){
+                var x2 = new Exit(db, "north", room1, room2, null, item1, "lockity mclocked");
+                assert.equal(x2.lockMessage, "lockity mclocked");
             });
         
             it("is locked if the lock is set", function(){
@@ -280,12 +299,18 @@ describe("between two rooms", function(){
                 user.equipment.key = 1;
                 assert.ok(x.openTo(user));
             });
+            
+            it("shares lock with reverse direction", function(){
+                assert.deepEqual(x.key, r.key);
+            });
         });
         
         describe("with two items for the lock", function(){        
             var x = null;
+            var r = null;
             beforeEach(function(){
                 x = new Exit(db, "south", "room2", "room1", null, ["key", "jewel"]);
+                r = db[x.reverseId];
             });
         
             it("is locked if user only has some of the cloak items", function(){
@@ -344,6 +369,10 @@ describe("between two rooms", function(){
                 user.equipment.key = 1;
                 user.equipment.jewel = 1;
                 assert.equal(x.describeFor(user), "south to room1");
+            });
+            
+            it("shares lock with reverse direction", function(){
+                assert.deepEqual(x.key, r.key);
             });
         });
         
