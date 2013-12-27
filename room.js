@@ -1,36 +1,67 @@
 var Thing = require("./thing.js");
+var Exit = require("./exit.js");
+var Item = require("./item.js");
+var AIBody = require("./aibody.js");
 var fs = require("fs");
 
 // Room class
 //  - db: a database of all things
 //  - description: the description of the room, that will get
 //          printed for the user when they "look".
-//  - exits: an array of Exit objects
-//  - items (optional): an associative array, combining
-//          item IDs and counts, for the room's selection
-//          of stuff.
-//  - npcs (optional): an associative array, combining
-//			characters IDs and Body subclasses, for the 
-//			characters that start in this room (if defining,
-//			them in the room is most natural).
-function Room(db, id, description, exits, items, npcs)
-{
+function Room(db, id, description) {
     Thing.call(this, db, id, description);
-    this.exits = exits || {};
-    this.items = items || {};
-    this.npcs = npcs || {};
 }
-module.exports = Room;
 
 Room.prototype = Object.create(Thing.prototype);
+module.exports = Room;
 
+var parsers = {
+    none: function (line, options) {
+        return parsers[line] ? line : "quit";
+    },
 
-// loads a room from a text file in the rough room format:
-//  https://github.com/capnmidnight/philly_mud/issues/5
-Room.load = function(filename){
+    exits: function (line, options) {
+        if (line.length === 0)
+            return "none"
+        else {
+            options.exits.push(line);
+            return "exits";
+        }
+    },
 
+    items: function (line, options) {
+        if (line.length === 0)
+            return "none"
+        else {
+            options.items.push(line);
+            return "items";
+        }
+    }
 };
 
-Room.parse = function(text){
-	
+Room.parse = function (db, roomId, text) {
+    text = text
+        .replace(/\r/g, "");
+    var lines = text
+        .split("\n")
+        .map(function (l) { return l.trim(); });
+    var options = {
+        items: [],
+        exits: []
+    };
+    var state = "none";
+    while (lines.length > 0 && state != "quit") {
+        var oldState = state;
+        var line = lines.shift();
+        state = parsers[state](line, options);
+        if (state === "quit")
+            lines.unshift(line);
+    }
+    var description = lines.join("\r\n");
+    var room = new Room(db, roomId, description);
+    for(var i = 0; i < options.exits.length; ++i)
+        var exit = Exit.parse(db, roomId, options.exits[i]);
+    for (var i = 0; i < options.items.length; ++i)
+        var item = Item.loadIntoRoom(db, roomId, options.items[i]);
+    return room;
 };

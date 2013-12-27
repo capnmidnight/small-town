@@ -1,5 +1,4 @@
 var Thing = require("./thing.js");
-var Room = require("./room.js");
 var assert = require("assert");
 var format = require("util").format;
 /* 
@@ -119,12 +118,15 @@ var parsers =
 	lockMessage: function(part, options)
 	{
 		var state = "lockMessage";
-		if(part[part.length - 1] === '"')
+		if(part[part.length - 2] !== '\\'
+		    && part[part.length - 1] === '"')
 		{
 			part = part.substring(0, part.length - 1);
 			state = "locked";
 		}
 		options.lockMessage += " " + part;
+		if (state === "locked")
+		    options.lockMessage = options.lockMessage.replace(/\\"/g, '"');
 		return state;
 	},
 
@@ -185,7 +187,7 @@ var parsers =
 	}
 };
 
-Exit.parse = function(db, fromRoomId, text)
+module.exports.parse = function(db, fromRoomId, text)
 {
 	var options = {
 		oneWay: (text[0] == '-')
@@ -235,8 +237,6 @@ function checkRoomId(db, roomId, name)
     assert.ok(roomId, name + "RoomId required");
     assert.ok(db[roomId], 
         "room \"" + roomId + "\" must exist before exit can be created.");
-    assert.ok(db[roomId] instanceof Room, 
-        "\"" + roomId + "\" must be a room.");
         
     return roomId;
 }

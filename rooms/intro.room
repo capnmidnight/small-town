@@ -1,0 +1,21 @@
+﻿exits
+    exit to Main-Square locked with sword "Don't forget to take the items (rusty metal and steel-wool) and use them to make a sword. Try \"take all\" followed by \"make sword\"."
+
+items
+    steel-wool 10
+    rusty-metal 10
+
+
+Introduction
+    
+Learning the commands to the game important. You can see
+all of the commands you're capable of by typing 'help' in
+the command box below and either hitting your enter key
+or tapping the enter button.
+
+You will have to take the items in this room
+and make a sword in order to exit. type 'take steel-wool'
+followed by 'take rusty-metal'. Then type 'make sword'.
+You will the be able to leave this room by typing 'exit'.
+Please don't take more than you need, or other new users
+will not have enough to be able to exit for several minutes.

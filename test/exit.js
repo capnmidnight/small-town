@@ -818,5 +818,11 @@ describe("between two rooms", function(){
 			assert.equal(x.timeCloak.mid, 15, "timeCloak mid not set: " + x.timeCloak.mid);
 			assert.equal(x.timeCloak.shift, 100, "timeCloak shift not set");
 		});
+
+		it("escaped quotes in lock message", function () {
+		    var x = Exit.parse(db, room1, "north to room2 locked with key \"the way is \\\"locked\\\" for sure.\"");
+		    basicTest(x);
+		    assert.equal(x.lockMessage, "the way is \"locked\" for sure.");
+		});
 	});
 });

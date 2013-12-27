@@ -1,4 +1,12 @@
-﻿new Room(serverState.rooms,
+﻿exits:
+    to Main-Square locked with sword "Don't forget to take the items (rusty metal and steel-wool) and use them to make a sword. Try \"take all\" followed by \"make sword\"."
+
+items:
+    steel-wool 10
+    rusty-metal 10
+
+
+new Room(serverState.rooms,
       "Introduction\n\nLearning the commands to the game important.\n"
     + "You can see all of the commands you're\n"
     + "capable of by typing <strong>help</strong> in the command\n"
@@ -13,8 +21,6 @@
     + "will not have enough to be able to exit for several minutes.",
       {
           "exit": new Exit("Main Square", "sword",
-          "Don't forget to take the items (rusty metal "
-        + "and steel-wool) and use them to make a sword.\n"
-        + "Try \"take all\" followed by \"make sword\".\n")
+          
       },
       { "steel-wool": 10, "rusty-metal": 10 })
