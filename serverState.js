@@ -13,8 +13,6 @@ var Message = require("./message.js");
 var assert = require("assert");
 var core = require("./core.js");
 var format = require("util").format;
-var StringDecoder = require("string_decoder").StringDecoder;
-var decoder = new StringDecoder("utf8");
 var serverState = module.exports;
 module.exports.users = {};
 module.exports.npcCatalogue = {};
@@ -30,11 +28,13 @@ module.exports.npcCatalogue["Roland"] =
         "steel-wool": { "gold": 2 },
         "small-potion": { "gold": 3 }
     });
-
+module.exports.npcCatalogue["Begbie"] = new Scavenger("Main Square", 10);
+module.exports.npcCatalogue["Virginia"] = new AIBody("Main Square", 10);
+module.exports.npcCatalogue["mule"] = new Mule("Main Square", 10, "naaay", { "apple": 5, "log": 3 });
 module.exports.rooms = {};
 module.exports.getRoom = function (roomId) {
     if (!this.rooms[roomId]) {
-        var data = decoder.write(fs.readFileSync(format("rooms/%s.js", roomId)));
+        var data = fs.readFileSync(format("rooms/%s.js", roomId), { encoding: "utf8" });
         var room = eval(data);
         room.setId(roomId);
         this.rooms[roomId] = room;

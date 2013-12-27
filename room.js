@@ -58,10 +58,25 @@ Room.parse = function (db, roomId, text) {
             lines.unshift(line);
     }
     var description = lines.join("\r\n");
-    var room = new Room(db, roomId, description);
-    for(var i = 0; i < options.exits.length; ++i)
-        var exit = Exit.parse(db, roomId, options.exits[i]);
-    for (var i = 0; i < options.items.length; ++i)
-        var item = Item.loadIntoRoom(db, roomId, options.items[i]);
-    return room;
+    new Room(db, roomId, description);
+    return options;
+};
+
+Room.loadAll = function (db, roomIds) {
+    var opts = {};
+    var rooms = [];
+    for(var i = 0; i < roomIds.length; ++i)
+    {
+        var roomId = roomIds[i];
+        opts[roomId] = Room.parse(db, roomId, fs.readFileSync("rooms/" + roomId + ".room", { encoding: "utf8" }));
+        rooms.push(db[roomId]);
+    }
+    for (var roomId in opts) {
+        var options = opts[roomId];
+        for (var i = 0; i < options.exits.length; ++i)
+            var exit = Exit.parse(db, roomId, options.exits[i]);
+        for (var i = 0; i < options.items.length; ++i)
+            var item = Item.loadIntoRoom(db, roomId, options.items[i]);
+    }
+    return rooms;
 };
