@@ -43,6 +43,7 @@ Mule.prototype.react_tell = function (m){
         {
             if(msg == "follow")
             {
+                this.cmd(format("follow %s", m.fromId));
                 this.targetId = m.fromId;
                 this.saySomething(m.fromId);
             }
@@ -78,8 +79,24 @@ Mule.prototype.react_tell = function (m){
 
 Mule.prototype.react_left = function (m)
 {
-    if(this.targetId == m.fromId)
-        this.cmd(m.payload[0]);
+    if (this.targetId == m.fromId) {
+        var rm = this.db.getRoom(this.roomId);
+        var exit = rm.exits[m.payload[0]];
+        var exitRoom = exit && this.db.getRoom(exit.roomId);
+        if (exit
+            && exitRoom) {
+            var people = this.db.getPeopleIn(this.roomId);
+            var m = new Message(this.id, "left", [dir], "chat");
+            for (var userId in people)
+                people[userId].informUser(m);
+            this.roomId = exit.roomId;
+            people = this.db.getPeopleIn(this.roomId);
+            m = new Message(this.id, "entered", null, "chat");
+            for (var userId in people)
+                people[userId].informUser(m);
+            this.cmd_look();
+        }
+    }
 }
 
 Mule.prototype.react_retrieve = function (m)

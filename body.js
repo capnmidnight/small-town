@@ -200,6 +200,21 @@ Body.prototype.cmd_tell = function (targetId, msg)
     }
 }
 
+explain.msg = "Use: \"msg &lt;target name&gt; &lt;message&gt;\"\n\n"
++ "Send a private message to someone on the server.\n\n"
++ "Example:\n\n"
++ "&gt; msg carlos follow\n\n"
++ "&lt; carlos msg player naaaay!";
+Body.prototype.cmd_msg = function (targetId, msg) {
+    var people = this.db[targetId]
+    if (!target) {
+        this.sysMsg(format("%s is not logged in to msg to.", targetId));
+    }
+    else {
+        target.informUser(new Message(this.id, "msg", [msg], "chat"));
+    }
+}
+
 explain.quit = "Use: \"quit\"\n\n"
 +"Quit playing the game.\n\n"
 +"Example:\n\n"
