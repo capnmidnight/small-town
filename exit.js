@@ -115,77 +115,70 @@ var parsers =
 		return parseLocker(part, options, "Lock");
 	},
 
-	lockMessage: function(part, options)
-	{
-		var state = "lockMessage";
-		if(part[part.length - 2] !== '\\'
-		    && part[part.length - 1] === '"')
-		{
-			part = part.substring(0, part.length - 1);
-			state = "locked";
-		}
-		options.lockMessage += " " + part;
-		if (state === "locked")
-		    options.lockMessage = options.lockMessage.replace(/\\"/g, '"');
-		return state;
-	},
-
 	cloak: function(itemId, options)
 	{
-		var state = "cloak";
-		if(itemId[itemId.length - 1] == ',')
-			itemId = itemId.substring(0, itemId.length - 1);
-		else
-			state = "cloaked";
-		options.cloak.push(itemId);
-		return state;
+	    return something(itemId, options, "cloak");
 	},
 
 	lock: function(itemId, options)
 	{
-		var state = "lock";
-		if(itemId[itemId.length - 1] == ',')
-			itemId = itemId.substring(0, itemId.length - 1);
-		else
-			state = "locked";
-		options.lock.push(itemId);
-		return state;
+	    return something(itemId, options, "lock");
 	},
 
 	timeLock: function(number, options)
 	{
-		var state = "timeLock";
-		if(number[number.length - 1] === ',')
-			number = number.substring(0, number.length - 1);
-		else
-			state = "locked";
-		number *= 1;
-		if(!options.timeLock.period)
-			options.timeLock.period = number;
-		else if(!options.timeLock.width)
-			options.timeLock.width = number;
-		else if(!options.timeLock.shift)
-			options.timeLock.shift = number;
-		return state;
+	    return timeSomething(number, options, "Lock");
 	},
 
 	timeCloak: function(number, options)
 	{
-		var state = "timeCloak";
-		if(number[number.length - 1] === ',')
-			number = number.substring(0, number.length - 1);
-		else
-			state = "cloaked";
-		number *= 1;
-		if(!options.timeCloak.period)
-			options.timeCloak.period = number;
-		else if(!options.timeCloak.width)
-			options.timeCloak.width = number;
-		else if(!options.timeCloak.shift)
-			options.timeCloak.shift = number;
-		return state;
-	}
+	    return timeSomething(number, options, "Cloak");
+	},
+
+    lockMessage: function(part, options)
+    {
+        var state = "lockMessage";
+        if(part[part.length - 2] !== '\\'
+            && part[part.length - 1] === '"')
+        {
+            part = part.substring(0, part.length - 1);
+            state = "locked";
+        }
+        options.lockMessage += " " + part;
+        if (state === "locked")
+            options.lockMessage = options.lockMessage.replace(/\\"/g, '"');
+        return state;
+    }
 };
+
+function something(itemId, options, name)
+{
+    var state = name;
+    if (itemId[itemId.length - 1] == ',')
+        itemId = itemId.substring(0, itemId.length - 1);
+    else
+        state = name + "ed";
+    options[name].push(itemId);
+    return state;
+}
+
+function timeSomething(number, options, name)
+{
+    var prop = "time" + name;
+    var state = prop;
+    if (number[number.length - 1] === ',')
+        number = number.substring(0, number.length - 1);
+    else
+        state = (name + "ed").toLowerCase();
+    number *= 1;
+    if (!options[prop].period)
+        options[prop].period = number;
+    else if (!options[prop].width)
+        options[prop].width = number;
+    else if (!options[prop].shift)
+        options[prop].shift = number;
+    return state;
+}
 
 module.exports.parse = function(db, fromRoomId, text)
 {
