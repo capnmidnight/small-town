@@ -1,20 +1,30 @@
 var Thing = require("./thing.js");
 var assert = require("assert");
+var format = require("util").format;
+
 // Item class
+//
+//  - db: the table that holds all of this type of Thing.
+//  - id: the name of the Thing being created.
 //  - description: a description of the item, for printing in
 //          the room or inventory.
-//  - equipType: how the item may be used. See equipTypes
-//          list below.
+//  - equipType: the way in which the item can be used. See
+//          Item.equipTypes for a list of such types.
 //  - strength: for whatever equipType is chosen, this is
 //          how well the item can do it.
-function Item(db, description, equipType, strength) {
-    Thing.call(this, db, description);
+function Item(db, id, description, equipType, strength) {
+    Thing.call(this, db, id, description);
     this.equipType = equipType || "none";
     this.strength = strength || 0;
 }
 
 Item.prototype = Object.create(Thing.prototype);
 module.exports = Item;
+
+Item.equipTypes = [
+    "none", "head", "eyes", "shoulders", "torso", "pants",
+    "belt", "shirt", "forearms", "gloves", "shins", "boots",
+    "tool", "food"];
 
 Item.loadIntoRoom = function (db, roomId, text) {
     var parts = text.split(" ");
@@ -27,7 +37,37 @@ Item.loadIntoRoom = function (db, roomId, text) {
 
 Item.prototype.copy = function () {
     var itm = Thing.prototype.copy.call(this);
-    itm.id += "-" + Date.now();
+    var stub = itm.id + "-";
+    var i = 0;
+    while (this.db[stub + i])
+        ++i;
+    itm.id += stub + i;
     this.db[itm.id] = itm;
     return itm;
+}
+
+Item.parse = function (db, type, text) {
+    var parts = text.split(' ');
+    var id = parts.shift();
+    var strength = parts[0] * 1;
+    if (strength == parts[0])
+        parts.shift();
+    var description = parts.join(" ");
+    var script = new Item(db, id, description, type, strength);
+    var itm = eval(script);
+    db[itm.id] = itm;
+};
+
+Item.process = function (db, text) {
+    var lines = text.split("\n");
+    var type = "none";
+    while(lines.length > 0)
+    {
+        var line = lines.shift().trim();
+        if (Item.equipTypes.indexOf(line) >= 0)
+            type = line;
+        else if (line.length === 0)
+            type = "none";
+        else Item.parse(db, type, line);
+    }
 }

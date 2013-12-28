@@ -180,7 +180,7 @@ function timeSomething(number, options, name)
     return state;
 }
 
-module.exports.parse = function(db, fromRoomId, text)
+Exit.parse = function(db, fromRoomId, text)
 {
 	var options = {
 		oneWay: (text[0] == '-')

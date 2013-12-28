@@ -17,8 +17,8 @@ describe("between two rooms", function(){
         db = {};
         room1 = new Room(db, "room1");
         room2 = new Room(db, "room2");
-        item1 = new Item(db, "key");
-        item2 = new Item(db, "jewel");
+        item1 = new Item(db, "key", "a key");
+        item2 = new Item(db, "jewel", "a jewel");
     });
 
     describe("degenerate conditions", function(){
