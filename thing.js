@@ -14,8 +14,7 @@ var assert = require('assert');
  *      prose text. One day, it might be more.
  */
 function Thing(db, id, description) {
-	assert.ok(db, "Need a database object");
-	assert.ok(id, "Need an ID");
+    assert.ok(db, "Need a database object");
     this.db = db;
     // don't allow reusing a Thing's id
     assert.ok(!this.db[id], "Can't reuse a Thing's ID: " + id);
@@ -145,7 +144,6 @@ Thing.prototype.copy = function() {
     var dat = JSON.parse(JSON.stringify(this));
     for(var key in dat)
         obj[key] = dat[key];
-    assert.deepEqual(this, obj);
     obj.db = db;
     this.db = db;
     return obj;

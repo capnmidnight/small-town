@@ -12,24 +12,18 @@ var format = require("util").format;
 //  - equipment (optional): an associative array of item IDs to
 //          counts, representing the stuff in use by the character.
 
-function Aggressor(roomId, hp, items, equipment, id)
+function Aggressor(db, roomId, hp, items, equipment, id)
 {
-    AIBody.call(this, roomId, hp, items, equipment, id);
+    AIBody.call(this, db, roomId, hp, items, equipment, id);
     this.moving = true;
 }
 
-module.exports = Aggressor;
-
 Aggressor.prototype = Object.create(AIBody.prototype);
-
-Aggressor.prototype.copyTo = function(obj)
-{
-    Aggressor.call(obj, this.roomId, this.hp, this.items, this.equipment, this.id);
-}
+module.exports = Aggressor;
 
 Aggressor.prototype.idleAction = function ()
 {
-    var rm = this.db.getRoom(this.roomId);
+    var rm = this.db.rooms[this.roomId];
     var people = core.hashMap(this.db.getPeopleIn(this.roomId), core.key);
     var targetId = core.selectRandom(people);
     var exits = core.hashMap(rm.exits, core.key);

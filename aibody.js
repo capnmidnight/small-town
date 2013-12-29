@@ -9,20 +9,15 @@ var format = require("util").format;
 //  occur on a set time frequency.
 //      - parameters are the same as the Body class. AIBody is
 //                          a subclass of Body
-function AIBody(roomId, hp, items, equipment, id) {
-    Body.call(this, roomId, hp, items, equipment, id);
+function AIBody(db, roomId, hp, items, equipment, id) {
+    Body.call(this, db, roomId, hp, items, equipment, id);
     this.dt = Math.floor(Math.random() * 5) * 200 + 5000;
     this.lastTime = Date.now();
     this.targetId = null;
 }
 
-module.exports = AIBody;
-
 AIBody.prototype = Object.create(Body.prototype);
-
-AIBody.prototype.copyTo = function (obj) {
-    AIBody.call(obj, this.roomId, this.hp, this.items, this.equipment, this.id);
-}
+module.exports = AIBody;
 
 // occurs as quickly as possible. Allows the AI unit
 // to react to actions against it immediately, and
@@ -55,7 +50,7 @@ AIBody.prototype.cmd = function (msg) {
 }
 
 AIBody.prototype.idleAction = function () {
-    var rm = this.db.getRoom(this.roomId);
+    var rm = this.db.rooms[this.roomId];
     var exits = core.hashMap(rm.exits, core.key);
     var exit = core.selectRandom(exit);
     if (exit)

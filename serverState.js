@@ -15,67 +15,28 @@ var core = require("./core.js");
 var format = require("util").format;
 var serverState = module.exports;
 module.exports.users = {};
-module.exports.npcCatalogue = {};
-module.exports.npcCatalogue["Roland"] =
-    new ShopKeep("Market", 10,
-    {
-        "bird": 10,
-        "steel-wool": 10,
-        "small-potion": 3
-    },
-    {
-        "bird": { "gold": 1 },
-        "steel-wool": { "gold": 2 },
-        "small-potion": { "gold": 3 }
-    });
-module.exports.npcCatalogue["Begbie"] = new Scavenger("Main Square", 10);
-module.exports.npcCatalogue["Virginia"] = new AIBody("Main Square", 10);
-module.exports.npcCatalogue["mule"] = new Mule("Main Square", 10, "naaay", { "apple": 5, "log": 3 });
-module.exports.rooms = {};
-module.exports.getRoom = function (roomId) {
-    if (!this.rooms[roomId]) {
-        var data = fs.readFileSync(format("rooms/%s.js", roomId), { encoding: "utf8" });
-        var room = eval(data);
-        room.setId(roomId);
-        this.rooms[roomId] = room;
-        for(var userId in room.npcs) {
-			room.npcs[userId].id = userId;
-			if(!this.npcCatalogue[userId]) {
-				this.npcCatalogue[userId] = room.npcs[userId];
-				this.spawnNPC(userId);
-			}
-		}
-    }
-    return this.rooms[roomId];
-};
-
-function loadIntoHash(hsh, fileName) {
-    fs.readFile(fileName, function (err, data) {
-        if (!err) {
-            for (var key in hsh)
-                delete hsh[key];
-
-            var lines = decoder.write(data).split("\n");
-            for (var i = 0; i < lines.length; ++i) {
-                var line = lines[i].trim();
-                if (line.length > 0) {
-                    var parts = line.split(":");
-                    if (parts.length == 2) {
-                        var name = parts[0];
-                        var itemScript = parts[1];
-                        hsh[name] = eval(itemScript);
-                    }
-                }
-            }
-        }
-    });
-}
 
 module.exports.itemCatalogue = {};
+Item.load(module.exports.itemCatalogue, "itemCatalogue.txt");
 
-function loadData() {
-    loadIntoHash(module.exports.itemCatalogue, "itemCatalogue.txt");
-}
+module.exports.npcCatalogue = module.exports.itemCatalogue;
+new ShopKeep(module.exports.npcCatalogue, "Market", 10,
+{
+    "bird": 10,
+    "steel-wool": 10,
+    "small-potion": 3
+},
+{
+    "bird": { "gold": 1 },
+    "steel-wool": { "gold": 2 },
+    "small-potion": { "gold": 3 }
+}, null, "Roland");
+new Scavenger(module.exports.npcCatalogue, "Main-Square", 10, null, null, "Begbie");
+new AIBody(module.exports.npcCatalogue, "Main-Square", 10, null, null, "Virginia");
+new Mule(module.exports.npcCatalogue, "Main-Square", 10, "naaay", { "apple": 5, "log": 3 }, null, null, "mule");
+
+module.exports.rooms = module.exports.itemCatalogue;
+Room.loadFromDir(module.exports.rooms, "rooms");
 
 module.exports.equipTypes = ["head", "eyes", "shoulders", "torso",
     "pants", "belt", "shirt", "forearms", "gloves", "shins",
@@ -104,81 +65,89 @@ module.exports.getPeopleIn = function (roomId) {
         roomId);
 };
 
-function setIds(hsh) { 
-	for (var k in hsh) {
-		if(hsh[k].setId)
-			hsh[k].setId(k);
-		else
-			hsh[k].id = k; 
-	}
+function setIds(hsh) {
+    for (var k in hsh) {
+        if (hsh[k].setId)
+            hsh[k].setId(k);
+        else
+            hsh[k].id = k;
+    }
 }
 
 setIds(module.exports.itemCatalogue);
 setIds(module.exports.npcCatalogue);
 setIds(module.exports.recipes);
 
-module.exports.pump = function(newConnections)
-{
-  for(var id in newConnections)
-  {
-      var roomId = "welcome";
-      var hp = 100;
-      var items = {"gold":10};
-      var equip = null;
-      this.users[id] = new Body(roomId, hp, items, equip, id, newConnections[id]);
-      var m = new Message(id, "join", null, "chat");
-      for (var userId in this.users)
-          this.users[userId].informUser(m);
-      delete newConnections[id];
-  }
-  this.respawn();
-  for (var bodyId in this.users) {
-    var body = this.users[bodyId];
-    if(!body.db)
-		body.db = this;
-    if (body.quit) {
-      body.socket.disconnect();
-      delete this.users[bodyId];
+module.exports.pump = function (newConnections) {
+    for (var id in newConnections) {
+        var roomId = "welcome";
+        var hp = 100;
+        var items = { "gold": 10 };
+        var equip = null;
+        this.users[id] = new Body(roomId, hp, items, equip, id, newConnections[id]);
+        var m = new Message(id, "join", null, "chat");
+        for (var userId in this.users)
+            this.users[userId].informUser(m);
+        delete newConnections[id];
     }
-    else {
-      body.update();
-      while (body.inputQ.length > 0)
-        body.doCommand();
+    this.respawn();
+    for (var bodyId in this.users) {
+        var body = this.users[bodyId];
+        if (body instanceof Body) {
+            if (!body.db)
+                body.db = this;
+            if (body.quit) {
+                body.socket.disconnect();
+                delete this.users[bodyId];
+            }
+            else {
+                body.update();
+                while (body.inputQ.length > 0)
+                    body.doCommand();
+            }
+        }
     }
-  }
 }
 
 module.exports.lastSpawn = 0;
 module.exports.respawnRate = 1 * 60 * 1000;
-module.exports.spawnNPC = function(userId) {
-	if(this.users[userId] && this.users[userId].hp <= 0)
-		delete this.users[userId];
-		
-	if (!this.users[userId]) {
-		this.users[userId] = this.npcCatalogue[userId].copy();
-		this.npcCatalogue[userId].copyTo(this.users[userId]);
-	}
+module.exports.spawnNPC = function (userId) {
+    if (this.users[userId] && this.users[userId].hp <= 0)
+        delete this.users[userId];
+
+    if (!this.users[userId]) {
+        this.users[userId] = this.npcCatalogue[userId].copy();
+    }
 };
 module.exports.respawn = function () {
     var now = Date.now();
     if ((now - this.lastSpawn) > this.respawnRate) {
-        loadData();
         for (var userId in this.npcCatalogue)
-			this.spawnNPC(userId);
+            this.spawnNPC(userId);
 
         for (var roomId in this.rooms) {
-            var curItems = {};
-            var room = this.getRoom(roomId);
-            for (var itemId in room.items)
-                curItems[itemId] = room.items[itemId];
-            assert.strictEqual(room.db, this.rooms);
-            
-			room.destroy();			
-            room = this.getRoom(roomId);
+            var room = this.rooms[roomId];
+            if (room instanceof Room) {
+                var items = room.ofType(Item);
+                var curItems = {};
+                for (var i = 0; i < items.length; ++i) {
+                    if (!curItems[items[i].name])
+                        curItems[items[i].name] = 0;
+                    ++curItems[items[i].name];
+                }
 
-            for (var itemId in curItems)
-                if (!room.items[itemId])
-                    room.items[itemId] = curItems[itemId];
+                for (var i = 0; i < room.items.length; ++i) {
+                    var itemId = room.items[i].itemId;
+                    var cur = curItems[itemId];
+                    if (!cur)
+                        cur = 0;
+
+                    cur -= room.items[i].count;
+                    cur *= -1;
+                    for (var j = 0; j < cur; ++j)
+                        room.addChild(module.exports.itemCatalogue[itemId].copy());
+                }
+            }
         }
         this.lastSpawn = now;
     }

@@ -21,23 +21,28 @@ var parsers = {
     },
 
     exits: function (line, options) {
-        if (line.length === 0)
-            return "none"
-        else {
-            options.exits.push(line);
-            return "exits";
-        }
+        return something(line, options, "exits");
     },
 
     items: function (line, options) {
-        if (line.length === 0)
-            return "none"
-        else {
-            options.items.push(line);
-            return "items";
-        }
+        return something(line, options, "items");
+    },
+
+    npcs: function (line, options) {
+        return something(line, options, "npcs");
     }
 };
+
+function something(line, options, name) {
+    if (line.length === 0)
+        return "none";
+    else {
+        if (!options[name])
+            options[name] = [];
+        options[name].push(line);
+        return name;
+    }
+}
 
 Room.parse = function (db, roomId, text) {
     text = text
@@ -47,7 +52,8 @@ Room.parse = function (db, roomId, text) {
         .map(function (l) { return l.trim(); });
     var options = {
         items: [],
-        exits: []
+        exits: [],
+        npcs: []
     };
     var state = "none";
     while (lines.length > 0 && state != "quit") {
@@ -65,18 +71,31 @@ Room.parse = function (db, roomId, text) {
 Room.loadAll = function (db, roomIds) {
     var opts = {};
     var rooms = [];
-    for(var i = 0; i < roomIds.length; ++i)
-    {
+    for (var i = 0; i < roomIds.length; ++i) {
         var roomId = roomIds[i];
         opts[roomId] = Room.parse(db, roomId, fs.readFileSync("rooms/" + roomId + ".room", { encoding: "utf8" }));
         rooms.push(db[roomId]);
     }
     for (var roomId in opts) {
+        var room = db[roomId];
         var options = opts[roomId];
         for (var i = 0; i < options.exits.length; ++i)
             var exit = Exit.parse(db, roomId, options.exits[i]);
+
         for (var i = 0; i < options.items.length; ++i)
             var item = Item.loadIntoRoom(db, roomId, options.items[i]);
+
+        room.items = options.items.map(function (i) {
+            var parts = i.split(' ');
+            return { itemId: parts[0], count: parts[1] * 1 };
+        });
+        room.npcs = options.npcs;
     }
     return rooms;
+};
+
+Room.loadFromDir = function (db, dirName) {
+    Room.loadAll(db, fs.readdirSync(dirName)
+        .filter(function (f) { return f.match(/\.room$/); })
+        .map(function (f) { return f.replace(".room", ""); }));
 };

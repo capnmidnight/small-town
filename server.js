@@ -11,28 +11,15 @@ var io = socketio.listen(app);
 var rl = readline.createInterface(process.stdin, process.stdout);
 var newConnections = {};
 
-if(process.argv.indexOf("--headless") > -1)
-{
+if (process.argv.indexOf("--headless") > -1) {
     io.set("log level", 0);
 }
-else
-{
+else {
     io.set("log level", 2);
 }
 
 function loop() {
-    try {
-        serverState.pump(newConnections);
-    }
-    catch (exp) {
-      if(exp.fileName) {
-        console.error(format("%s:%d \"%s\"", exp.fileName, exp.lineNumber,  exp.message));
-      }
-      else{
-        console.error(exp.message);
-        console.trace();
-      }
-    }
+    serverState.pump(newConnections);
 };
 
 io.sockets.on("connection", function (socket) {
@@ -49,8 +36,7 @@ io.sockets.on("connection", function (socket) {
     socket.emit("news", "Please enter a name.");
 });
 
-if(process.argv.indexOf("--headless") == -1)
-{
+if (process.argv.indexOf("--headless") == -1) {
     rl.setPrompt('MUD ADMIN :> ');
     rl.on('line', function (line) {
         var cmd = line.trim();

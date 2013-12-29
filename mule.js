@@ -12,19 +12,14 @@ var format = require("util").format;
 //  - equipment (optional): an associative array of item IDs to
 //          counts, representing the stuff in use by the character.
 
-function Mule(roomId, hp, speak, items, equipment, targetId, id) {
-    AIBody.call(this, roomId, hp, items, equipment, id);
+function Mule(db, roomId, hp, speak, items, equipment, targetId, id) {
+    AIBody.call(this, db, roomId, hp, items, equipment, id);
     this.speak = speak;
     this.targetId = targetId;
 }
 
-module.exports = Mule;
-
 Mule.prototype = Object.create(AIBody.prototype);
-
-Mule.prototype.copyTo = function (obj) {
-    Mule.call(obj, this.roomId, this.hp, this.speak, this.items, this.equipment, this.targetId, this.id);
-}
+module.exports = Mule;
 
 Mule.prototype.idleAction = function () {
     if(Math.random() * 100 <= 10)
@@ -80,9 +75,9 @@ Mule.prototype.react_tell = function (m){
 Mule.prototype.react_left = function (m)
 {
     if (this.targetId == m.fromId) {
-        var rm = this.db.getRoom(this.roomId);
+        var rm = this.db.rooms[this.roomId];
         var exit = rm.exits[m.payload[0]];
-        var exitRoom = exit && this.db.getRoom(exit.roomId);
+        var exitRoom = exit && this.db.rooms[exit.roomId];
         if (exit
             && exitRoom) {
             var people = this.db.getPeopleIn(this.roomId);

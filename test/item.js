@@ -17,6 +17,16 @@ describe("Item", function () {
         assert.equal(item.description, "a basic key");
     });
 
+    it("can parse a items with quote in descriptions", function () {
+        Item.parse(db, "none", "key a \"basic\" key");
+        var item = db["key"];
+        assert(item, "object wasn't created.")
+        assert.equal(item.id, "key");
+        assert.equal(item.strength, 0);
+        assert.equal(item.equipType, "none")
+        assert.equal(item.description, "a \"basic\" key");
+    });
+
     it("can parse an item with strength", function () {
         Item.parse(db, "none", "jewel 20 it sparkles in the light");
         var item = db["jewel"];
@@ -63,5 +73,11 @@ describe("Item", function () {
         assert.equal(crab.id, "crab");
         assert.equal(crab.equipType, "head");
         assert.equal(crab.description, "chitin is tough");
+    });
+
+    it("can load the entire catalogue", function () {
+        assert.doesNotThrow(function () {
+            Item.load(db, "itemCatalogue.txt");
+        });
     });
 });

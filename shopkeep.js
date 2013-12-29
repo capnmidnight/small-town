@@ -2,9 +2,9 @@ var AIBody = require("./aibody.js");
 var core = require("./core.js");
 var format = require("util").format;
 
-function ShopKeep(roomId, hp, items, prices, equipment, id)
+function ShopKeep(db, roomId, hp, items, prices, equipment, id)
 {
-    AIBody.call(this, roomId, hp, items, equipment, id);
+    AIBody.call(this, db, roomId, hp, items, equipment, id);
     this.prices = {};
     for(var sellId in prices)
     {
@@ -14,14 +14,8 @@ function ShopKeep(roomId, hp, items, prices, equipment, id)
     }
 }
 
-module.exports = ShopKeep;
-
 ShopKeep.prototype = Object.create(AIBody.prototype);
-
-ShopKeep.prototype.copyTo = function(obj)
-{
-    ShopKeep.call(obj, this.roomId, this.hp, this.items, this.prices, this.equipment, this.id);
-}
+module.exports = ShopKeep;
 
 function vkString(k, v){return format("%d %s", v, k);}
 ShopKeep.prototype.react_tell = function (m)

@@ -1,4 +1,5 @@
 var Message = require("./message.js");
+var Thing = require("./thing.js");
 var core = require("./core.js");
 var format = require("util").format;
 
@@ -14,8 +15,9 @@ var explain = {};
 //          representing the stuff in the character's pockets.
 //  - equipment (optional): an associative array of item IDs to
 //          counts, representing the stuff in use by the character.
-var Body = function(roomId, hp, items, equipment, id, socket)
+var Body = function(db, roomId, hp, items, equipment, id, socket)
 {
+    Thing.call(this, db, id, id);
     this.roomId = roomId;
     this.hp = hp;
     this.items = {};
@@ -45,6 +47,9 @@ var Body = function(roomId, hp, items, equipment, id, socket)
     }
 }
 
+Body.prototype = Object.create(Thing.prototype);
+module.exports = Body;
+
 Body.prototype.informUser = function (msg)
 {
     this.msgQ.push(msg);
@@ -61,16 +66,6 @@ Body.prototype.update = function ()
         }
         this.socket.emit("userStatus", format("%s (%d) :>", this.id, this.hp));
     }
-}
-
-Body.prototype.copyTo = function(obj)
-{
-    Body.call(obj, this.roomId, this.hp, this.items, this.equipment, this.id);
-}
-
-Body.prototype.copy = function()
-{
-    return Object.create(this.__proto__);
 }
 
 Body.prototype.sysMsg = function (msg)
@@ -272,7 +267,7 @@ explain.look = "Use: \"look\"\n\n"
 +"See a description of the current room.";
 Body.prototype.cmd_look = function ()
 {
-    var rm = this.db.getRoom(this.roomId);
+    var rm = this.db.rooms[this.roomId];
     if (!rm)
         this.sysMsg("What have you done!?");
     else
@@ -307,9 +302,9 @@ Body.prototype.cmd_look = function ()
 
 Body.prototype.move = function (dir)
 {
-    var rm = this.db.getRoom(this.roomId);
+    var rm = this.db.rooms[this.roomId];
     var exit = rm.exits[dir];
-    var exitRoom = exit && this.db.getRoom(exit.roomId);
+    var exitRoom = exit && this.db.rooms[exit.roomId];
     if (!exit
         || !exitRoom
         || (exit.key && !this.items[exit.key]))
@@ -360,7 +355,7 @@ explain.take = "Use: \"take &lt;item name&gt;\"\n\n"
 +"&lt; player take hat";
 Body.prototype.cmd_take = function (itemId)
 {
-    var rm = this.db.getRoom(this.roomId);
+    var rm = this.db.rooms[this.roomId];
     var items = rm.items;
     if (itemId == "all")
     {
@@ -391,7 +386,7 @@ explain.drop = "Use: \"drop &lt;item name&gt;\"\n\n"
 +"&lt; player drop hat";
 Body.prototype.cmd_drop = function (itemId)
 {
-    var rm = this.db.getRoom(this.roomId);
+    var rm = this.db.rooms[this.roomId];
     this.moveItem(itemId, this.items, rm.items, "dropped", "in your inventory");
     var people = this.db.getPeopleIn(this.roomId);
     var m = new Message(this.id, "drop", [itemId], "chat");
@@ -415,7 +410,7 @@ explain.give = "Use: \"give &lt;target name&gt; &lt;item name&gt;\"\n\n"
 +"&lt; player give carlos hat";
 Body.prototype.cmd_give = function (targetId, itemId)
 {
-    var rm = this.db.getRoom(this.roomId);
+    var rm = this.db.rooms[this.roomId];
     var people = this.db.getPeopleIn(this.roomId);
     var target = people[targetId];
     if (!target)
@@ -626,5 +621,3 @@ Body.prototype.cmd_loot = function(targetId)
             this.moveItem(itemId, target.items, this.items, "looted", "from " + targetId, target.items[itemId]);
     }
 }
-
-module.exports = Body;

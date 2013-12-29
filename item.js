@@ -1,7 +1,7 @@
 var Thing = require("./thing.js");
 var assert = require("assert");
 var format = require("util").format;
-
+var fs = require("fs");
 // Item class
 //
 //  - db: the table that holds all of this type of Thing.
@@ -16,6 +16,7 @@ function Item(db, id, description, equipType, strength) {
     Thing.call(this, db, id, description);
     this.equipType = equipType || "none";
     this.strength = strength || 0;
+    this.name = id;
 }
 
 Item.prototype = Object.create(Thing.prototype);
@@ -42,6 +43,7 @@ Item.prototype.copy = function () {
     while (this.db[stub + i])
         ++i;
     itm.id += stub + i;
+    itm.name = this.name;
     this.db[itm.id] = itm;
     return itm;
 }
@@ -70,4 +72,8 @@ Item.process = function (db, text) {
             type = "none";
         else Item.parse(db, type, line);
     }
+}
+
+Item.load = function (db, filename) {
+    Item.process(db, fs.readFileSync(filename, { encoding: "utf8" }));
 }

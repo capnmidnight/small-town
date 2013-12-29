@@ -1,137 +1,151 @@
-hat: new Item(serverState.itemCatalogue, "a dashing topper", "head", 1)
-crab: new Item(serverState.itemCatalogue, "chitin is tough", "head", 2)
-leather-helm: new Item(serverState.itemCatalogue, "an olde football helmet", "head", 3)
-fur-hat: new Item(serverState.itemCatalogue, "extremely warm", "head", 4)
-hard-hat: new Item(serverState.itemCatalogue, "used in construction", "head", 5)
-pot: new Item(serverState.itemCatalogue, "usually for sauces", "head", 8)
-<: new Item(serverState.itemCatalogue, "for emoji", "head", 12)
-steel-helm: new Item(serverState.itemCatalogue, "not good in a thunderstorm", "head", 18)
-viking-helm: new Item(serverState.itemCatalogue, "with ram's horn technology", "head", 27)
-spartan-helm: new Item(serverState.itemCatalogue, "plummage ftw", "head", 41)
-crystal-helm: new Item(serverState.itemCatalogue, "extremely hard", "head", 62)
-winged-helm: new Item(serverState.itemCatalogue, "does not grant flight", "head", 93)
+head
+	hat 1 a dashing topper
+	crab 2 chitin is tough
+	leather-helm 3 an olde football helmet
+	fur-hat 4 extremely warm
+	hard-hat 5 used in construction
+	pot 8 usually for sauces
+	< 12 for emoji
+	steel-helm 18 not good in a thunderstorm
+	viking-helm 27 with ram's horn technology
+	spartan-helm 41 plummage ftw
+	crystal-helm 62 extremely hard
+	winged-helm 93 does not grant flight
 
-sunglasses: new Item(serverState.itemCatalogue, "cheap, platic things", "eyes", 1)
-monocole: new Item(serverState.itemCatalogue, "ready for the opera", "eyes", 2)
-glasses: new Item(serverState.itemCatalogue, "glass lenses, metal frames", "eyes", 3)
-goggles: new Item(serverState.itemCatalogue, "protects the eyes", "eyes", 5)
-welding-goggles: new Item(serverState.itemCatalogue, "with smoked lenses", "eyes", 8)
-B: new Item(serverState.itemCatalogue, "for emoji", "eyes", 12)
-visor: new Item(serverState.itemCatalogue, "full eye protection", "eyes", 18)
+eyes
+	sunglasses 1 cheap, platic things
+	monocole 2 ready for the opera
+	glasses 3 glass lenses, metal frames
+	goggles 5 protects the eyes
+	welding-goggles 8 with smoked lenses
+	B 12 for emoji
+	visor 18 full eye protection
 
-towel: new Item(serverState.itemCatalogue, "number three of fourty two", "shoulders")
-blanket: new Item(serverState.itemCatalogue, "a little better than a towel", "shoulders")
-wool-coat: new Item(serverState.itemCatalogue, "very warm", "shoulders")
-brown-cloak: new Item(serverState.itemCatalogue, "totally not a blanket you can wear all the time", "shoulders")
-green-cloak: new Item(serverState.itemCatalogue, "feel one with nature", "shoulders")
-red-cape: new Item(serverState.itemCatalogue, "vogue", "shoulders")
--: new Item(serverState.itemCatalogue, "for emoji", "shoulders")
-fur-coat: new Item(serverState.itemCatalogue, "less fashion, more rugged", "shoulders")
+shoulders
+	towel number three of fourty two
+	blanket a little better than a towel
+	wool-coat very warm
+	brown-cloak totally not a blanket you can wear all the time
+	green-cloak feel one with nature
+	red-cape vogue
+	- for emoji
+	fur-coat less fashion, more rugged
 
-pillow: new Item(serverState.itemCatalogue, "tie it around your chest", "torso", 1)
-wood-slats: new Item(serverState.itemCatalogue, "WRAP it around your chest", "torso", 2)
-leather-chest: new Item(serverState.itemCatalogue, "impact resistant", "torso", 4)
-reflective-vest: new Item(serverState.itemCatalogue, "bright yellow", "torso", 5)
-cookie-sheet: new Item(serverState.itemCatalogue, "kind of charred on the edge", "torso", 8)
-#: new Item(serverState.itemCatalogue, "for emoji", "torso", 16)
-chain-mail: new Item(serverState.itemCatalogue, "made of steel rings", "torso", 32)
-kevlar: new Item(serverState.itemCatalogue, "incredible stopping power", "torso", 64)
-imperial-breastplate: new Item(serverState.itemCatalogue, "adorned with prancing ponies", "torso", 128)
+torso
+	pillow 1 tie it around your chest
+	wood-slats 2 WRAP it around your chest
+	leather-chest 4 impact resistant
+	reflective-vest 5 bright yellow
+	cookie-sheet 8 kind of charred on the edge
+	# 16 for emoji
+	chain-mail 32 made of steel rings
+	kevlar 64 incredible stopping power
+	imperial-breastplate 128 adorned with prancing ponies
 
-corse-pants: new Item(serverState.itemCatalogue, "made of sackclothe", "pants", 1)
-slacks: new Item(serverState.itemCatalogue, "made of fine cotton", "pants", 2)
-jeans: new Item(serverState.itemCatalogue, "sturdy work pants", "pants", 4)
-leather-pants: new Item(serverState.itemCatalogue, "for rockstars", "pants", 8)
-=: new Item(serverState.itemCatalogue, "for emoji", "pants", 16)
-action-pants: new Item(serverState.itemCatalogue, "strong canvas pants with great mobility", "pants", 32)
-speedo: new Item(serverState.itemCatalogue, "european-style swimsuit", "pants", 64)
-silk-pants: new Item(serverState.itemCatalogue, "extremely elegant", "pants", 128)
+pants
+	corse-pants 1 made of sackclothe
+	slacks 2 made of fine cotton
+	jeans 4 sturdy work pants
+	leather-pants 8 for rockstars
+	= 16 for emoji
+	action-pants 32 strong canvas pants with great mobility
+	speedo 64 european-style swimsuit
+	silk-pants 128 extremely elegant
 
-rope: new Item(serverState.itemCatalogue, "holds up the pants", "belt")
-braided-belt: new Item(serverState.itemCatalogue, "not very stylish", "belt")
-leather-belt: new Item(serverState.itemCatalogue, "much more stylish", "belt")
-work-belt: new Item(serverState.itemCatalogue, "could maybe hold tools", "belt")
-utility-belt: new Item(serverState.itemCatalogue, "people might ask if your name is Bruce", "belt")
+belt
+	rope holds up the pants
+	braided-belt not very stylish
+	leather-belt much more stylish
+	work-belt could maybe hold tools
+	utility-belt people might ask if your name is Bruce
 
-t-shirt: new Item(serverState.itemCatalogue, "reads \"whatever\"", "shirt")
-hawaiian: new Item(serverState.itemCatalogue, "flower-print", "shirt")
-dress-shirt: new Item(serverState.itemCatalogue, "made of fine cotton", "shirt")
-flannel: new Item(serverState.itemCatalogue, "helps keep you warm", "shirt")
-under-armor: new Item(serverState.itemCatalogue, "feel like a superhero", "shirt")
-puffy-shirt: new Item(serverState.itemCatalogue, "feel like a PIRATE", "shirt")
-leather-shirt: new Item(serverState.itemCatalogue, "for rockstars", "shirt")
+shirt
+	t-shirt reads "whatever"
+	hawaiian flower-print
+	dress-shirt made of fine cotton
+	flannel helps keep you warm
+	under-armor feel like a superhero
+	puffy-shirt feel like a PIRATE
+	leather-shirt for rockstars
 
-sleeve: new Item(serverState.itemCatalogue, "cotton sleeve, to protect from minor cuts", "forearms", 1)
-lobster-tail: new Item(serverState.itemCatalogue, "chitinous forearms", "forearms", 2)
-magazines: new Item(serverState.itemCatalogue, "not pretty, but effective", "forearms", 4)
-fur-bracer: new Item(serverState.itemCatalogue, "fairly decent protection, from cold and blows", "forearms", 8)
-leather-bracer: new Item(serverState.itemCatalogue, "made from cow", "forearms", 16)
-aluminum-sheet: new Item(serverState.itemCatalogue, "recovered from an airplane", "forearms", 32)
-imperial-bracer: new Item(serverState.itemCatalogue, "grizzly bears etched into expertly crafted steel", "forearms", 64)
+forearms
+	sleeve 1 cotton sleeve, to protect from minor cuts
+	lobster-tail 2 chitinous forearms
+	magazines 4 not pretty, but effective
+	fur-bracer 8 fairly decent protection, from cold and blows
+	leather-bracer 16 made from cow
+	aluminum-sheet 32 recovered from an airplane
+	imperial-bracer 64 grizzly bears etched into expertly crafted steel
 
-latex: new Item(serverState.itemCatalogue, "protects against chemicals", "gloves", 1)
-leather-gloves: new Item(serverState.itemCatalogue, "warming, but pliable", "gloves", 2)
-mittens: new Item(serverState.itemCatalogue, "very warm, but dexterity is lacking", "gloves", 4)
-work-gloves: new Item(serverState.itemCatalogue, "basic leather gloves for working", "gloves", 8)
-butcher-gloves: new Item(serverState.itemCatalogue, "protects against cuts", "gloves", 16)
-gauntlet: new Item(serverState.itemCatalogue, "steel gloves of awesome", "gloves", 32)
+gloves
+	latex 1 protects against chemicals
+	leather-gloves 2 warming, but pliable
+	mittens 4 very warm, but dexterity is lacking
+	work-gloves 8 basic leather gloves for working
+	butcher-gloves 16 protects against cuts
+	gauntlet steel 32 gloves of awesome
 
-shin-guards: new Item(serverState.itemCatalogue, "worn during certain sporting events", "shins", 1)
-big-lobster-tail: new Item(serverState.itemCatalogue, "it is said that chitin promotes healing", "shins", 2)
-catalogues: new Item(serverState.itemCatalogue, "kind of like magazines, but bigger", "shins", 4)
-leather-shins: new Item(serverState.itemCatalogue, "good for deflecting kicks from todlers", "shins", 8)
-split-muffler: new Item(serverState.itemCatalogue, "thin metal recovered from a vehicle", "shins", 16)
-bronze-leggings: new Item(serverState.itemCatalogue, "made popular during the Roman Empire", "shins", 32)
-steel-guards: new Item(serverState.itemCatalogue, "snakes adorn the front", "shins", 64)
+shins
+	shin-guards 1 worn during certain sporting events
+	big-lobster-tail 2 it is said that chitin promotes healing
+	catalogues 4 kind of like magazines, but bigger
+	leather-shins 8 good for deflecting kicks from todlers
+	split-muffler 16 thin metal recovered from a vehicle
+	bronze-leggings 32 made popular during the Roman Empire
+	steel-guards 64 snakes adorn the front
 
-chucks: new Item(serverState.itemCatalogue, "canvas shoes with a star logo on the side", "boots", 1)
-dress-shoes: new Item(serverState.itemCatalogue, "leather-soled, snappy shoes", "boots", 2)
-hiking-boots: new Item(serverState.itemCatalogue, "sturdy ankle support for mountainous treks", "boots", 4)
-steel-toed: new Item(serverState.itemCatalogue, "used in construction", "boots", 8)
-cowboy-boots: new Item(serverState.itemCatalogue, "made from alligator", "boots", 16)
-steel-boots: new Item(serverState.itemCatalogue, "steel foot-gloves of awesome", "boots", 32)
+boots
+	chucks 1 canvas shoes with a star logo on the side
+	dress-shoes 2 leather-soled, snappy shoes
+	hiking-boots 4 sturdy ankle support for mountainous treks
+	steel-toed 8 used in construction
+	cowboy-boots 16 made from alligator
+	steel-boots 32 steel foot-gloves of awesome
 
-needle: new Item(serverState.itemCatalogue, "can only balance two angels on the head", "tool", 1)
-fishing-pole: new Item(serverState.itemCatalogue, "for teaching men to eat for a lifetime", "tool", 1)
-screwdriver: new Item(serverState.itemCatalogue, "this particular one is not a drink", "tool", 2)
-hammer: new Item(serverState.itemCatalogue, "for nails and skulls", "tool", 3)
-handsaw: new Item(serverState.itemCatalogue, "many teeth, so many teeth", "tool", 3)
-rusty-metal: new Item(serverState.itemCatalogue, "a rusty sword", "tool", 5)
-shovel: new Item(serverState.itemCatalogue, "used to butter bread", "tool", 5)
-pickaxe: new Item(serverState.itemCatalogue, "SMASH ROCK SMASH", "tool", 5)
-butcher-knife: new Item(serverState.itemCatalogue, "cuts meat", "tool", 5)
-hunting-knife: new Item(serverState.itemCatalogue, "used to butter bread", "tool", 7)
-sword: new Item(serverState.itemCatalogue, "a basic sword", "tool", 10)
-axe: new Item(serverState.itemCatalogue, "cuts wood", "tool", 15)
-steel-sword: new Item(serverState.itemCatalogue, "it glistens in the sun", "tool", 20)
-cutlas: new Item(serverState.itemCatalogue, "a curved blade for pirates", "tool", 40)
-excalibur: new Item(serverState.itemCatalogue, "doesn't make you King Arthur", "tool", 80)
-katana: new Item(serverState.itemCatalogue, "a great weapon for a great warrior", "tool", 150)
+tool
+	needle 1 can only balance two angels on the head
+	fishing-pole 1 for teaching men to eat for a lifetime
+	screwdriver 2 this particular one is not a drink
+	hammer 3 for nails and skulls
+	handsaw 3 many teeth, so many teeth
+	rusty-metal 5 a rusty sword
+	shovel 5 used to butter bread
+	pickaxe 5 SMASH ROCK SMASH
+	butcher-knife 5 cuts meat
+	hunting-knife 7 used to butter bread
+	sword 10 a basic sword
+	axe 15 cuts wood
+	steel-sword 20 it glistens in the sun
+	cutlas 40 a curved blade for pirates
+	excalibur 80 doesn't make you King Arthur
+	katana 150 a great weapon for a great warrior
 
-bird: new Item(serverState.itemCatalogue, "worth two in the shrubbery")
-dead-bird: new Item(serverState.itemCatalogue, "maybe he's pining for the fjords?")
-feather: new Item(serverState.itemCatalogue, "bird-hair")
-rock: new Item(serverState.itemCatalogue, "definitely not a bird")
-steel-wool: new Item(serverState.itemCatalogue, "very scratchy")
-gold: new Item(serverState.itemCatalogue, "a yellow metal that seems to be highly valued in these realms")
-log: new Item(serverState.itemCatalogue, "runs over your neighbors dog")
-plank: new Item(serverState.itemCatalogue, "useful in construction")
-ore: new Item(serverState.itemCatalogue, "dug from the earth")
-coal: new Item(serverState.itemCatalogue, "also dug from the earth")
-crucible: new Item(serverState.itemCatalogue, "a ceramic cup of sorts")
-ingot: new Item(serverState.itemCatalogue, "it's like a brick, made of IRON")
-emerald: new Item(serverState.itemCatalogue, "a very valuable jewel")
-leather: new Item(serverState.itemCatalogue, "toughened skin of cow")
-thread: new Item(serverState.itemCatalogue, "another name for string")
-pie-plate: new Item(serverState.itemCatalogue, "for the creation of delectable treats")
-bottle: new Item(serverState.itemCatalogue, "can hold liquids, or secrets")
-herbs: new Item(serverState.itemCatalogue, "the buds of a special plant")
+food
+	apple 5 fruit
+	peach 5 fruit
+	blueberries 5 fruit
+	small-potion 10 recovers 10 health
+	apple-pie 20 quite yummy
+	peach-pie 20 quite yummy
+	blueberry-pie 20 quite yummy
+	large-potion 50 recovers 50 health
 
-apple: new Item(serverState.itemCatalogue, "fruit", "food", 5)
-peach: new Item(serverState.itemCatalogue, "fruit", "food", 5)
-blueberries: new Item(serverState.itemCatalogue, "fruit", "food", 5)
-small-potion: new Item(serverState.itemCatalogue, "recovers 10 health", "food", 10)
-apple-pie: new Item(serverState.itemCatalogue, "quite yummy", "food", 20)
-peach-pie: new Item(serverState.itemCatalogue, "quite yummy", "food", 20)
-blueberry-pie: new Item(serverState.itemCatalogue, "quite yummy", "food", 20)
-large-potion: new Item(serverState.itemCatalogue, "recovers 50 health", "food", 50)
+none
+	bird worth two in the shrubbery
+	dead-bird maybe he's pining for the fjords?
+	feather bird-hair
+	rock definitely not a bird
+	steel-wool very scratchy
+	gold a yellow metal that seems to be highly valued in these realms
+	log runs over your neighbors dog
+	plank useful in construction
+	ore dug from the earth
+	coal also dug from the earth
+	crucible a ceramic cup of sorts
+	ingot it's like a brick, made of IRON
+	emerald a very valuable jewel
+	leather toughened skin of cow
+	thread another name for string
+	pie-plate for the creation of delectable treats
+	bottle can hold liquids, or secrets
+	herbs the buds of a special plant
