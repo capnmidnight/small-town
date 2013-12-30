@@ -104,3 +104,10 @@ exports.transfer = function(itm, from, to, amt)
     }
     return false;
 }
+
+if (process.argv.indexOf("--headless") == -1) {
+	exports.log = console.log;
+}
+else{
+	exports.log = function(){};
+}

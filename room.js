@@ -13,11 +13,21 @@ var format = require("util").format;
 function Room(db, id, description, startItems) {
     Thing.call(this, db, "rooms", id, description);
     this.exits = {};
-    this.startItems = startItems;
+    this.startItems = startItems || {};
+    this.items = {};
 }
 
 Room.prototype = Object.create(Thing.prototype);
 module.exports = Room;
+
+Room.prototype.spawnItems = function() {
+	console.log("spawning items,", this.id);
+	for(var itemId in this.startItems){
+		if(!this.items[itemId])
+			this.items[itemId] = 0;
+		this.items[itemId] = Math.max(this.items[itemId], this.startItems[itemId]);
+	}
+}
 
 Room.prototype.describe = function(user, t){
 	var people = this.db.getPeopleIn(this.id, user.id)
@@ -27,12 +37,13 @@ Room.prototype.describe = function(user, t){
 		.filter(function(s){ return s.trim().length > 0; });
 	
 	var itemCatalogue = this.db.items
-	var itemList = core.formatHash(this.items, 
-	function(k, v)
-	{
-		return format("\t%d %s - %s", v, k,
-			(itemCatalogue[k] ? itemCatalogue[k].description : "(UNKNOWN)"));
-	});
+	var itemList = core.formatHash(
+		this.items, 
+		function(k, v)
+		{
+			return format("\t%d %s - %s", v, k,
+				(itemCatalogue[k] ? itemCatalogue[k].description : "(UNKNOWN)"));
+		});
 	return format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
 		this.description,
 		itemList,

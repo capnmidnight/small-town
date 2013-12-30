@@ -98,44 +98,25 @@ ServerState.prototype.pump = function () {
 }
 
 ServerState.prototype.spawnNPC = function (userId) {
-	var user = this.db[userId];
+	var user = this.users[userId];
 	if(user instanceof AIBody)
 		if (user.hp <= 0)
 			user.hp = 10;
 };
 
 ServerState.prototype.spawnRoom = function(roomId) {
-	var room = this.db[roomId];
-	if (room instanceof Room) {
-		var items = room.ofType(Item);
-		var curItems = {};
-		for (var i = 0; i < items.length; ++i) {
-			if (!curItems[items[i].name])
-				curItems[items[i].name] = 0;
-			++curItems[items[i].name];
-		}
-
-		for (var i = 0; i < room.items.length; ++i) {
-			var itemId = room.items[i].itemId;
-			var cur = curItems[itemId];
-			if (!cur)
-				cur = 0;
-
-			cur -= room.items[i].count;
-			cur *= -1;
-			for (var j = 0; j < cur; ++j)
-				room.addChild(this.db[itemId].copy());
-		}
-	}
+	var room = this.rooms[roomId];
+	if (room instanceof Room)
+		room.spawnItems();
 };
 
 ServerState.prototype.respawn = function () {
     var now = Date.now();
     if ((now - this.lastSpawn) > this.respawnRate) {
-        for (var userId in this.db)
+        for (var userId in this.users)
             this.spawnNPC(userId);
 
-        for (var roomId in this.db)
+        for (var roomId in this.rooms)
 			this.spawnRoom(roomId);
 			
         this.lastSpawn = now;
