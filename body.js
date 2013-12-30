@@ -50,6 +50,13 @@ var Body = function(db, roomId, hp, items, equipment, id, socket)
             body.cmd_quit();
         });
     }
+    else{
+		this.socket = {
+			emit:function(){
+				core.log(id, arguments);
+			}
+		};
+	}
 }
 
 Body.prototype = Object.create(Thing.prototype);
@@ -60,17 +67,28 @@ Body.prototype.informUser = function (msg)
     this.msgQ.push(msg);
 }
 
+Body.prototype.dumpMessageQueue = function(){
+    while(this.msgQ.length > 0)
+        this.react(this.msgQ.shift());
+};
+
 Body.prototype.update = function ()
 {
-    if(this.socket && this.msgQ.length > 0)
-    {
-        while(this.msgQ.length > 0)
-        {
-            var m = this.msgQ.shift();
-            this.socket.emit(m.type, format("%s %s %s", m.fromId, m.message, m.payload.join(" ")));
-        }
-        this.socket.emit("userStatus", format("%s (%d) :>", this.id, this.hp));
-    }
+	this.dumpMessageQueue();    
+    this.socket.emit("userStatus", format("%s (%d) :>", this.id, this.hp));
+	while (this.inputQ.length > 0)
+		this.doCommand(this.inputQ.shift());
+}
+
+Body.prototype.react = function(msg)
+{
+    this.socket.emit(
+		msg.type, 
+		format(
+			"%s %s %s", 
+			msg.fromId, 
+			msg.message, 
+			msg.payload.join(" ")));
 }
 
 Body.prototype.sysMsg = function (msg)
@@ -78,9 +96,8 @@ Body.prototype.sysMsg = function (msg)
     this.informUser(new Message(msg, ""));
 }
 
-Body.prototype.doCommand = function ()
+Body.prototype.doCommand = function (str)
 {
-    var str = this.inputQ.shift();
     this.sysMsg(str);
     if (str.length > 0)
     {
@@ -465,7 +482,7 @@ Body.prototype.cmd_equip = function (itemId)
     var itm = this.db.items[itemId];
     if (itmCount === undefined || itmCount <= 0)
         this.sysMsg(format("You don't have the %s.", itemId));
-    else if (this.db.equipTypes.indexOf(itm.equipType) < 0)
+    else if (Item.equipTypes.indexOf(itm.equipType) < 0)
         this.sysMsg(format("You can't equip the %s.", itemId));
     else
     {

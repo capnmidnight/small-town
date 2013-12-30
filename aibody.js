@@ -14,6 +14,7 @@ function AIBody(db, roomId, hp, items, equipment, id) {
     this.dt = Math.floor(Math.random() * 5) * 200 + 5000;
     this.lastTime = Date.now();
     this.targetId = null;
+    this.socket = this;
 }
 
 AIBody.prototype = Object.create(Body.prototype);
@@ -33,8 +34,7 @@ module.exports = AIBody;
 AIBody.prototype.update = function () {
     var now = Date.now();
 
-    while (this.msgQ.length > 0)
-        this.react(this.msgQ.shift());
+	this.dumpMessageQueue();
 
     if ((now - this.lastTime) >= this.dt) {
         if (this.hp > 0)

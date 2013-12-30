@@ -81,19 +81,13 @@ ServerState.prototype.pump = function () {
     this.respawn();
     for (var bodyId in this.users) {
         var body = this.users[bodyId];
-        if (body instanceof Body) {
-            if (!body.db)
-                body.db = this;
-            if (body.quit) {
-                body.socket.disconnect();
-                delete this.users[bodyId];
-            }
-            else {
-                body.update();
-                while (body.inputQ.length > 0)
-                    body.doCommand();
-            }
-        }
+		if (body.quit) {
+			body.socket.disconnect();
+			delete this.users[bodyId];
+		}
+		else {
+			body.update();
+		}
     }
 }
 

@@ -1,0 +1,4 @@
+take all
+make sword
+equip sword
+exit
