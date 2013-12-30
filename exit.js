@@ -1,6 +1,7 @@
 var Thing = require("./thing.js");
 var assert = require("assert");
 var format = require("util").format;
+var core = require("./core.js");
 /* 
  * Exit class:
  *  A doorway from one room to the other, with an optional lock.
@@ -237,8 +238,9 @@ function checkLockClosed (db, lock, user)
 {
 	if(user instanceof String)
 		user = db.users[user];
+	equip = core.values(user.equipment);
 	return !lock.reduce(function(prev, itemId){
-			return prev && (user.items[itemId] || user.equipment[itemId]);
+		return prev && (user.items[itemId] || equip.indexOf(itemId) > -1);
 	}, true);
 }
 
