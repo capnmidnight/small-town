@@ -21,7 +21,6 @@ Room.prototype = Object.create(Thing.prototype);
 module.exports = Room;
 
 Room.prototype.spawnItems = function() {
-	console.log("spawning items,", this.id);
 	for(var itemId in this.startItems){
 		if(!this.items[itemId])
 			this.items[itemId] = 0;
@@ -33,7 +32,7 @@ Room.prototype.describe = function(user, t){
 	var people = this.db.getPeopleIn(this.id, user.id)
 		.map(function(u){return u.id;});
 	var exits = core.values(this.exits)
-		.map(function(x){ return x.describe(user, 0); })
+		.map(function(x){ return x.describe(user, t); })
 		.filter(function(s){ return s.trim().length > 0; });
 	
 	var itemCatalogue = this.db.items

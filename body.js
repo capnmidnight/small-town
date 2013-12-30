@@ -259,7 +259,7 @@ Body.prototype.cmd_look = function ()
         this.sysMsg("What have you done!?");
     else
     {
-		var description = rm.describe(this, 0);
+		var description = rm.describe(this, Date.now() / 1000);
         this.informUser(new Message("", description, null, "news"));
     }
 }
@@ -413,7 +413,7 @@ Body.prototype.cmd_make = function (recipeId)
             this.sysMsg(format("You created %d %s(s).", recipe.results[itemId], itemId));
         }
         var m = new Message(this.id, "make", [recipeId], "chat");
-        this.inform(m, this.roomId);
+        this.db.inform(m, this.roomId);
     }
 }
 
