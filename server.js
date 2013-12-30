@@ -2,14 +2,15 @@ var http = require("http");
 var webServer = require("./webServer.js");
 var socketio = require("socket.io");
 var format = require("util").format;
-var serverState = require("./serverState.js");
+var ServerState = require("./serverState.js");
 var readline = require('readline');
 var core = require('./core.js');
 
 var app = http.createServer(webServer);
 var io = socketio.listen(app);
 var rl = readline.createInterface(process.stdin, process.stdout);
-var newConnections = {};
+
+var serverState = new ServerState();
 
 if (process.argv.indexOf("--headless") > -1) {
     io.set("log level", 0);
@@ -19,17 +20,16 @@ else {
 }
 
 function loop() {
-    serverState.pump(newConnections);
+    serverState.pump();
 };
 
 io.sockets.on("connection", function (socket) {
     socket.on("name", function (name) {
-        if (serverState.users[name]
-            || newConnections[name]) {
+        if (serverState.isNameInUse(name)) {
             socket.emit("news", "Name is already in use, try another one.");
         }
         else {
-            newConnections[name] = socket;
+            serverState.addConnection(name, socket);
             socket.emit("good name", name);
         }
     });

@@ -51,10 +51,9 @@ AIBody.prototype.cmd = function (msg) {
 
 AIBody.prototype.idleAction = function () {
     var rm = this.db.rooms[this.roomId];
-    var exits = core.hashMap(rm.exits, core.key);
-    var exit = core.selectRandom(exit);
+    var exit = core.selectRandom(rm.exits);
     if (exit)
-        this.cmd(exit);
+        this.cmd(exit.description);
 }
 
 // checks to see if there is a reaction registered

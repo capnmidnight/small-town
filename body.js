@@ -1,38 +1,43 @@
 var Message = require("./message.js");
 var Thing = require("./thing.js");
+var Exit = require("./exit.js");
+var Item = require("./item.js");
 var core = require("./core.js");
 var format = require("util").format;
 
 var explain = {};
 
-// Body class
-//  A person, notionally. Both PCs and NPCs are represented as
-//  Bodys right now, but NPCs get their inputQ filled by a different
-//  source from PCs.
-//  - roomId: the name of the room in which the Body starts.
-//  - hp: how much health the Body starts with.
-//  - items (optional): an associative array of item IDs to counts,
-//          representing the stuff in the character's pockets.
-//  - equipment (optional): an associative array of item IDs to
-//          counts, representing the stuff in use by the character.
+/* Body class
+ *  A person, notionally. Both PCs and NPCs are represented as
+ *  Bodys right now, but NPCs get their inputQ filled by a different
+ *  source from PCs.
+ * 
+ *  - roomId: the name of the room in which the Body starts.
+ *  - hp: how much health the Body starts with.
+ *  - items (optional): an associative array of item IDs to counts,
+ *          representing the stuff in the character's pockets.
+ *  - equipment (optional): an associative array of item IDs to
+ *          counts, representing the stuff in use by the character.
+ */
 var Body = function(db, roomId, hp, items, equipment, id, socket)
 {
-    Thing.call(this, db, id, id);
+    Thing.call(this, db, "users", id, id);
     this.roomId = roomId;
     this.hp = hp;
     this.items = {};
-    for(var itemId in items)
-        this.items[itemId] = items[itemId];
-
     this.equipment = {};
-    for(var slot in equipment)
-        this.equipment[slot] = equipment[slot];
-
     this.inputQ = ["look"];
     this.msgQ = [];
     this.id = id;
     this.socket = socket;
     this.quit = false;
+    
+    for(var itemId in items)
+        this.items[itemId] = items[itemId];
+
+    for(var slot in equipment)
+        this.equipment[slot] = equipment[slot];
+
     if(this.socket)
     {
         var body = this;
@@ -106,8 +111,7 @@ Body.prototype.doCommand = function ()
 
 Body.prototype.exchange = function(targetId, itemId, verb, dir)
 {
-    var people = this.db.getPeopleIn(this.roomId);
-    var target = people[targetId];
+	var target = this.db.getPerson(targetId, this.roomId);
     if (!target)
         this.sysMsg(format("%s is not here to %s %s.", targetId, verb, dir));
     else
@@ -158,8 +162,7 @@ explain.yell = "Use: \"yell &lt;message&gt;\"\n\n"
 Body.prototype.cmd_yell = function (msg)
 {
     var m = new Message(this.id, "yell", [msg], "chat");
-    for(var userId in this.db.users)
-        this.db.users[userId].informUser(m);
+    this.db.inform(m);
 }
 
 explain.say = "Use: \"say &lt;message&gt;\"\n\n"
@@ -170,10 +173,7 @@ explain.say = "Use: \"say &lt;message&gt;\"\n\n"
 Body.prototype.cmd_say = function (msg)
 {
     var m = new Message(this.id, "say", [msg], "chat");
-    var people = this.db.getPeopleIn(this.roomId);
-    if(people)
-        for(var userId in people)
-            people[userId].informUser(m);
+    this.db.inform(m, this.roomId);
 }
 
 explain.tell = "Use: \"tell &lt;target name&gt; &lt;message&gt;\"\n\n"
@@ -183,16 +183,11 @@ explain.tell = "Use: \"tell &lt;target name&gt; &lt;message&gt;\"\n\n"
 +"&lt; carlos tell player naaaay!";
 Body.prototype.cmd_tell = function (targetId, msg)
 {
-    var people = this.db.getPeopleIn(this.roomId);
-    var target = people[targetId];
-    if (!target)
-    {
-        this.sysMsg(format("%s is not here to tell anything to.", targetId));
-    }
-    else
-    {
+    var target = this.db.getPerson(targetId, this.roomId);
+    if (target)
         target.informUser(new Message(this.id, "tell", [msg], "chat"));
-    }
+	else
+        this.sysMsg(format("%s is not here to tell anything to.", targetId));
 }
 
 explain.msg = "Use: \"msg &lt;target name&gt; &lt;message&gt;\"\n\n"
@@ -201,13 +196,11 @@ explain.msg = "Use: \"msg &lt;target name&gt; &lt;message&gt;\"\n\n"
 + "&gt; msg carlos follow\n\n"
 + "&lt; carlos msg player naaaay!";
 Body.prototype.cmd_msg = function (targetId, msg) {
-    var people = this.db[targetId]
-    if (!target) {
-        this.sysMsg(format("%s is not logged in to msg to.", targetId));
-    }
-    else {
+    var people = this.db.getPerson(targetId);
+    if (target)
         target.informUser(new Message(this.id, "msg", [msg], "chat"));
-    }
+    else
+        this.sysMsg(format("%s is not logged in to msg to.", targetId));
 }
 
 explain.quit = "Use: \"quit\"\n\n"
@@ -218,8 +211,7 @@ explain.quit = "Use: \"quit\"\n\n"
 Body.prototype.cmd_quit = function ()
 {
     var m = new Message(this.id, ["quit"], "chat");
-    for(var userId in this.db.users)
-        this.db.users[userId].informUser(m);
+    this.db.inform(m);
     this.quit = true;
 }
 
@@ -256,11 +248,6 @@ function roomPeopledescription(k, v)
     return format("\t%s%s", k, (v.hp > 0 ? "" : " (KNOCKED OUT)"));
 }
 
-function exitdescription(k, v)
-{
-    return format("\t%s to %s", k, v.roomId);
-}
-
 function greaterThan(a, b) { return a > b; }
 
 explain.look = "Use: \"look\"\n\n"
@@ -272,31 +259,8 @@ Body.prototype.cmd_look = function ()
         this.sysMsg("What have you done!?");
     else
     {
-        var items = core.where(rm.items, core.value, greaterThan, 0);
-        var people = core.where(
-            this.db.getPeopleIn(this.roomId),
-            core.key,
-            core.notEqual,
-            this.id);
-        var exits = {};
-        for(var exitId in rm.exits)
-        {
-            var exit = rm.exits[exitId];
-            if(exit && (!exit.cloak || this.items[exit.cloak]))
-                exits[exitId] = exit;
-        }
-        var db = this.db;
-        this.informUser(new Message("",
-            format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
-                rm.description,
-                core.formatHash(function(k, v)
-                {
-                    return format("\t%d %s - %s", v, k,
-                        (db.itemCatalogue[k] ? db.itemCatalogue[k].description : "(UNKNOWN)"));
-                }, items),
-                core.formatHash(roomPeopledescription, people),
-                core.formatHash(exitdescription, exits)),
-            null, "news"));
+		var description = rm.describe(this, 0);
+        this.informUser(new Message("", description, null, "news"));
     }
 }
 
@@ -304,22 +268,26 @@ Body.prototype.move = function (dir)
 {
     var rm = this.db.rooms[this.roomId];
     var exit = rm.exits[dir];
-    var exitRoom = exit && this.db.rooms[exit.roomId];
+    var exitRoom = exit && this.db.rooms[exit.toRoomId];
     if (!exit
         || !exitRoom
         || (exit.key && !this.items[exit.key]))
-        this.sysMsg(format("You can't go %s. %s.", dir, ((exit && exit.key) ? exit.lockMsg : "")));
+        this.sysMsg(
+			format(
+				"You can't go %s. %s.", 
+				dir, 
+				((exit && exit.key) 
+					? exit.lockMessage 
+					: "There is no exit that way.")));
     else
     {
-        var people = this.db.getPeopleIn(this.roomId);
         var m = new Message(this.id, "left", [dir], "chat");
-        for(var userId in people)
-            people[userId].informUser(m);
-        this.roomId = exit.roomId;
-        people = this.db.getPeopleIn(this.roomId);
+        this.db.inform(m, this.roomId);
+        
+        this.roomId = exit.toRoomId;
         m = new Message(this.id, "entered", null, "chat");
-        for(var userId in people)
-            people[userId].informUser(m);
+        this.db.inform(m, this.roomId);
+        
         this.cmd_look();
     }
 }
@@ -361,19 +329,15 @@ Body.prototype.cmd_take = function (itemId)
     {
         for (itemId in items)
         {
-            var people = this.db.getPeopleIn(this.roomId);
             var m = new Message(this.id, "take", [itemId], "chat");
-            for(var userId in people)
-                people[userId].informUser(m);
+			this.db.inform(m, this.roomId);
             this.moveItem(itemId, items, this.items, "picked up", "here", items[itemId]);
         }
     }
     else
     {
-        var people = this.db.getPeopleIn(this.roomId);
         var m = new Message(this.id, "take", [itemId], "chat");
-        for(var userId in people)
-            people[userId].informUser(m);
+        this.db.inform(m, this.roomId);
         this.moveItem(itemId, items, this.items, "picked up", "here");
     }
 }
@@ -388,10 +352,8 @@ Body.prototype.cmd_drop = function (itemId)
 {
     var rm = this.db.rooms[this.roomId];
     this.moveItem(itemId, this.items, rm.items, "dropped", "in your inventory");
-    var people = this.db.getPeopleIn(this.roomId);
     var m = new Message(this.id, "drop", [itemId], "chat");
-    for(var userId in people)
-        people[userId].informUser(m);
+    this.db.inform(m, this.roomId);
 }
 
 Body.prototype.moveItem = function (itm, from, to, actName, locName, amt)
@@ -410,9 +372,7 @@ explain.give = "Use: \"give &lt;target name&gt; &lt;item name&gt;\"\n\n"
 +"&lt; player give carlos hat";
 Body.prototype.cmd_give = function (targetId, itemId)
 {
-    var rm = this.db.rooms[this.roomId];
-    var people = this.db.getPeopleIn(this.roomId);
-    var target = people[targetId];
+    var target = this.db.getPerson(targetId, this.roomId);
     if (!target)
         this.sysMsg(format("%s is not here", targetId));
     else
@@ -452,10 +412,8 @@ Body.prototype.cmd_make = function (recipeId)
             core.inc(this.items, itemId, recipe.results[itemId]);
             this.sysMsg(format("You created %d %s(s).", recipe.results[itemId], itemId));
         }
-        var people = this.db.getPeopleIn(this.roomId);
         var m = new Message(this.id, "make", [recipeId], "chat");
-        for(var userId in people)
-            people[userId].informUser(m);
+        this.inform(m, this.roomId);
     }
 }
 
@@ -465,16 +423,18 @@ Body.prototype.cmd_inv = function ()
 {
     var db = this.db;
     this.sysMsg(format("Equipped:\n\n%s\n\nUnequipped:\n\n%s\n\n<hr>",
-        core.formatHash(function (k, v)
+        core.formatHash(this.equipment,
+        function (k, v)
         {
             return format("\t(%s) %s - %s", k, v,
-                (db.itemCatalogue[v] ? db.itemCatalogue[v].description : "(UNKNOWN)"));
-        }, this.equipment),
-        core.formatHash(function(k, v)
+                (db.items[v] ? db.items[v].description : "(UNKNOWN)"));
+        }),
+        core.formatHash(this.items,
+        function(k, v)
         {
             return format("\t%d %s - %s", v, k,
-                (db.itemCatalogue[k] ? db.itemCatalogue[k].description : "(UNKNOWN)"));
-        }, this.items)));
+                (db.items[k] ? db.items[k].description : "(UNKNOWN)"));
+        })));
 }
 
 
@@ -486,7 +446,7 @@ explain.drink = "Use: \"drink &lt;item name&gt;\"\n\n"
 +"&lt; Health restored by 10 points.";
 Body.prototype.cmd_drink = function(itemId)
 {
-    var item = this.db.itemCatalogue[itemId];
+    var item = this.db.items[itemId];
     if(!this.items[itemId])
         this.sysMsg(format("You don't have a %s to drink.", itemId));
     else if(item.equipType != "food")
@@ -508,7 +468,7 @@ explain.equip = "Use: \"equip &lt;item name&gt;\"\n\n"
 Body.prototype.cmd_equip = function (itemId)
 {
     var itmCount = this.items[itemId];
-    var itm = this.db.itemCatalogue[itemId];
+    var itm = this.db.items[itemId];
     if (itmCount === undefined || itmCount <= 0)
         this.sysMsg(format("You don't have the %s.", itemId));
     else if (this.db.equipTypes.indexOf(itm.equipType) < 0)
@@ -549,7 +509,7 @@ explain.who = "Use: \"who\"\n\n"
 Body.prototype.cmd_who = function ()
 {
     var msg = "People online:\n\n";
-    msg += core.formatHash(function (k, v) { return format("\t%s - %s", k, v.roomId); }, this.db.users);
+    msg += core.formatHash(this.db.users, function (k, v) { return format("\t%s - %s", k, v.roomId); });
     this.sysMsg(msg);
 }
 
@@ -560,8 +520,7 @@ explain.attack = "Use: \"attack &lt;target name&gt;\"\n\n"
 +"Targets with armor equipped take less damage.";
 Body.prototype.cmd_attack = function (targetId)
 {
-    var people = this.db.getPeopleIn(this.roomId);
-    var target = people[targetId];
+    var target = this.db.getPerson(targetId, this.roomId);
     if (!target)
         this.sysMsg(format("%s is not here to attack.", targetId));
     else
@@ -570,7 +529,7 @@ Body.prototype.cmd_attack = function (targetId)
         var wpnId = this.equipment["tool"];
         if (wpnId)
         {
-            var wpn = this.db.itemCatalogue[wpnId];
+            var wpn = this.db.items[wpnId];
             if (wpn)
                 atk += wpn.strength;
         }
@@ -583,7 +542,7 @@ Body.prototype.cmd_attack = function (targetId)
             var armId = target.equipment[this.db.armorTypes[i]];
             if(armId)
             {
-                var arm = this.db.itemCatalogue[armId];
+                var arm = this.db.items[armId];
                 if(arm)
                     def += arm.strength;
             }
@@ -591,8 +550,7 @@ Body.prototype.cmd_attack = function (targetId)
         atk = Math.max(atk - def, 0);
         target.hp -= atk;
         var m = new Message(this.id, "attack", [targetId], "chat");
-        for(var userId in people)
-            people[userId].informUser(m);
+        this.db.inform(m, this.roomId);
         target.informUser(new Message(this.id, "damage", [atk], "chat"));
         this.sysMsg(format("You attacked %s with %s for %d damage.", targetId, wpnId, atk));
     }
@@ -606,8 +564,7 @@ explain.loot = "Use: \"loot &lt;target name&gt;\"\n\n"
 +"&lt; player looted a bird";
 Body.prototype.cmd_loot = function(targetId)
 {
-    var people = this.db.getPeopleIn(this.roomId);
-    var target = people[targetId];
+    var target = this.db.getPerson(targetId, this.roomId);
     if(!target)
         this.sysMsg(format("%s is not here to loot.", targetId));
     else if(target.hp > 0)

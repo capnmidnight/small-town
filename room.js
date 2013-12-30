@@ -3,17 +3,42 @@ var Exit = require("./exit.js");
 var Item = require("./item.js");
 var AIBody = require("./aibody.js");
 var fs = require("fs");
+var core = require("./core.js");
+var format = require("util").format;
 
 // Room class
 //  - db: a database of all things
 //  - description: the description of the room, that will get
 //          printed for the user when they "look".
-function Room(db, id, description) {
-    Thing.call(this, db, id, description);
+function Room(db, id, description, startItems) {
+    Thing.call(this, db, "rooms", id, description);
+    this.exits = {};
+    this.startItems = startItems;
 }
 
 Room.prototype = Object.create(Thing.prototype);
 module.exports = Room;
+
+Room.prototype.describe = function(user, t){
+	var people = this.db.getPeopleIn(this.id, user.id)
+		.map(function(u){return u.id;});
+	var exits = core.values(this.exits)
+		.map(function(x){ return x.describe(user, 0); })
+		.filter(function(s){ return s.trim().length > 0; });
+	
+	var itemCatalogue = this.db.items
+	var itemList = core.formatHash(this.items, 
+	function(k, v)
+	{
+		return format("\t%d %s - %s", v, k,
+			(itemCatalogue[k] ? itemCatalogue[k].description : "(UNKNOWN)"));
+	});
+	return format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
+		this.description,
+		itemList,
+		people.join("\n"),
+		exits.join("\n"));
+};
 
 var parsers = {
     none: function (line, options) {
@@ -64,34 +89,27 @@ Room.parse = function (db, roomId, text) {
             lines.unshift(line);
     }
     var description = lines.join("\r\n");
-    new Room(db, roomId, description);
-    return options;
+    var startItems = {};
+    for(var i = 0; i < options.items.length; ++i){
+		var parts = options.items[i].split(' ');
+		startItems[parts[0]] = parts[1] * 1;
+	}
+    new Room(db, roomId, description, startItems);
+    
+    return options.exits;
 };
 
 Room.loadAll = function (db, roomIds) {
-    var opts = {};
-    var rooms = [];
+    var exits = {};
+    
     for (var i = 0; i < roomIds.length; ++i) {
         var roomId = roomIds[i];
-        opts[roomId] = Room.parse(db, roomId, fs.readFileSync("rooms/" + roomId + ".room", { encoding: "utf8" }));
-        rooms.push(db[roomId]);
+        exits[roomId] = Room.parse(db, roomId, fs.readFileSync("rooms/" + roomId + ".room", { encoding: "utf8" }));
     }
-    for (var roomId in opts) {
-        var room = db[roomId];
-        var options = opts[roomId];
-        for (var i = 0; i < options.exits.length; ++i)
-            var exit = Exit.parse(db, roomId, options.exits[i]);
-
-        for (var i = 0; i < options.items.length; ++i)
-            var item = Item.loadIntoRoom(db, roomId, options.items[i]);
-
-        room.items = options.items.map(function (i) {
-            var parts = i.split(' ');
-            return { itemId: parts[0], count: parts[1] * 1 };
-        });
-        room.npcs = options.npcs;
-    }
-    return rooms;
+    
+    for (var roomId in exits)
+        for (var i = 0; i < exits[roomId].length; ++i)
+            Exit.parse(db, roomId, exits[roomId][i]);
 };
 
 Room.loadFromDir = function (db, dirName) {

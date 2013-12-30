@@ -1,6 +1,5 @@
 var AIBody = require("./aibody.js");
 var core = require("./core.js");
-var format = require("util").format;
 
 // Aggressor class
 //  A violent NPC. Will alternate between moving and attacking
@@ -24,16 +23,18 @@ module.exports = Aggressor;
 Aggressor.prototype.idleAction = function ()
 {
     var rm = this.db.rooms[this.roomId];
-    var people = core.hashMap(this.db.getPeopleIn(this.roomId), core.key);
-    var targetId = core.selectRandom(people);
-    var exits = core.hashMap(rm.exits, core.key);
-    var exit = core.selectRandom(exits);
-    if(!this.moving && targetId)
+    if(rm)
     {
-        this.cmd("say RAAAARGH!");
-        this.cmd(format("attack %s", targetId));
-    }
-    else if(exit)
-        this.cmd(exit);
-    this.moving = !this.moving;
+		var people = this.db.getPeopleIn(this.roomId);
+		var targetId = core.selectRandom(core.keys(rm.users));
+		var exit = core.selectRandom(core.keys(rm.exits));
+		if(!this.moving && targetId)
+		{
+			this.cmd("say RAAAARGH!");
+			this.cmd("attack " + targetId);
+		}
+		else if(exit)
+			this.cmd(exit);
+		this.moving = !this.moving;
+	}
 }

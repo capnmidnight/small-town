@@ -13,7 +13,7 @@ var fs = require("fs");
 //  - strength: for whatever equipType is chosen, this is
 //          how well the item can do it.
 function Item(db, id, description, equipType, strength) {
-    Thing.call(this, db, id, description);
+    Thing.call(this, db, "items", id, description);
     this.equipType = equipType || "none";
     this.strength = strength || 0;
     this.name = id;
@@ -22,19 +22,11 @@ function Item(db, id, description, equipType, strength) {
 Item.prototype = Object.create(Thing.prototype);
 module.exports = Item;
 
-Item.equipTypes = [
-    "none", "head", "eyes", "shoulders", "torso", "pants",
-    "belt", "shirt", "forearms", "gloves", "shins", "boots",
-    "tool", "food"];
-
-Item.loadIntoRoom = function (db, roomId, text) {
-    var parts = text.split(" ");
-    var itemName = parts[0];
-    var count = parts[1] * 1;
-    assert(db[itemName], "Item " + itemName + " doesn't exist.");
-    for (var i = 0; i < count; ++i)
-        db[roomId].addChild(db[itemName].copy());
-};
+Item.equipTypes = ["head", "eyes", "shoulders", "torso",
+    "pants", "belt", "shirt", "forearms", "gloves", "shins",
+    "boots", "tool", "necklace", "bracelet"];
+Item.armorTypes = ["head", "torso", "forearms", "gloves", "shins", "boots"];
+Item.consumeTypes = ["food", "scroll"];
 
 Item.prototype.copy = function () {
     var itm = Thing.prototype.copy.call(this);
@@ -77,3 +69,12 @@ Item.process = function (db, text) {
 Item.load = function (db, filename) {
     Item.process(db, fs.readFileSync(filename, { encoding: "utf8" }));
 }
+
+Item.loadIntoRoom = function (db, roomId, text) {
+    var parts = text.split(" ");
+    var itemName = parts[0];
+    var count = parts[1] * 1;
+    assert(itemdb[itemName], "Item " + itemName + " doesn't exist.");
+    for (var i = 0; i < count; ++i)
+        db.rooms[roomId].addChild(db.items[itemName].copy());
+};

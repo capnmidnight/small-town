@@ -37,31 +37,30 @@ var format = require("util").format;
  */
 function Exit(db, direction, fromRoomId, toRoomId, options)
 {
-    this.fromRoomId = checkRoomId(db, fromRoomId, "from");
-    this.toRoomId = checkRoomId(db, toRoomId, "to");
+    this.fromRoomId = checkRoomId(db.rooms, fromRoomId, "from");
+    var fromRoom = db.rooms[this.fromRoomId];
+    this.toRoomId = checkRoomId(db.rooms, toRoomId, "to");
     var id = direction && format(
 		"exit-%s-from-%s-to-%s", 
 		direction, 
 		this.fromRoomId, 
 		this.toRoomId);
 		
-    Thing.call(this, db, id, direction);
-    
+    Thing.call(this, db, "rooms", id, direction);
+    fromRoom.exits[direction] = this;
     options = options || {};
     
-    this.cloak = checkLockSet(db, options.cloak);
-	this.lock = checkLockSet(db, options.lock);
+    this.cloak = checkLockSet(this.db, options.cloak);
+	this.lock = checkLockSet(this.db, options.lock);
     this.lockMessage = options.lockMessage || "You need a key to get through this exit.";
     
     this.timeCloak = checkTimerSet(options.timeCloak);
     this.timeLock = checkTimerSet(options.timeLock);
     
-    this.setParent(fromRoomId);
-    
     if(!options.oneWay)
     {
 		options.oneWay = true;
-        var reverse = new Exit(db, reverseDirection[direction], toRoomId, fromRoomId, options);
+        var reverse = new Exit(this.db, reverseDirection[direction], toRoomId, fromRoomId, options);
         this.reverseId = reverse.id;
     }
 }
@@ -205,7 +204,7 @@ function checkLockSet(db, lock)
 	return lock.map(function(itemId){
 		if(itemId.id)
 			itemId = itemId.id;
-		assert.ok(db[itemId], itemId + " is not an item.");
+		assert.ok(db.items[itemId], itemId + " is not an item.");
 		return itemId;
 	});
 }	
@@ -222,13 +221,13 @@ var reverseDirection =
     "enter": "exit"
 };
 
-function checkRoomId(db, roomId, name)
+function checkRoomId(table, roomId, name)
 {
 	if(roomId.id)
 		roomId = roomId.id;
 		
     assert.ok(roomId, name + "RoomId required");
-    assert.ok(db[roomId], 
+    assert.ok(table[roomId], 
         "room \"" + roomId + "\" must exist before exit can be created.");
         
     return roomId;
@@ -237,7 +236,7 @@ function checkRoomId(db, roomId, name)
 function checkLockClosed (db, lock, user)
 {
 	if(user instanceof String)
-		user = db[user];
+		user = db.users[user];
 	return !lock.reduce(function(prev, itemId){
 			return prev && (user.items[itemId] || user.equipment[itemId]);
 	}, true);

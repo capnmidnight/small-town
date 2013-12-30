@@ -3,7 +3,9 @@
 exports.equal = function(a, b) { return a == b; }
 exports.notEqual = function(a, b) { return a != b; }
 exports.key = function(k, v) { return k; }
+exports.keys = function(obj){ return this.hashMap(obj, this.key); }
 exports.value = function(k, v) { return v; }
+exports.values = function(obj){ return this.hashMap(obj, this.value); }
 
 // Applies a exports.to the contents of an associative
 // array, returning the results of each call on that
@@ -54,7 +56,7 @@ exports.selectRandom = function(arr)
 //            will be used). The exports.should return
 //                           a string.
 //          - hsh: the associative array to process
-exports.formatHash = function(formatter, hsh)
+exports.formatHash = function(hsh, formatter)
 {
     if (hsh)
     {
@@ -102,8 +104,3 @@ exports.transfer = function(itm, from, to, amt)
     }
     return false;
 }
-
-if(process.argv.indexOf("--headless") > -1)
-    exports.log = function(){};
-else
-    exports.log = console.log;
