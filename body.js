@@ -269,16 +269,10 @@ Body.prototype.move = function (dir)
     var rm = this.db.rooms[this.roomId];
     var exit = rm.exits[dir];
     var exitRoom = exit && this.db.rooms[exit.toRoomId];
-    if (!exit
-        || !exitRoom
-        || (exit.key && !this.items[exit.key]))
-        this.sysMsg(
-			format(
-				"You can't go %s. %s.", 
-				dir, 
-				((exit && exit.key) 
-					? exit.lockMessage 
-					: "There is no exit that way.")));
+    if (!exit || !exitRoom)
+		this.sysMsg(format("You can't go %s. There is no exit that way", dir));
+	else if(exit.isLocked(this, Date.now() / 1000))
+        this.sysMsg(format("You can't go %s. %s.", dir, exit.lockMessage));
     else
     {
         var m = new Message(this.id, "left", [dir], "chat");
