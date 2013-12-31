@@ -1,4 +1,9 @@
+yell Hello
+leave
 take all
+look
 make sword
 equip sword
 exit
+south
+tell Roland inv

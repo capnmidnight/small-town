@@ -11,7 +11,7 @@ var explain = {};
  *  A person, notionally. Both PCs and NPCs are represented as
  *  Bodys right now, but NPCs get their inputQ filled by a different
  *  source from PCs.
- * 
+ *
  *  - roomId: the name of the room in which the Body starts.
  *  - hp: how much health the Body starts with.
  *  - items (optional): an associative array of item IDs to counts,
@@ -31,7 +31,7 @@ var Body = function(db, roomId, hp, items, equipment, id, socket)
     this.id = id;
     this.socket = socket;
     this.quit = false;
-    
+
     for(var itemId in items)
         this.items[itemId] = items[itemId];
 
@@ -51,12 +51,13 @@ var Body = function(db, roomId, hp, items, equipment, id, socket)
         });
     }
     else{
-		this.socket = {
-			emit:function(){
-				core.log(id, arguments);
-			}
-		};
-	}
+        this.socket = {
+            emit:function(){
+                Array.prototype.unshift.call(arguments, id);
+                core.test.apply(core, arguments);
+            }
+        };
+    }
 }
 
 Body.prototype = Object.create(Thing.prototype);
@@ -72,23 +73,27 @@ Body.prototype.dumpMessageQueue = function(){
         this.react(this.msgQ.shift());
 };
 
+Body.prototype.dumpInputQueue = function(){
+    while (this.inputQ.length > 0)
+        this.doCommand(this.inputQ.shift());
+};
+
 Body.prototype.update = function ()
 {
-	this.dumpMessageQueue();    
+    this.dumpMessageQueue();
     this.socket.emit("userStatus", format("%s (%d) :>", this.id, this.hp));
-	while (this.inputQ.length > 0)
-		this.doCommand(this.inputQ.shift());
+    this.dumpInputQueue();
 }
 
 Body.prototype.react = function(msg)
 {
     this.socket.emit(
-		msg.type, 
-		format(
-			"%s %s %s", 
-			msg.fromId, 
-			msg.message, 
-			msg.payload.join(" ")));
+        msg.type,
+        format(
+            "%s %s %s",
+            msg.fromId,
+            msg.message,
+            msg.payload.join(" ")));
 }
 
 Body.prototype.sysMsg = function (msg)
@@ -128,7 +133,7 @@ Body.prototype.doCommand = function (str)
 
 Body.prototype.exchange = function(targetId, itemId, verb, dir)
 {
-	var target = this.db.getPerson(targetId, this.roomId);
+    var target = this.db.getPerson(targetId, this.roomId);
     if (!target)
         this.sysMsg(format("%s is not here to %s %s.", targetId, verb, dir));
     else
@@ -203,7 +208,7 @@ Body.prototype.cmd_tell = function (targetId, msg)
     var target = this.db.getPerson(targetId, this.roomId);
     if (target)
         target.informUser(new Message(this.id, "tell", [msg], "chat"));
-	else
+    else
         this.sysMsg(format("%s is not here to tell anything to.", targetId));
 }
 
@@ -276,7 +281,7 @@ Body.prototype.cmd_look = function ()
         this.sysMsg("What have you done!?");
     else
     {
-		var description = rm.describe(this, Date.now() / 1000);
+        var description = rm.describe(this, Date.now() / 1000);
         this.informUser(new Message("", description, null, "news"));
     }
 }
@@ -287,18 +292,18 @@ Body.prototype.move = function (dir)
     var exit = rm.exits[dir];
     var exitRoom = exit && this.db.rooms[exit.toRoomId];
     if (!exit || !exitRoom)
-		this.sysMsg(format("You can't go %s. There is no exit that way", dir));
-	else if(exit.isLocked(this, Date.now() / 1000))
+        this.sysMsg(format("You can't go %s. There is no exit that way", dir));
+    else if(exit.isLocked(this, Date.now() / 1000))
         this.sysMsg(format("You can't go %s. %s.", dir, exit.lockMessage));
     else
     {
         var m = new Message(this.id, "left", [dir], "chat");
         this.db.inform(m, this.roomId);
-        
+
         this.roomId = exit.toRoomId;
         m = new Message(this.id, "entered", null, "chat");
         this.db.inform(m, this.roomId);
-        
+
         this.cmd_look();
     }
 }
@@ -341,7 +346,7 @@ Body.prototype.cmd_take = function (itemId)
         for (itemId in items)
         {
             var m = new Message(this.id, "take", [itemId], "chat");
-			this.db.inform(m, this.roomId);
+            this.db.inform(m, this.roomId);
             this.moveItem(itemId, items, this.items, "picked up", "here", items[itemId]);
         }
     }

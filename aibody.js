@@ -32,10 +32,13 @@ module.exports = AIBody;
 // do. However, AI characters can see everything
 // in the game.
 AIBody.prototype.update = function () {
+    this.dumpMessageQueue();
+    this.generateCommand();
+    this.dumpInputQueue();
+};
+
+AIBody.prototype.generateCommand = function(){
     var now = Date.now();
-
-	this.dumpMessageQueue();
-
     if ((now - this.lastTime) >= this.dt) {
         if (this.hp > 0)
             this.idleAction();
@@ -47,9 +50,10 @@ AIBody.prototype.update = function () {
 // - parameters are the same as for format(template, [args...])
 AIBody.prototype.cmd = function (msg) {
     this.inputQ.push(msg);
-}
+};
 
 AIBody.prototype.idleAction = function () {
+    core.test("AIBody::idleAction", this.id, this.hp);
     var rm = this.db.rooms[this.roomId];
     var exit = core.selectRandom(rm.exits);
     if (exit)
@@ -60,6 +64,7 @@ AIBody.prototype.idleAction = function () {
 // for the message type, then fires the reaction
 AIBody.prototype.react = function (m) {
     var handler = "react_" + m.message;
+    core.test(">>>>> REACT", this.id, handler, !!this[handler], m);
     if (this[handler])
         this[handler](m);
 }

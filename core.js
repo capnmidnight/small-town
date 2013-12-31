@@ -106,8 +106,15 @@ exports.transfer = function(itm, from, to, amt)
 }
 
 if (process.argv.indexOf("--headless") == -1) {
-	exports.log = console.log;
+    exports.log = console.log;
 }
 else{
-	exports.log = function(){};
+    exports.log = function(){};
+}
+
+if (process.argv.indexOf("--test") == -1) {
+    exports.test = function(){};
+}
+else{
+    exports.test = console.log;
 }

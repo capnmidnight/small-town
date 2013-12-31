@@ -16,57 +16,57 @@ var format = require("util").format;
 
 function ServerState()
 {
-	this.users = {};
-	this.newConnections = {};
-	this.items = {};
-	this.rooms = {};
-	this.recipes = {};
-	this.lastSpawn = 0;
-	this.respawnRate = 1 * 60 * 1000;
-	
-	Item.load(this, "itemCatalogue.txt");
-	Room.loadFromDir(this, "rooms");
-	
-	new ShopKeep(this, "Market", 10, {"bird": 10, "steel-wool": 10, "small-potion": 3 },	{ "bird": { "gold": 1 }, "steel-wool": { "gold": 2 }, "small-potion": { "gold": 3 }}, null, "Roland");
-	new Scavenger(this, "Main-Square", 10, null, null, "Begbie");
-	new AIBody(this, "Main-Square", 10, null, null, "Virginia");
-	new Mule(this, "Main-Square", 10, "naaay", { "apple": 5, "log": 3 }, null, null, "mule");
-	new Recipe(this, "dead-bird", "a bird that is not alive", { "bird": 1 }, { "dead-bird": 1, "feather": 5 }, { "sword": 1 });
-	new Recipe(this, "sword", "meh", { "steel-wool": 1, "rusty-metal": 1 }, { "sword": 1 });
+    this.users = {};
+    this.newConnections = {};
+    this.items = {};
+    this.rooms = {};
+    this.recipes = {};
+    this.lastSpawn = 0;
+    this.respawnRate = 1 * 60 * 1000;
+
+    Item.load(this, "itemCatalogue.txt");
+    Room.loadFromDir(this, "rooms");
+
+    new ShopKeep(this, "Market", 10, {"bird": 10, "steel-wool": 10, "small-potion": 3 },    { "bird": { "gold": 1 }, "steel-wool": { "gold": 2 }, "small-potion": { "gold": 3 }}, null, "Roland");
+    new Scavenger(this, "Main-Square", 10, null, null, "Begbie");
+    new AIBody(this, "Main-Square", 10, null, null, "Virginia");
+    new Mule(this, "Main-Square", 10, "naaay", { "apple": 5, "log": 3 }, null, null, "mule");
+    new Recipe(this, "dead-bird", "a bird that is not alive", { "bird": 1 }, { "dead-bird": 1, "feather": 5 }, { "sword": 1 });
+    new Recipe(this, "sword", "meh", { "steel-wool": 1, "rusty-metal": 1 }, { "sword": 1 });
 };
 module.exports = ServerState;
 
 ServerState.prototype.isNameInUse = function(name){
-	return this.users[name] || this.newConnections[name];
+    return this.users[name] || this.newConnections[name];
 };
 
 ServerState.prototype.addConnection = function(name, socket){
-	this.newConnections[name] = socket;
+    this.newConnections[name] = socket;
 }
 
 ServerState.prototype.getPeopleIn = function (roomId, excludeUserId) {
-	return core.values(this.users)
-		.filter(function(user){
-			return user.roomId == roomId 
-				&& user.id != excludeUserId;
-		});
+    return core.values(this.users)
+        .filter(function(user){
+            return user.roomId == roomId
+                && user.id != excludeUserId;
+        });
 };
 
 ServerState.prototype.getPerson = function(userId, roomId){
-	var user = this.users[userId];
-	if(!roomId || this.user.roomId == roomId)
-		return user;
+    var user = this.users[userId];
+    if(!roomId || user.roomId == roomId)
+        return user;
 };
 
 ServerState.prototype.inform = function(message, roomId){
     for(var userId in this.users){
-		var user = this.users[userId];
-		if(!roomId || user.roomId == roomId)
-			user.informUser(message);
-	}
+        var user = this.users[userId];
+        if(!roomId || user.roomId == roomId)
+            user.informUser(message);
+    }
 };
 
-ServerState.prototype.pump = function () {
+ServerState.prototype.makeNewConnections = function(){
     for (var id in this.newConnections) {
         var roomId = "welcome";
         var hp = 100;
@@ -78,30 +78,38 @@ ServerState.prototype.pump = function () {
             this.users[userId].informUser(m);
         delete this.newConnections[id];
     }
-    this.respawn();
+};
+
+ServerState.prototype.updateUsers = function() {
     for (var bodyId in this.users) {
         var body = this.users[bodyId];
-		if (body.quit) {
-			body.socket.disconnect();
-			delete this.users[bodyId];
-		}
-		else {
-			body.update();
-		}
+        if (body.quit) {
+            body.socket.disconnect();
+            delete this.users[bodyId];
+        }
+        else {
+            body.update();
+        }
     }
+};
+
+ServerState.prototype.pump = function () {
+    this.makeNewConnections();
+    this.respawn();
+    this.updateUsers();
 }
 
 ServerState.prototype.spawnNPC = function (userId) {
-	var user = this.users[userId];
-	if(user instanceof AIBody)
-		if (user.hp <= 0)
-			user.hp = 10;
+    var user = this.users[userId];
+    if(user instanceof AIBody)
+        if (user.hp <= 0)
+            user.hp = 10;
 };
 
 ServerState.prototype.spawnRoom = function(roomId) {
-	var room = this.rooms[roomId];
-	if (room instanceof Room)
-		room.spawnItems();
+    var room = this.rooms[roomId];
+    if (room instanceof Room)
+        room.spawnItems();
 };
 
 ServerState.prototype.respawn = function () {
@@ -111,8 +119,8 @@ ServerState.prototype.respawn = function () {
             this.spawnNPC(userId);
 
         for (var roomId in this.rooms)
-			this.spawnRoom(roomId);
-			
+            this.spawnRoom(roomId);
+
         this.lastSpawn = now;
     }
 };

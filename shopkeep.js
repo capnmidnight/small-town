@@ -20,8 +20,7 @@ module.exports = ShopKeep;
 function vkString(k, v){return format("%d %s", v, k);}
 ShopKeep.prototype.react_tell = function (m)
 {
-    var people = this.db.getPeopleIn(this.roomId);
-    var target = people[m.fromId];
+    var target = this.db.getPerson(m.fromId, this.roomId);
     if (target)
     {
         var msg = m.payload[0];
@@ -30,15 +29,20 @@ ShopKeep.prototype.react_tell = function (m)
             var output = "";
             for(var itemId in this.items)
                 if(this.prices[itemId])
-                    output += format("\t%s (%d) - %s\n\n", itemId, this.items[itemId],
-                        core.hashMap(this.prices[itemId], vkString).join(","));
+                    output += format(
+                        "\t%s (%d) - %s\n\n",
+                        itemId,
+                        this.items[itemId],
+                        core.hashMap(
+                            this.prices[itemId],
+                            vkString).join(","));
             if (output.length == 0)
                 output = " nothing";
             else
                 output = "\n\n" + output;
             this.cmd(format("tell %s I have:%s", m.fromId, output));
         }
-        else
+        else if(AIBody.prototype.react_tell)
             AIBody.prototype.react_tell.call(this, m);
     }
 }
