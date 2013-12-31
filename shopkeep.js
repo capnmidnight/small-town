@@ -64,7 +64,9 @@ ShopKeep.prototype.react_buy = function (m)
             this.cmd(format("tell %s price not met", m.fromId));
         else
         {
-            this.cmd(format("sell %s %s", m.fromId, itemId));
+            for (var k in price)
+                target.cmd_give(this.id, k, price[k]);
+            this.cmd_give(target.id, itemId);
             this.cmd(format("tell %s pleasure doing business",
                 m.fromId));
         }
@@ -80,46 +82,17 @@ ShopKeep.prototype.react_sell = function (m)
         var item = target.items[itemId];
         var price = this.prices[itemId];
         if (!item)
-        {
-            this.cmd(format("tell %s you don't have that item",
-                m.fromId));
-        }
+            this.cmd(format("tell %s you don't have that item", m.fromId));
         else if (!core.hashSatisfies(this.items, price))
-        {
             this.cmd(format("tell %s I can't afford that", m.fromId));
-        }
         else
         {
-            this.cmd(format("buy %s %s", m.fromId, itemId));
+            for (var k in price)
+                this.cmd_give(target.id, k, price[k]);
+            target.cmd_give(this.id, itemId);
             this.cmd(format("tell %s pleasure doing business",
                 m.fromId));
         }
-    }
-}
-
-ShopKeep.prototype.cmd_buy = function(targetId, itemId)
-{
-    var target = this.db.getPerson(targetId, this.roomId);
-    var item = this.items[itemId];
-    var price = this.prices[itemId];
-    if(target && item && price)
-    {
-        for (var k in price)
-            this.cmd_give(targetId, k, price[k]);
-        target.cmd_give(this.id, itemId);
-    }
-}
-
-ShopKeep.prototype.cmd_sell = function(targetId, itemId)
-{
-    var target = this.db.getPerson(targetId, this.roomId);
-    var item = this.items[itemId];
-    var price = this.prices[itemId];
-    if(target && item && price)
-    {
-        for (var k in price)
-            target.cmd_give(this.id, k, price[k]);
-        this.cmd_give(targetId, itemId);
     }
 }
 
