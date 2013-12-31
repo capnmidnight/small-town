@@ -21,33 +21,38 @@ Room.prototype = Object.create(Thing.prototype);
 module.exports = Room;
 
 Room.prototype.spawnItems = function() {
-	for(var itemId in this.startItems){
-		if(!this.items[itemId])
-			this.items[itemId] = 0;
-		this.items[itemId] = Math.max(this.items[itemId], this.startItems[itemId]);
-	}
+    for(var itemId in this.startItems){
+        if(!this.items[itemId])
+            this.items[itemId] = 0;
+        this.items[itemId] = Math.max(this.items[itemId], this.startItems[itemId]);
+    }
 }
 
 Room.prototype.describe = function(user, t){
-	var people = this.db.getPeopleIn(this.id, user.id)
-		.map(function(u){return u.id;});
-	var exits = core.values(this.exits)
-		.map(function(x){ return x.describe(user, t); })
-		.filter(function(s){ return s.trim().length > 0; });
-	
-	var itemCatalogue = this.db.items
-	var itemList = core.formatHash(
-		this.items, 
-		function(k, v)
-		{
-			return format("\t%d %s - %s", v, k,
-				(itemCatalogue[k] ? itemCatalogue[k].description : "(UNKNOWN)"));
-		});
-	return format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
-		this.description,
-		itemList,
-		people.join("\n"),
-		exits.join("\n"));
+    var people = this.db.getPeopleIn(this.id, user.id)
+        .map(function(u){
+            return format(
+                "%s%s",
+                u.id,
+                u.hp > 0 ? "" : " (KNOCKED OUT)");
+        });
+    var exits = core.values(this.exits)
+        .map(function(x){ return x.describe(user, t); })
+        .filter(function(s){ return s.trim().length > 0; });
+
+    var itemCatalogue = this.db.items
+    var itemList = core.formatHash(
+        this.items,
+        function(k, v)
+        {
+            return format("\t%d %s - %s", v, k,
+                (itemCatalogue[k] ? itemCatalogue[k].description : "(UNKNOWN)"));
+        });
+    return format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
+        this.description,
+        itemList,
+        people.join("\n\n"),
+        exits.join("\n\n"));
 };
 
 var parsers = {
@@ -101,22 +106,22 @@ Room.parse = function (db, roomId, text) {
     var description = lines.join("\r\n");
     var startItems = {};
     for(var i = 0; i < options.items.length; ++i){
-		var parts = options.items[i].split(' ');
-		startItems[parts[0]] = parts[1] * 1;
-	}
+        var parts = options.items[i].split(' ');
+        startItems[parts[0]] = parts[1] * 1;
+    }
     new Room(db, roomId, description, startItems);
-    
+
     return options.exits;
 };
 
 Room.loadAll = function (db, roomIds) {
     var exits = {};
-    
+
     for (var i = 0; i < roomIds.length; ++i) {
         var roomId = roomIds[i];
         exits[roomId] = Room.parse(db, roomId, fs.readFileSync("rooms/" + roomId + ".room", { encoding: "utf8" }));
     }
-    
+
     for (var roomId in exits)
         for (var i = 0; i < exits[roomId].length; ++i)
             Exit.parse(db, roomId, exits[roomId][i]);

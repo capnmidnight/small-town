@@ -8,3 +8,7 @@ exit
 south
 tell Roland inv
 buy Roland bird
+sell Roland bird
+north
+attack Virginia
+look

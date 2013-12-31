@@ -218,7 +218,7 @@ explain.msg = "Use: \"msg &lt;target name&gt; &lt;message&gt;\"\n\n"
 + "&gt; msg carlos follow\n\n"
 + "&lt; carlos msg player naaaay!";
 Body.prototype.cmd_msg = function (targetId, msg) {
-    var people = this.db.getPerson(targetId);
+    var target = this.db.getPerson(targetId);
     if (target)
         target.informUser(new Message(this.id, "msg", [msg], "chat"));
     else
@@ -395,8 +395,7 @@ Body.prototype.cmd_give = function (targetId, itemId)
     {
         this.moveItem(itemId, this.items, target.items, format("gave to %s", targetId), "in your inventory");
         var m = new Message(this.id, "give", [targetId, itemId], "chat");
-        for(var userId in people)
-            people[userId].informUser(m);
+        this.db.inform(m, this.roomId);
     }
 }
 
@@ -553,9 +552,9 @@ Body.prototype.cmd_attack = function (targetId)
             wpnId = "bare fists";
 
         var def = 0;
-        for(var i = 0; i < this.db.armorTypes.length; ++i)
+        for(var i = 0; i < Item.armorTypes.length; ++i)
         {
-            var armId = target.equipment[this.db.armorTypes[i]];
+            var armId = target.equipment[Item.armorTypes[i]];
             if(armId)
             {
                 var arm = this.db.items[armId];
