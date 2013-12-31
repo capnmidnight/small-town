@@ -10,7 +10,7 @@ var format = require("util").format;
 //      - parameters are the same as the Body class. AIBody is
 //                          a subclass of Body
 function AIBody(db, roomId, hp, items, equipment, id) {
-    Body.call(this, db, roomId, hp, items, equipment, id);
+    Body.call(this, db, id, roomId, hp, items, equipment);
     this.dt = Math.floor(Math.random() * 5) * 200 + 5000;
     this.lastTime = Date.now();
     this.targetId = null;

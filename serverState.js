@@ -17,7 +17,6 @@ var format = require("util").format;
 function ServerState()
 {
     this.users = {};
-    this.newConnections = {};
     this.items = {};
     this.rooms = {};
     this.recipes = {};
@@ -41,12 +40,8 @@ function ServerState()
 module.exports = ServerState;
 
 ServerState.prototype.isNameInUse = function(name){
-    return this.users[name] || this.newConnections[name];
+    return this.users[name];
 };
-
-ServerState.prototype.addConnection = function(name, socket){
-    this.newConnections[name] = socket;
-}
 
 ServerState.prototype.getPeopleIn = function (roomId, excludeUserId) {
     return core.values(this.users)
@@ -72,20 +67,6 @@ ServerState.prototype.inform = function(message, roomId, excludeUserId){
     }
 };
 
-ServerState.prototype.makeNewConnections = function(){
-    for (var id in this.newConnections) {
-        var roomId = "welcome";
-        var hp = 100;
-        var items = { "gold": 10 };
-        var equip = null;
-        this.users[id] = new Body(this, roomId, hp, items, equip, id, this.newConnections[id]);
-        var m = new Message(id, "join", null, "chat");
-        for (var userId in this.users)
-            this.users[userId].informUser(m);
-        delete this.newConnections[id];
-    }
-};
-
 ServerState.prototype.updateUsers = function() {
     for (var bodyId in this.users) {
         var body = this.users[bodyId];
@@ -100,7 +81,6 @@ ServerState.prototype.updateUsers = function() {
 };
 
 ServerState.prototype.pump = function () {
-    this.makeNewConnections();
     this.respawn();
     this.updateUsers();
 }

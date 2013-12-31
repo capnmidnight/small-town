@@ -19,16 +19,15 @@ var explain = {};
  *  - equipment (optional): an associative array of item IDs to
  *          counts, representing the stuff in use by the character.
  */
-var Body = function(db, roomId, hp, items, equipment, id, socket)
+var Body = function(db, id, roomId, hp, items, equipment, socket, password)
 {
-    Thing.call(this, db, "users", id, id);
+    Thing.call(this, db, "users", id, "");
     this.roomId = roomId;
     this.hp = hp;
     this.items = {};
     this.equipment = {};
     this.inputQ = ["look"];
     this.msgQ = [];
-    this.id = id;
     this.socket = socket;
     this.quit = false;
 

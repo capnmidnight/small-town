@@ -2,6 +2,7 @@ var format = require("util").format;
 var ServerState = require("./serverState.js");
 var Body = require("./body.js");
 var core = require('./core.js');
+var fs = require("fs");
 
 var serverState = new ServerState();
 if (process.argv.indexOf("--test") > -1)
@@ -10,7 +11,7 @@ if (process.argv.indexOf("--test") > -1)
         var user = serverState.users[userId];
         user.dt = 0;
     }
-    var testUser = new Body(serverState, "welcome", 10, {"gold": 10, "small-potion": 1}, null, "testUser");
+    var testUser = new Body(serverState, "testUser", "welcome", 10, {"gold": 10, "small-potion": 1});
     serverState.pump();
     function doIt(cmd){
         core.test("\n>>>>> COMMAND:", cmd);
@@ -18,7 +19,6 @@ if (process.argv.indexOf("--test") > -1)
         serverState.pump();
     }
 
-    var fs = require("fs");
     var data = fs.readFileSync("script.txt", {encoding:"utf8"});
     var commands = data.split("\n");
     while(commands.length > 0)
@@ -39,15 +39,57 @@ else
 
     io.sockets.on("connection", function (socket) {
         socket.on("name", function (name) {
-            if (serverState.isNameInUse(name)) {
-                socket.emit("news", "Name is already in use, try another one.");
-            }
+            if (serverState.isNameInUse(name))
+                socket.emit("bad name", "Name is already in use, try another one.");
+            else if(!name.match(/^[a-zA-Z][a-zA-Z0-9\-]{3,}$/))
+                socket.emit("bad name", "Bad name.\n\n"
++"Name must be at least 4 characters long and it can only be composed of letters,"
++"numbers, or dash '-'. The first character may not be a number.");
             else {
-                serverState.addConnection(name, socket);
-                socket.emit("good name", name);
+                var message = fs.existsSync("users/" + name + ".js")
+                    ? "User account found:"
+                    : "Create a new user account:";
+                socket.set("userName", name, function(){
+                    socket.emit("good name", message);
+                });
             }
         });
-        socket.emit("news", "Please enter a name.");
+        socket.on("password", function(password) {
+            socket.get("userName", function(err, name){
+                var fileName = "users/" + name + ".js";
+                var roomId = "welcome";
+                var hp = 100;
+                var items = { "gold": 10 };
+                var equip = null;
+                var passwordMessage = "";
+                if(fs.existsSync(fileName))
+                {
+                    var jsn = fs.readFileSync(fileName, {encoding:"utf8"});
+                    var obj = JSON.parse(jsn);
+                    if(password != obj.password)
+                        passwordMessage = "Incorrect password";
+                    else{
+                        passwordMessage = "Success!";
+                        roomId = obj.roomId;
+                        hp = obj.hp;
+                        items = obj.items;
+                        equip = obj.equip;
+                    }
+                }
+                else if(password.length < 8)
+                    passwordMessage = "Password must be at least 8 characters long";
+                else
+                    passwordMessage = "Success!";
+
+                if(passwordMessage != "Success!")
+                    socket.emit("bad password", passwordMessage);
+                else
+                {
+                    socket.emit("good password", passwordMessage);
+                    serverState.users[name] = new Body(serverState, name, roomId, hp, items, equip, socket, password);
+                }
+            });
+        });
     });
 
     if (process.argv.indexOf("--headless") > -1) {

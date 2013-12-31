@@ -7,7 +7,7 @@ var ServerState = require("./serverState.js");
  *  it can manage to make its own deep copies of objects, which is
  *  useful when dealing with game data as templates for instanced data
  *  spawned over time.
- * 
+ *
  *  - db: a database of all Things.
  *  - table: the name of the table to which to save This thing
  *  - id: the id to use for this Thing.
@@ -17,12 +17,12 @@ var ServerState = require("./serverState.js");
  */
 function Thing(db, table, id, description) {
     assert(db, "Need a database object");
-	assert(db.newConnections, "DB has to be a ServerState object.");
+    assert(db.users && db.recipes, "DB has to be a ServerState object.");
     assert(table, "Need a table name");
     assert(db[table], "Table needs to exist: " + table);
     assert(id, "Need an object ID.");
     assert.ok(!db[table][id], "Can't reuse a Thing's ID: " + id);
-    
+
     this.db = db;
     this.id = id;
     this.db[table][this.id] = this;
@@ -40,15 +40,22 @@ module.exports = Thing;
 Thing.prototype.copyTo = function(db, table) {
     var oldDb = this.db;
     var oldTable = this.table;
+    var oldSocket = this.socket;
+
     this.db = null;
     this.table = null;
+    this.socket = null;
+
     var obj = Object.create(this.__proto__);
     var dat = JSON.parse(JSON.stringify(this));
     for(var key in dat)
         obj[key] = dat[key];
+
     this.db = oldDb;
     this.table = oldTable;
+    this.socket = oldSocket;
+
     obj.db = db;
-    obj.table = oldTable;
+    obj.table = table;
     return obj;
 };

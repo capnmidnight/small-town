@@ -1,6 +1,5 @@
 var client = (function () {
     var input, userStatus, socket, listeners = {};
-    var userName = "";
 
     function SocketListener(boxId, socket) {
         this.box = document.getElementById(boxId);
@@ -19,9 +18,9 @@ var client = (function () {
     }
 
     SocketListener.prototype.enq = function(data) {
-		for(var boxId in listeners)
-			listeners[boxId].box.style.opacity = 0.25;
-		this.box.style.opacity = 1;
+        for(var boxId in listeners)
+            listeners[boxId].box.style.opacity = 0.25;
+        this.box.style.opacity = 1;
         this.lines = this.lines.concat(data.split("\n\n"));
     };
 
@@ -59,7 +58,20 @@ var client = (function () {
     function enterCommand() {
         var val = input.value.trim();
         try {
-            socket.emit((userName == "") ? "name" : "cmd", val);
+            var type = "cmd";
+            switch(input.placeholder)
+            {
+                case "<enter name>":
+                    type = "name";
+                break;
+                case "<enter password>":
+                    type = "password";
+                break
+                default:
+                    type = "cmd";
+                break;
+            }
+            socket.emit(type, val);
             input.value = "";
             input.focus();
         }
@@ -88,16 +100,31 @@ var client = (function () {
                 "reconnection delay": 1000,
                 "max reconnection attempts": 60
             });
-            socket.on("connect", function () {
-                listeners.news.enq("Connected.");
-                input.placeholder = "<enter name>";
-            });
             new SocketListener("chat", socket);
             new SocketListener("news", socket);
+            socket.on("connect", function () {
+                listeners.news.enq("Connected.");
+                listeners.news.enq("Enter name.");
+                input.placeholder = "<enter name>";
+                input.type = "text";
+                input.enabled = true;
+            });
+            socket.on("bad name", function (data) {
+                listeners.news.enq(data);
+            });
             socket.on("good name", function (data) {
-                listeners.news.enq("Name accepted.");
+                listeners.news.enq(data);
+                listeners.news.enq("Enter password.");
+                input.placeholder = "<enter password>";
+                input.type = "password";
+            });
+            socket.on("bad password", function (data){
+                listeners.news.enq("Incorrect password. Enter password");
+            });
+            socket.on("good password", function (data){
+                listeners.news.enq("Password accepted.");
                 input.placeholder = "<enter command>";
-                userName = data;
+                input.type = "text";
             });
             socket.on("userStatus", function(data){
                 userStatus.innerHTML = data;
@@ -105,7 +132,7 @@ var client = (function () {
             socket.on("disconnect", function () {
                 listeners.news.enq("Disconnected.");
                 input.placeholder = "<disconnected>";
-                userName = "";
+                input.enabled = false;
                 userStatus.innerHTML = "";
             });
         }
