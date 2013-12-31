@@ -8,6 +8,7 @@ exit
 south
 tell Roland inv
 buy Roland bird
+buy Roland small-potion
 sell Roland bird
 north
 attack Virginia
@@ -18,3 +19,4 @@ look
 retrieve mule apple
 inv
 msg Roland heeeey
+drink small-potion

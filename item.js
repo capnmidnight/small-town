@@ -47,8 +47,7 @@ Item.parse = function (db, type, text) {
     if (strength == parts[0])
         parts.shift();
     var description = parts.join(" ");
-    var script = new Item(db, id, description, type, strength);
-    var itm = eval(script);
+    var itm = new Item(db, id, description, type, strength);
     db[itm.id] = itm;
 };
 
@@ -58,7 +57,8 @@ Item.process = function (db, text) {
     while(lines.length > 0)
     {
         var line = lines.shift().trim();
-        if (Item.equipTypes.indexOf(line) >= 0)
+        if (Item.equipTypes.indexOf(line) > -1
+            || Item.consumeTypes.indexOf(line) > -1)
             type = line;
         else if (line.length === 0)
             type = "none";
