@@ -73,8 +73,7 @@ ShopKeep.prototype.react_buy = function (m)
 
 ShopKeep.prototype.react_sell = function (m)
 {
-    var people = this.db.getPeopleIn(this.roomId);
-    var target = people[m.fromId];
+    var target = this.db.getPerson(m.fromId, this.roomId);
     if (target)
     {
         var itemId = m.payload[0];
@@ -100,8 +99,7 @@ ShopKeep.prototype.react_sell = function (m)
 
 ShopKeep.prototype.cmd_buy = function(targetId, itemId)
 {
-    var people = this.db.getPeopleIn(this.roomId);
-    var target = people[targetId];
+    var target = this.db.getPerson(targetId, this.roomId);
     var item = this.items[itemId];
     var price = this.prices[itemId];
     if(target && item && price)
@@ -114,8 +112,7 @@ ShopKeep.prototype.cmd_buy = function(targetId, itemId)
 
 ShopKeep.prototype.cmd_sell = function(targetId, itemId)
 {
-    var people = this.db.getPeopleIn(this.roomId);
-    var target = people[targetId];
+    var target = this.db.getPerson(targetId, this.roomId);
     var item = this.items[itemId];
     var price = this.prices[itemId];
     if(target && item && price)
