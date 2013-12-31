@@ -93,13 +93,16 @@ Recipe.parse = function(db, text)
         core.test(oldState, "->", line, "->", state);
     }
     var description = parts.join(" ");
-    return new Recipe(db, id, description,
+    new Recipe(db, id, description,
         options.ingredients, options.results, options.tools);
 };
 
 Recipe.parseAll = function(db, lines){
-    while(lines.length > 0)
-        Recipe.parse(db, lines.shift());
+    while(lines.length > 0){
+        var line = lines.shift();
+        if(line.length > 0)
+            Recipe.parse(db, line);
+    }
 };
 
 Recipe.load = function(db, fileName){
