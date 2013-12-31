@@ -22,7 +22,7 @@ if (process.argv.indexOf("--test") > -1)
     var data = fs.readFileSync("script.txt", {encoding:"utf8"});
     var commands = data.split("\n");
     while(commands.length > 0)
-        doIt(commands.shift());
+        doIt(commands.shift().trim());
     serverState.pump();
 }
 else
