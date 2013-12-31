@@ -10,7 +10,7 @@ if (process.argv.indexOf("--test") > -1)
         var user = serverState.users[userId];
         user.dt = 0;
     }
-    var testUser = new Body(serverState, "welcome", 10, null, null, "testUser");
+    var testUser = new Body(serverState, "welcome", 10, {"gold": 10}, null, "testUser");
     serverState.pump();
     function doIt(cmd){
         core.test("\n>>>>> COMMAND:", cmd);

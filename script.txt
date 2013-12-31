@@ -7,3 +7,4 @@ equip sword
 exit
 south
 tell Roland inv
+buy Roland bird

@@ -75,20 +75,13 @@ Mule.prototype.react_tell = function (m){
 Mule.prototype.react_left = function (m)
 {
     if (this.targetId == m.fromId) {
-        var rm = this.db.rooms[this.roomId];
-        var exit = rm.exits[m.payload[0]];
-        var exitRoom = exit && this.db.rooms[exit.roomId];
-        if (exit
-            && exitRoom) {
-            var people = this.db.getPeopleIn(this.roomId);
-            var m = new Message(this.id, "left", [dir], "chat");
-            for (var userId in people)
-                people[userId].informUser(m);
-            this.roomId = exit.roomId;
-            people = this.db.getPeopleIn(this.roomId);
+        var target = this.getPerson(m.fromId);
+        if(target){
+            var m = new Message(this.id, "left", m.payload, "chat");
+            this.db.inform(m, this.roomId, this.id);
+            this.roomId = target.roomId;
             m = new Message(this.id, "entered", null, "chat");
-            for (var userId in people)
-                people[userId].informUser(m);
+            this.db.inform(m, this.roomId, this.id);
             this.cmd_look();
         }
     }
@@ -100,8 +93,7 @@ Mule.prototype.react_retrieve = function (m)
         this.saySomething(m.fromId);
     else
     {
-        var people = this.db.getPeopleIn(this.roomId);
-        var target = people[m.fromId];
+        var target = this.db.getPerson(this.targetId, this.roomId);
         if (target)
         {
             var itemId = m.payload[0];

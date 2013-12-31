@@ -98,7 +98,7 @@ Body.prototype.react = function(msg)
 
 Body.prototype.sysMsg = function (msg)
 {
-    this.informUser(new Message(msg, ""));
+    this.informUser(new Message(this.id, "sysMsg", [msg]));
 }
 
 Body.prototype.doCommand = function (str)
@@ -232,7 +232,7 @@ explain.quit = "Use: \"quit\"\n\n"
 +"&lt; player quit";
 Body.prototype.cmd_quit = function ()
 {
-    var m = new Message(this.id, ["quit"], "chat");
+    var m = new Message(this.id, "quit", null, "chat");
     this.db.inform(m);
     this.quit = true;
 }
@@ -282,7 +282,7 @@ Body.prototype.cmd_look = function ()
     else
     {
         var description = rm.describe(this, Date.now() / 1000);
-        this.informUser(new Message("", description, null, "news"));
+        this.informUser(new Message(this.id, description, null, "news"));
     }
 }
 

@@ -53,7 +53,6 @@ AIBody.prototype.cmd = function (msg) {
 };
 
 AIBody.prototype.idleAction = function () {
-    core.test("AIBody::idleAction", this.id, this.hp);
     var rm = this.db.rooms[this.roomId];
     var exit = core.selectRandom(rm.exits);
     if (exit)
@@ -64,9 +63,10 @@ AIBody.prototype.idleAction = function () {
 // for the message type, then fires the reaction
 AIBody.prototype.react = function (m) {
     var handler = "react_" + m.message;
-    core.test(">>>>> REACT", this.id, handler, !!this[handler], m);
-    if (this[handler])
+    if (this[handler]){
+        core.test(">>>>> REACT", this.id, handler, m);
         this[handler](m);
+    }
 }
 
 AIBody.prototype.react_damage = function (m) {

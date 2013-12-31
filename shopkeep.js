@@ -49,13 +49,15 @@ ShopKeep.prototype.react_tell = function (m)
 
 ShopKeep.prototype.react_buy = function (m)
 {
-    var people = this.db.getPeopleIn(this.roomId);
-    var target = people[m.fromId];
+    var target = this.db.getPerson(m.fromId, this.roomId);
     if (target)
     {
         var itemId = m.payload[0];
         var item = this.items[itemId];
         var price = this.prices[itemId];
+        core.test(">>>> BUY", itemId, item, price);
+        for(var id in price)
+            core.test(">>> USR", id, target.items[id]);
         if (!item)
             this.cmd(format("tell %s item not available", m.fromId));
         else if (!core.hashSatisfies(target.items, price))

@@ -58,11 +58,13 @@ ServerState.prototype.getPerson = function(userId, roomId){
         return user;
 };
 
-ServerState.prototype.inform = function(message, roomId){
+ServerState.prototype.inform = function(message, roomId, excludeUserId){
     for(var userId in this.users){
-        var user = this.users[userId];
-        if(!roomId || user.roomId == roomId)
-            user.informUser(message);
+        if(userId != excludeUserId){
+            var user = this.users[userId];
+            if(!roomId || user.roomId == roomId)
+                user.informUser(message);
+        }
     }
 };
 
