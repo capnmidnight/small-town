@@ -110,9 +110,9 @@ Body.prototype.doCommand = function (str)
 
         var cmd = tokens[0];
         var params = tokens.slice(1);
-        if (cmd == "say" || cmd == "yell")
+        if (cmd === "say" || cmd === "yell")
             params = [params.join(" ")];
-        else if (cmd == "tell" && params.length > 0)
+        else if ((cmd == "tell" || cmd == "msg") && params.length > 0)
             params = [params[0], params.slice(1).join(" ")];
 
         var proc = this["cmd_" + cmd];
@@ -219,6 +219,7 @@ explain.msg = "Use: \"msg &lt;target name&gt; &lt;message&gt;\"\n\n"
 + "&lt; carlos msg player naaaay!";
 Body.prototype.cmd_msg = function (targetId, msg) {
     var target = this.db.getPerson(targetId);
+    core.test(">>>> MSG", targetId, !!target, msg);
     if (target)
         target.informUser(new Message(this.id, "msg", [msg], "chat"));
     else

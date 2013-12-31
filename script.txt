@@ -15,3 +15,6 @@ look
 tell mule follow
 south
 look
+retrieve mule apple
+inv
+msg Roland heeeey

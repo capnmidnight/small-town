@@ -49,6 +49,7 @@ AIBody.prototype.generateCommand = function(){
 // simplifies adding commands to the command queue.
 // - parameters are the same as for format(template, [args...])
 AIBody.prototype.cmd = function (msg) {
+    core.test(">>>> AICMD", this.id, msg);
     this.inputQ.push(msg);
 };
 
@@ -64,7 +65,7 @@ AIBody.prototype.idleAction = function () {
 AIBody.prototype.react = function (m) {
     var handler = "react_" + m.message;
     if (this[handler]){
-        core.test(">>>>> REACT", this.id, handler, m);
+        core.test(">>>> REACT", this.id, handler, m);
         this[handler](m);
     }
 }
@@ -82,6 +83,10 @@ AIBody.prototype.react_say = function (m) {
     if (m.payload[0] == "hello")
         this.cmd("say Hi!");
 }
+
+AIBody.prototype.react_msg = function (m) {
+    this.cmd(format("msg %s I heard you say \"%s\"", m.fromId, m.payload[0]));
+};
 
 AIBody.prototype.react_yell = function (m) {
     if (!(this.db.users[m.fromId] instanceof AIBody))
