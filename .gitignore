@@ -1,5 +1,5 @@
 compiled/
 *.bak
 *~
-data
+#data
 *.sh

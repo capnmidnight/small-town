@@ -1,0 +1,2 @@
+dead-bird from bird; to dead-bird, feather 5; using sword. a bird that is not alive
+sword from steel-wool, rusty-metal; to sword. meh
