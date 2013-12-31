@@ -29,7 +29,11 @@ function ServerState()
 
     new ShopKeep(this, "Market", 10, {"bird": 10, "steel-wool": 10, "small-potion": 3 },    { "bird": { "gold": 1 }, "steel-wool": { "gold": 2 }, "small-potion": { "gold": 3 }}, null, "Roland");
     new Scavenger(this, "Main-Square", 10, null, null, "Begbie");
-    new AIBody(this, "Main-Square", 10, null, null, "Virginia");
+    new AIBody(this, "Main-Square", 10,
+        {"hat": 1, "sunglasses": 1, "towel": 1, "pillow": 1,
+         "slacks": 1, "rope": 1, "t-shirt": 1, "sleeve": 2,
+         "latex": 2, "shin-guards": 2, "chucks": 1},
+         null, "Virginia");
     new Mule(this, "Main-Square", 10, "naaay", { "apple": 5, "log": 3 }, null, null, "mule");
     new Recipe(this, "dead-bird", "a bird that is not alive", { "bird": 1 }, { "dead-bird": 1, "feather": 5 }, { "sword": 1 });
     new Recipe(this, "sword", "meh", { "steel-wool": 1, "rusty-metal": 1 }, { "sword": 1 });
