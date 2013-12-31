@@ -60,7 +60,7 @@ else
                 var roomId = "welcome";
                 var hp = 100;
                 var items = { "gold": 10 };
-                var equip = null;
+                var equipment = null;
                 var passwordMessage = "";
                 if(fs.existsSync(fileName))
                 {
@@ -73,7 +73,7 @@ else
                         roomId = obj.roomId;
                         hp = obj.hp;
                         items = obj.items;
-                        equip = obj.equip;
+                        equipment = obj.equipment;
                     }
                 }
                 else if(password.length < 8)
@@ -86,7 +86,7 @@ else
                 else
                 {
                     socket.emit("good password", passwordMessage);
-                    serverState.users[name] = new Body(serverState, name, roomId, hp, items, equip, socket, password);
+                    serverState.users[name] = new Body(serverState, name, roomId, hp, items, equipment, socket, password);
                 }
             });
         });

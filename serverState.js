@@ -80,9 +80,16 @@ ServerState.prototype.updateUsers = function() {
     }
 };
 
+ServerState.prototype.saveUsers = function() {
+    for (var bodyId in this.users){
+        this.users[bodyId].save();
+    }
+};
+
 ServerState.prototype.pump = function () {
     this.respawn();
     this.updateUsers();
+    this.saveUsers();
 }
 
 ServerState.prototype.spawnNPC = function (userId) {

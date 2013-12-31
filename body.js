@@ -4,7 +4,7 @@ var Exit = require("./exit.js");
 var Item = require("./item.js");
 var core = require("./core.js");
 var format = require("util").format;
-
+var fs = require("fs");
 var explain = {};
 
 /* Body class
@@ -29,6 +29,8 @@ var Body = function(db, id, roomId, hp, items, equipment, socket, password)
     this.inputQ = ["look"];
     this.msgQ = [];
     this.socket = socket;
+    this.password = password;
+    this.dirty = false;
     this.quit = false;
 
     for(var itemId in items)
@@ -62,17 +64,39 @@ var Body = function(db, id, roomId, hp, items, equipment, socket, password)
 Body.prototype = Object.create(Thing.prototype);
 module.exports = Body;
 
+Body.prototype.saveDirectory = function(){
+    return "users";
+};
+
+Body.prototype.save = function(){
+    if(this.password && this.dirty){
+        var fileName = format("%s/%s.js", this.saveDirectory(), this.id);
+        var obj = {
+            password: this.password,
+            roomId: this.roomId,
+            hp: this.hp,
+            items: this.items,
+            equipment: this.equipment
+        };
+        var data = JSON.stringify(obj);
+        fs.writeFileSync(fileName, data);
+        this.dirty = false;
+    }
+};
+
 Body.prototype.informUser = function (msg)
 {
     this.msgQ.push(msg);
 }
 
 Body.prototype.dumpMessageQueue = function(){
+    this.dirty |= this.msgQ.length > 0;
     while(this.msgQ.length > 0)
         this.react(this.msgQ.shift());
 };
 
 Body.prototype.dumpInputQueue = function(){
+    this.dirty |= this.inputQ.length > 0;
     while (this.inputQ.length > 0)
         this.doCommand(this.inputQ.shift());
 };

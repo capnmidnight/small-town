@@ -20,6 +20,10 @@ function AIBody(db, roomId, hp, items, equipment, id) {
 AIBody.prototype = Object.create(Body.prototype);
 module.exports = AIBody;
 
+AIBody.prototype.saveDirectory = function(){
+    return "npcs";
+};
+
 // occurs as quickly as possible. Allows the AI unit
 // to react to actions against it immediately, and
 // take actions when it is time to.
