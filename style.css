@@ -26,7 +26,7 @@ html, body, #input
 #input
 {
     width: 50%;
-    height: 1em;
+    height: 1.5em;
     margin-left: 1em;
 }
 
@@ -45,14 +45,14 @@ html, body, #input
 
 .line
 {
-	transition: opacity 2s ease;
-	text-align: left;
+    transition: opacity 2s ease;
+    text-align: left;
 }
 
 #chat>.line
 {
-	float:right;
-	clear:both;
+    float:right;
+    clear:both;
 }
 
 @media (min-width:320px)
@@ -66,7 +66,7 @@ html, body, #input
     {
         padding: 0.5em;
     }
-    
+
     .line
     {
         width: 75%;
@@ -91,7 +91,7 @@ html, body, #input
     {
         padding: 3em;
     }
-    
+
     .line
     {
         width: 50%;
