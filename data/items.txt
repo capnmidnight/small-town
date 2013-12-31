@@ -1,6 +1,6 @@
 head
     hat 1 a dashing topper
-    crab 2 chitin is tough
+    crab-hat 2 chitin is tough
     leather-helm 3 an olde football helmet
     fur-hat 4 extremely warm
     hard-hat 5 used in construction
@@ -104,6 +104,7 @@ boots
 
 tool
     needle 1 can only balance two angels on the head
+    stick 1 can be used for the disciplining of small children
     fishing-pole 1 for teaching men to eat for a lifetime
     screwdriver 2 this particular one is not a drink
     hammer 3 for nails and skulls
@@ -121,9 +122,12 @@ tool
     katana 150 a great weapon for a great warrior
 
 food
+    water 1 the liquid of life
     apple 5 fruit
     peach 5 fruit
     blueberries 5 fruit
+    crab 5 snip snip
+    lobster 5 snap snap
     small-potion 10 recovers 10 health
     apple-pie 20 quite yummy
     peach-pie 20 quite yummy
@@ -142,10 +146,14 @@ none
     ore dug from the earth
     coal also dug from the earth
     crucible a ceramic cup of sorts
+    glass-blower mostly just a big, metal tube
     ingot it's like a brick, made of IRON
     emerald a very valuable jewel
-    leather toughened skin of cow
+    hide skin of animal
+    leather toughened skin of animal
     thread another name for string
     pie-plate for the creation of delectable treats
+    sand it gets into everything
     bottle can hold liquids, or secrets
     herbs the buds of a special plant
+    horn the head dress of a strange animal
