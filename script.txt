@@ -12,3 +12,6 @@ sell Roland bird
 north
 attack Virginia
 look
+tell mule follow
+south
+look

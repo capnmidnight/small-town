@@ -1,4 +1,5 @@
 ﻿var AIBody = require("./aibody.js");
+var Message = require("./message.js");
 var core = require("./core.js");
 var format = require("util").format;
 
@@ -75,7 +76,7 @@ Mule.prototype.react_tell = function (m){
 Mule.prototype.react_left = function (m)
 {
     if (this.targetId == m.fromId) {
-        var target = this.getPerson(m.fromId);
+        var target = this.db.getPerson(m.fromId);
         if(target){
             var m = new Message(this.id, "left", m.payload, "chat");
             this.db.inform(m, this.roomId, this.id);
