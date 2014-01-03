@@ -117,22 +117,22 @@ var parsers =
 
 	cloak: function(itemId, options)
 	{
-	    return something(itemId, options, "cloak");
+	    return collectItemList(itemId, options, "cloak");
 	},
 
 	lock: function(itemId, options)
 	{
-	    return something(itemId, options, "lock");
+	    return collectItemList(itemId, options, "lock");
 	},
 
 	timeLock: function(number, options)
 	{
-	    return timeSomething(number, options, "Lock");
+	    return collectTimeConstraints(number, options, "Lock");
 	},
 
 	timeCloak: function(number, options)
 	{
-	    return timeSomething(number, options, "Cloak");
+	    return collectTimeConstraints(number, options, "Cloak");
 	},
 
     lockMessage: function(part, options)
@@ -151,7 +151,7 @@ var parsers =
     }
 };
 
-function something(itemId, options, name)
+function collectItemList(itemId, options, name)
 {
     var state = name;
     if (itemId[itemId.length - 1] == ',')
@@ -162,7 +162,7 @@ function something(itemId, options, name)
     return state;
 }
 
-function timeSomething(number, options, name)
+function collectTimeConstraints(number, options, name)
 {
     var prop = "time" + name;
     var state = prop;

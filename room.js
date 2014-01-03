@@ -61,19 +61,19 @@ var parsers = {
     },
 
     exits: function (line, options) {
-        return something(line, options, "exits");
+        return collectLines(line, options, "exits");
     },
 
     items: function (line, options) {
-        return something(line, options, "items");
+        return collectLines(line, options, "items");
     },
 
     npcs: function (line, options) {
-        return something(line, options, "npcs");
+        return collectLines(line, options, "npcs");
     }
 };
 
-function something(line, options, name) {
+function collectLines(line, options, name) {
     if (line.length === 0)
         return "none";
     else {
@@ -107,7 +107,10 @@ Room.parse = function (db, roomId, text) {
     var startItems = {};
     for(var i = 0; i < options.items.length; ++i){
         var parts = options.items[i].split(' ');
-        startItems[parts[0]] = parts[1] * 1;
+        var count = 1;
+        if (parts.length == 2)
+            count = parts[1] * 1;
+        startItems[parts[0]] = count;
     }
     new Room(db, roomId, description, startItems);
 
