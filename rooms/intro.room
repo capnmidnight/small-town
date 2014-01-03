@@ -1,4 +1,5 @@
 ﻿exits
+	north to Winter's-Tale
     -exit to Main-Square locked with sword "Don't forget to take the items (stick, ingot, and hammer) and use them to make a sword. Try \"take all\" followed by \"make sword\"."
 
 items

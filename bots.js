@@ -24,4 +24,6 @@ module.exports = function (db) {
 
     new TutorialBot(db, "welcome", "Carl");
     new TutorialBot(db, "welcome", "Dave");
+    new TutorialBot(db, "Winter's-Tale", "Archidamus");
+    new TutorialBot(db, "Winter's-Tale", "Camillo");
 };

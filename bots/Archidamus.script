@@ -1,0 +1,31 @@
+﻿{}
+>wait USERID say start
+>say If you shall chance, Camillo, to visit Bohemia, on
+>say the like occasion whereon my services are now on
+>say foot, you shall see, as I have said, great
+>say difference betwixt our Bohemia and your Sicilia.
+>wait Camillo say means to pay Bohemia the visitation which he justly owes him.
+>say Wherein our entertainment shall shame us we will be
+>say justified in our loves; for indeed--
+>wait Camillo say Beseech you,--
+>say Verily, I speak it in the freedom of my knowledge:
+>say we cannot with such magnificence--in so rare--I know
+>say not what to say. We will give you sleepy drinks,
+>say that your senses, unintelligent of our insufficience,
+>say may, though they cannot praise us, as little accuse
+>say us.
+>wait Camillo say You pay a great deal too dear for what's given freely.
+>say Believe me, I speak as my understanding instructs me
+>say and as mine honesty puts it to utterance.
+>wait Camillo say winds. The heavens continue their loves!
+>say I think there is not in the world either malice or
+>say matter to alter it. You have an unspeakable
+>say comfort of your young prince Mamillius: it is a
+>say gentleman of the greatest promise that ever came
+>say into my note.
+>wait Camillo say see him a man.
+>say Would they else be content to die?
+>wait Camillo say desire to live.
+>say If the king had no son, they would desire to live
+>say on crutches till he had one.
+>done USERID

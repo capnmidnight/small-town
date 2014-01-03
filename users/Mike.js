@@ -1,0 +1,1 @@
+{"password":"password","roomId":"intro","hp":100,"items":{"gold":10,"egg":1,"key-welcome":1},"equipment":{"head":"hat"}}

@@ -57,6 +57,7 @@ TutorialBot.prototype.idleAction = function () {
 
 TutorialBot.prototype.react = function (msg) {
     if (this.db.users[msg.fromId] && msg.fromId != this.id) {
+        core.log("TutorialBot: ", this.id, msg);
         if (this.users[msg.fromId] === undefined)
             this.users[msg.fromId] = 0;
 
