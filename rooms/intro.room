@@ -1,10 +1,10 @@
 ﻿exits
-    -exit to Main-Square locked with sword "Don't forget to take the items (rusty metal and steel-wool) and use them to make a sword. Try \"take all\" followed by \"make sword\"."
+    -exit to Main-Square locked with sword "Don't forget to take the items (stick, ingot, and hammer) and use them to make a sword. Try \"take all\" followed by \"make sword\"."
 
 items
-    steel-wool 10
-    rusty-metal 10
-
+    stick 5
+    ingot 2
+	hammer
 
 Introduction
     
