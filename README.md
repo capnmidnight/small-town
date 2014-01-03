@@ -37,6 +37,8 @@ Running the server
 ==================
 To run the game, use the command line in the project directory and run the command `node server`. This will start the server and wait for connections to be made from a browser. Use your favorite internet browser and connect to http://localhost:8080. This should display the green client page and you should be able to play the game.
 
+I like to use Firefox, but don't limit yourself to only using one browser. The game should work on all browsers, so feel free to use whatever you want. The goal is to have this work on mobile devices, too.
+
 There is an optional command-line switch that can be used to run a "cover all" test on the game. On your command line, type `node server --test`. This will create a testUser that starts at the very beginning of the game and execute in sequence the commands listed in `script.txt`. The server will run through the commands and print out a lot of text to demonstrate the results of each. Since there is so much, you might instead want to use `node server --test > log.txt`. This will write all of the output to a file called `log.txt` that you can then open and read in a text editor.
 
 Playing the game
