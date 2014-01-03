@@ -26,10 +26,18 @@ I'll take pull requests from just about anyone, considering I doubt just about a
 	* Visual Studio Express 2013 for Web (http://www.microsoft.com/en-us/download/details.aspx?id=40747): I'm tending to get away from Visual Studio these days, but I'm very used to its text searching tools, so I sometimes use it out of habit.
 	* notepad2 (http://www.flos-freeware.ch/notepad2.html): Another very simple alternative.
 * Start editing code!
+* When you are satisfied with your changes, use the Github program to create a "commit". Commits are sets of file changes that represent the work you did on the code after you cloned it.
+    * It is best to have each commit represent a "good" state of the program. It should be possible to be able to run the program without error from any commit in time. This isn't necessarily always possible, but try your best.
+	* It's also a good idea to try to make commits as small as possible. They should be limited to one feature or one bug fix at a time. That way, it's easier to tell where work for each one starts and ends.
+* When you're satisfied with the work you've done and you want to share you're work with everyone, use the "sync" command in the Github program to push changes up to this account. It will also pull any changes anyone else made at the same time.
+   * Sometimes, when two people work on the same file and don't realize it, a "conflict" can occur. Conflicts can be difficult to fix. The easiest thing is to discard your changes, take the code from the server, and redo your changes. This is one of the reasons we tend to try to keep commmits small, as it limits the opportunities for conflicts.
+   * But sometimes, it can't be done easily, so you'll have to create a "merge commit". A merge commit is basically you editing the conflicted files until they no longer cause an error when ran, then making a new commit. It's harder to keep everything straight with a merge commit. But hopefully, it shouldn't happen very often. Communicate with the team whenever you have trouble and someone will help you out.
 
 Running the server
 ==================
 To run the game, use the command line in the project directory and run the command `node server`. This will start the server and wait for connections to be made from a browser. Use your favorite internet browser and connect to http://localhost:8080. This should display the green client page and you should be able to play the game.
+
+There is an optional command-line switch that can be used to run a "cover all" test on the game. On your command line, type `node server --test`. This will create a testUser that starts at the very beginning of the game and execute in sequence the commands listed in `script.txt`. The server will run through the commands and print out a lot of text to demonstrate the results of each. Since there is so much, you might instead want to use `node server --test > log.txt`. This will write all of the output to a file called `log.txt` that you can then open and read in a text editor.
 
 Playing the game
 ================
