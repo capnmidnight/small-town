@@ -2,11 +2,16 @@
 var Scavenger = require("./bots/scavenger.js");
 var AIBody = require("./bots/aibody.js");
 var Mule = require("./bots/mule.js");
+var TutorialBot = require("./bots/TutorialBot.js");
 
 module.exports = function (db) {
-
-
-    new ShopKeep(db, "Market", 10, { "bird": 10, "steel-wool": 10, "small-potion": 3 }, { "bird": { "gold": 1 }, "steel-wool": { "gold": 2 }, "small-potion": { "gold": 3 } }, null, "Roland");
+    new ShopKeep(db, "Market", 10,
+        { "bird": 10, "steel-wool": 10, "small-potion": 3 },
+        {
+            "bird": { "gold": 1 },
+            "steel-wool": { "gold": 2 },
+            "small-potion": { "gold": 3 }
+        }, null, "Roland");
     new Scavenger(db, "Main-Square", 10, null, null, "Begbie");
     new AIBody(db, "Main-Square", 10,
         {
@@ -16,4 +21,6 @@ module.exports = function (db) {
         },
          null, "Virginia");
     new Mule(db, "Main-Square", 10, "naaay", { "apple": 5, "log": 3 }, null, null, "mule");
+
+    new TutorialBot(db, "welcome", "Carl");
 };

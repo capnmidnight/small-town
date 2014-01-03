@@ -122,6 +122,7 @@ tool
     katana 150 a great weapon for a great warrior
 
 food
+	egg 1 chicken fetus
     water 1 the liquid of life
     apple 5 fruit
     peach 5 fruit
@@ -157,3 +158,4 @@ none
     bottle can hold liquids, or secrets
     herbs the buds of a special plant
     horn the head dress of a strange animal
+	key-welcome gets you out of the welcome room

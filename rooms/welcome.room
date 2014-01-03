@@ -1,11 +1,8 @@
 ﻿exits
-	-leave to intro
+	-leave to intro cloaked with key-welcome
 
-Welcome!
+Welcome! This is a Multi-User Dungeon, or MUD for short. It is a game you play with other people online that focuses on collecting items, making things, and fighting monsters, all through text descriptions of what is going on.
 
-Welcome to a very simple, Multi-User
-Dungeon that I have created. This MUD
-is almost completely useless at this
-time. However, you can run around in
-the few rooms that exist and try to get
-a feel for things!
+To begin, there is a bot in the room with you named Carl. Carl is going to walk you through a few commands in the game before you continue into the world. To get Carl started on the tutorial, type "hi Carl". Carl will kick into gear and tell you what to do.
+
+Have fun!

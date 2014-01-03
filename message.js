@@ -11,8 +11,8 @@
 function Message(fromId, msg, payload, type)
 {
     this.fromId = fromId;
-    this.message = msg;
-    this.payload = payload || [];
+    this.message = msg || "";
+    this.payload = payload || [""];
     this.type = type || "chat";
 }
 

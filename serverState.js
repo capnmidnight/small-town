@@ -37,7 +37,7 @@ ServerState.prototype.getPeopleIn = function (roomId, excludeUserId) {
 
 ServerState.prototype.getPerson = function (userId, roomId) {
     var user = this.users[userId];
-    if (!roomId || user.roomId == roomId)
+    if (!roomId || (user && user.roomId == roomId))
         return user;
 };
 

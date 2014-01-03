@@ -121,7 +121,7 @@ Body.prototype.react = function(msg)
 
 Body.prototype.sysMsg = function (msg)
 {
-    this.informUser(new Message(this.id, "sysMsg", [msg]));
+    this.informUser(new Message(msg));
 }
 
 Body.prototype.doCommand = function (str)
@@ -139,13 +139,16 @@ Body.prototype.doCommand = function (str)
             params = [params[0], params.slice(1).join(" ")];
 
         var proc = this["cmd_" + cmd];
-        if (!proc)
-            this.sysMsg(format("I don't understand \"%s\".", cmd));
-        else if (params.length < proc.length)
+        if (!proc) {
+            proc = this.cmd_say;
+            params = [str];
+        }
+
+        if (params.length < proc.length)
             this.sysMsg("not enough parameters");
         else if (params.length > proc.length)
             this.sysMsg("too many parameters");
-        else if(this instanceof Body
+        else if (this instanceof Body
             && this.hp <= 0
             && cmd != "quit")
             this.sysMsg("knocked out!");
@@ -218,7 +221,7 @@ explain.say = "Use: \"say &lt;message&gt;\"\n\n"
 Body.prototype.cmd_say = function (msg)
 {
     var m = new Message(this.id, "say", [msg], "chat");
-    this.db.inform(m, this.roomId);
+    this.db.inform(m, this.roomId, this.id);
 }
 
 explain.tell = "Use: \"tell &lt;target name&gt; &lt;message&gt;\"\n\n"
@@ -370,14 +373,14 @@ Body.prototype.cmd_take = function (itemId)
         for (itemId in items)
         {
             var m = new Message(this.id, "take", [itemId], "chat");
-            this.db.inform(m, this.roomId);
+            this.db.inform(m, this.roomId, this.id);
             this.moveItem(itemId, items, this.items, "picked up", "here", items[itemId]);
         }
     }
     else
     {
         var m = new Message(this.id, "take", [itemId], "chat");
-        this.db.inform(m, this.roomId);
+        this.db.inform(m, this.roomId, this.id);
         this.moveItem(itemId, items, this.items, "picked up", "here");
     }
 }
@@ -485,13 +488,26 @@ explain.drink = "Use: \"drink &lt;item name&gt;\"\n\n"
 +"&lt; Health restored by 10 points.";
 Body.prototype.cmd_drink = function(itemId)
 {
+    this.consume(itemId, "drink");
+}
+
+explain.drink = "Use: \"eat &lt;item name&gt;\"\n\n"
++ "Consume food to restore health.\n\n"
++ "Example:\n\n"
++ "&gt; eat egg\n\n"
++ "&lt; player eat egg\n\n"
++ "&lt; Health restored by 1 points.";
+Body.prototype.cmd_eat = function (itemId) {
+    this.consume(itemId, "eat");
+};
+
+Body.prototype.consume = function(itemId, name){
     var item = this.db.items[itemId];
-    if(!this.items[itemId])
-        this.sysMsg(format("You don't have a %s to drink.", itemId));
-    else if(item.equipType != "food")
-        this.sysMsg(format("You can't drink a %s, for it is a %s.", itemId, item.equipType));
-    else
-    {
+    if (!this.items[itemId])
+        this.sysMsg(format("You don't have a %s to %s.", itemId, name));
+    else if (item.equipType != "food")
+        this.sysMsg(format("You can't %s a %s, for it is a %s.", name, itemId, item.equipType));
+    else {
         core.dec(this.items, itemId);
         this.hp += item.strength;
         this.sysMsg(format("Health restored by %d points.", item.strength));
