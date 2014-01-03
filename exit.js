@@ -47,7 +47,7 @@ function Exit(db, direction, fromRoomId, toRoomId, options)
 		this.fromRoomId, 
 		this.toRoomId);
 		
-    Thing.call(this, db, "rooms", id, direction);
+    Thing.call(this, db, "exits", id, direction);
     fromRoom.exits[direction] = this;
     options = options || {};
     

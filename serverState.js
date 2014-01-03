@@ -19,6 +19,7 @@ function ServerState()
     this.users = {};
     this.items = {};
     this.rooms = {};
+    this.exits = {};
     this.recipes = {};
     this.lastSpawn = 0;
     this.respawnRate = 1 * 60 * 1000;
