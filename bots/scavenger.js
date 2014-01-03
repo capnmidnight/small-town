@@ -1,5 +1,5 @@
 var AIBody = require("./aibody.js");
-var core = require("./core.js");
+var core = require("../core.js");
 var format = require("util").format;
 
 function Scavenger(db, roomId, hp, items, equipment, id)

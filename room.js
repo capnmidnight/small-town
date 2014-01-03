@@ -1,7 +1,6 @@
 var Thing = require("./thing.js");
 var Exit = require("./exit.js");
 var Item = require("./item.js");
-var AIBody = require("./aibody.js");
 var fs = require("fs");
 var core = require("./core.js");
 var format = require("util").format;

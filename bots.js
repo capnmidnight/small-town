@@ -1,7 +1,7 @@
-﻿var ShopKeep = require("./shopkeep.js");
-var Scavenger = require("./scavenger.js");
-var AIBody = require("./aibody.js");
-var Mule = require("./mule.js");
+﻿var ShopKeep = require("./bots/shopkeep.js");
+var Scavenger = require("./bots/scavenger.js");
+var AIBody = require("./bots/aibody.js");
+var Mule = require("./bots/mule.js");
 
 module.exports = function (db) {
 
