@@ -32,32 +32,45 @@ function TutorialBot(db, roomId, id) {
 TutorialBot.prototype = Object.create(AIBody.prototype);
 module.exports = TutorialBot;
 
-TutorialBot.prototype.idleAction = function () {
+TutorialBot.prototype.doForEveryone = function (thunk){
     for (var userId in this.users) {
-        this.playTutorialFor(userId);
+        var stepNo = this.users[userId];
+        if (stepNo < this.tutorial.length) {
+            var step = this.tutorial[stepNo].replace(/USERID/g, userId);
+            var nextStepNo = thunk.call(this, userId, stepNo, step);
+            if (nextStepNo > stepNo) {
+                this.users[userId] = nextStepNo;
+            }
+        }
     }
 }
 
-TutorialBot.prototype.playTutorialFor = function (userId) {
-    var stepNo = this.users[userId];
-    if (stepNo < this.tutorial.length
-        && this.tutorial[stepNo].substring(0, 4) !== "wait") {
-        var step = this.tutorial[stepNo].replace(/USERID/g, userId);
-        this.cmd(step);
-        stepNo++;
-        this.users[userId] = stepNo;
-    }
+TutorialBot.prototype.idleAction = function () {
+    this.doForEveryone(function (userId, i, step) {
+        if (step.substring(0, 4) !== "wait") {
+            this.cmd(step);
+            return i + 1;
+        }
+        return i;
+    });
 };
 
 TutorialBot.prototype.react = function (msg) {
-    var userId = msg.fromId;
-    var cmd = "wait " + userId + " " + msg.message + " " + msg.payload.join(" ");
-    var stepNo = this.users[userId] || 0;
-    if (stepNo < this.tutorial.length) {
-        var step = this.tutorial[stepNo].replace(/USERID/g, userId);
-        if (step === cmd) {
-            stepNo++;
-            this.users[userId] = stepNo;
-        }
+    if (this.db.users[msg.fromId] && msg.fromId != this.id) {
+        if (this.users[msg.fromId] === undefined)
+            this.users[msg.fromId] = 0;
+
+        var cmd = "wait " + msg.fromId + " " + msg.message + " " + msg.payload.join(" ");
+        this.doForEveryone(function (userId, i, step) {
+            if (step === cmd) {
+                return i + 1;
+            }
+            return i;
+        });
     }
+};
+
+TutorialBot.prototype.cmd_done = function (userId) {
+    if (this.users[userId])
+        delete this.users[userId];
 };

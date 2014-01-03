@@ -42,14 +42,9 @@ var Body = function(db, id, roomId, hp, items, equipment, socket, password)
     if(this.socket)
     {
         var body = this;
-        this.socket.on("cmd", function(data)
-        {
-            body.inputQ.push(data);
-        });
-        this.socket.on("disconnect", function ()
-        {
-            body.cmd_quit();
-        });
+        this.socket.on("cmd", function(data) { body.inputQ.push(data); });
+        this.socket.on("disconnect", function () { body.cmd_quit(); });
+        this.db.inform(new Message(this.id, "join", null, "chat"), this.roomId, this.id);
     }
     else{
         this.socket = {

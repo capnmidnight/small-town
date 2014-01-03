@@ -1,21 +1,28 @@
-﻿{ "key-welcome": 9001, "egg": 9001, "hat": 9001 }
+﻿{ "key-welcome": 9001, "hat": 9001 }
 >wait USERID say hi Carl
 hello USERID! Welcome to the game.
 In this game, you type commands to perform actions in rooms.
 Usually, you'll be moving between rooms, picking up items, making items, or attack monsters.
+>say isn't that right, Dave?
+>wait Dave say that's right, Carl.
 Commands all have different names and different parameters.
 If you type something that isn't recognized as a command, you will "say" it out loud in the room.
+>say isn't that right, Dave?
+>wait Dave say that's right, Carl.
 You can see the full list of commands at any time by typing "help".
 You can learn about each command by typing "explain COMMAND-NAME", where COMMAND-NAME is the name of a command.
 Are you ready? Type "ok" when you're ready to continue.
 >wait USERID say ok
 The first thing you need to learn is how to pick things up.
-I'm going to drop an item, and you pick it up.
+I'm going to have Dave drop an item, and then you pick it up.
 To pick up an item, type "take ITEM-NAME", where ITEM-NAME is the name of the thing you want to pick up.
+>say isn't that right, Dave?
+>wait Dave say that's right, Carl.
 Are you ready? Type "ok" when you're ready to continue.
 >wait USERID say ok
->drop egg
-I just dropped an egg on the ground.
+>tell Dave drop egg
+>wait Dave drop egg
+Dave just dropped an egg on the ground.
 You can see the egg in the room if you type "look".
 Go ahead and pick it up. Type "take egg".
 >wait USERID take egg
@@ -39,3 +46,4 @@ The exits will be listed, and you can leave by just typing the name of the exit.
 The name of the exit is the word that appears before the word "to" in the exit line.
 >give USERID key-welcome
 Have fun!
+>done USERID

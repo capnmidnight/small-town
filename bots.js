@@ -23,4 +23,5 @@ module.exports = function (db) {
     new Mule(db, "Main-Square", 10, "naaay", { "apple": 5, "log": 3 }, null, null, "mule");
 
     new TutorialBot(db, "welcome", "Carl");
+    new TutorialBot(db, "welcome", "Dave");
 };
