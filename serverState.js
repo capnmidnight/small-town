@@ -94,10 +94,9 @@ ServerState.prototype.pump = function () {
 
 ServerState.prototype.spawnNPC = function (userId) {
     var user = this.users[userId];
-    if(user instanceof AIBody)
-        if (user.hp <= 0)
-            user.hp = 10;
+    user.hp = user.startHP || user.hp;
 };
+
 
 ServerState.prototype.spawnRoom = function(roomId) {
     var room = this.rooms[roomId];
