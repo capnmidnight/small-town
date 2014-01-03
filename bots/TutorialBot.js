@@ -57,11 +57,11 @@ TutorialBot.prototype.idleAction = function () {
 
 TutorialBot.prototype.react = function (msg) {
     if (this.db.users[msg.fromId] && msg.fromId != this.id) {
-        core.log("TutorialBot: ", this.id, msg);
         if (this.users[msg.fromId] === undefined)
             this.users[msg.fromId] = 0;
 
         var cmd = "wait " + msg.fromId + " " + msg.message + " " + msg.payload.join(" ");
+        cmd = cmd.trim();
         this.doForEveryone(function (userId, i, step) {
             if (step === cmd) {
                 return i + 1;
