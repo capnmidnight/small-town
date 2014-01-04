@@ -26,7 +26,7 @@ Aggressor.prototype.idleAction = function () {
     if(rm) {
         if(!this.targetId) {
             var people = this.db.getPeopleIn(this.roomId, this.id);
-            var realUsers = people.filter(function(p){return !(p instanceof AIBody);});
+            var realUsers = people.filter(function(p){return p.isPerson;});
             var target = core.selectRandom(realUsers);
             this.targetId = target && target.id;
         }

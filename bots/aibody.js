@@ -16,6 +16,7 @@ function AIBody(db, roomId, hp, items, equipment, id) {
     this.lastTime = Date.now();
     this.targetId = null;
     this.socket = this;
+    this.isPerson = false;
 }
 
 AIBody.prototype = Object.create(Body.prototype);

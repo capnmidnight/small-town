@@ -32,6 +32,7 @@ var Body = function(db, id, roomId, hp, items, equipment, socket, password)
     this.password = password;
     this.dirty = false;
     this.quit = false;
+    this.isPerson = true;
 
     for(var itemId in items)
         this.items[itemId] = items[itemId];
@@ -562,8 +563,11 @@ explain.who = "Use: \"who\"\n\n"
 +"List all users who are online, and where they are located.";
 Body.prototype.cmd_who = function ()
 {
-    var msg = "People online:\n\n";
-    msg += core.formatHash(this.db.users, function (k, v) { return format("\t%s - %s", k, v.roomId); });
+    var msg = "People online:\n\n"
+    + core.values(this.db.users)
+        .filter(function(u){return u.isPerson;})
+        .map(function(u){return format("\t%s - %s", u.id, u.roomId);})
+        .join("\n\n");
     this.sysMsg(msg);
 }
 
