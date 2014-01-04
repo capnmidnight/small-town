@@ -1,1 +1,1 @@
-{"password":"password","roomId":"Main-Square","hp":100,"items":{"gold":30,"egg":1,"key-welcome":1,"sharpening-stone":2,"hammer":1},"equipment":{"head":"hat","tool":"hunting-knife"}}
+{"password":"password","roomId":"Winter's-Tale","hp":100,"items":{"gold":29,"egg":1,"user-key":1,"sharpening-stone":1,"hammer":1,"sewer-key":1,"hide":5},"equipment":{"head":"hat","tool":"hunting-knife","boots":"chucks"}}

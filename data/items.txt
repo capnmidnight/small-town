@@ -5,7 +5,6 @@ head
     fur-hat 4 extremely warm
     hard-hat 5 used in construction
     pot 8 usually for sauces
-    < 12 for emoji
     steel-helm 18 not good in a thunderstorm
     viking-helm 27 with ram's horn technology
     spartan-helm 41 plummage ftw
@@ -18,7 +17,6 @@ eyes
     glasses 3 glass lenses, metal frames
     goggles 5 protects the eyes
     welding-goggles 8 with smoked lenses
-    B 12 for emoji
     visor 18 full eye protection
 
 shoulders
@@ -28,7 +26,6 @@ shoulders
     brown-cloak totally not a blanket you can wear all the time
     green-cloak feel one with nature
     red-cape vogue
-    - for emoji
     fur-coat less fashion, more rugged
 
 torso
@@ -37,7 +34,6 @@ torso
     leather-chest 4 impact resistant
     reflective-vest 5 bright yellow
     cookie-sheet 8 kind of charred on the edge
-    # 16 for emoji
     chain-mail 32 made of steel rings
     kevlar 64 incredible stopping power
     imperial-breastplate 128 adorned with prancing ponies
@@ -47,7 +43,6 @@ pants
     slacks 2 made of fine cotton
     jeans 4 sturdy work pants
     leather-pants 8 for rockstars
-    = 16 for emoji
     action-pants 32 strong canvas pants with great mobility
     speedo 64 european-style swimsuit
     silk-pants 128 extremely elegant
@@ -83,7 +78,7 @@ gloves
     mittens 4 very warm, but dexterity is lacking
     work-gloves 8 basic leather gloves for working
     butcher-gloves 16 protects against cuts
-    gauntlet steel 32 gloves of awesome
+    gauntlet 32 steel gloves of awesome
 
 shins
     shin-guards 1 worn during certain sporting events
@@ -122,7 +117,7 @@ tool
     katana 150 a great weapon for a great warrior
 
 food
-	egg 1 chicken fetus
+    egg 1 chicken fetus
     water 1 the liquid of life
     apple 5 fruit
     peach 5 fruit
@@ -136,10 +131,9 @@ food
     large-potion 50 recovers 50 health
 
 none
-	scrap-metal pieces scavenged from machines and tools
-	sharpening-stone used to hone blades
-	sharp-blade precursor to a knife
-	goblin-pill used to make goblins. Just add a little water!
+    scrap-metal pieces scavenged from machines and tools
+    sharpening-stone used to hone blades
+    sharp-blade precursor to a knife
     bird worth two in the shrubbery
     dead-bird maybe he's pining for the fjords?
     feather bird-hair
@@ -162,4 +156,5 @@ none
     bottle can hold liquids, or secrets
     herbs the buds of a special plant
     horn the head dress of a strange animal
-	key-welcome gets you out of the welcome room
+    user-key don't lose this key, it will get you through many gates that NPCs are not allowed to cross.
+    sewer-key are you really sure you want to go into the sewer?

@@ -1,49 +1,49 @@
-﻿{ "key-welcome": 9001, "hat": 9001 }
->wait USERID say hi Carl
+﻿{ "user-key": 9001, "hat": 9001 }
+wait USERID say hi Carl
 hello USERID! Welcome to the game.
 In this game, you type commands to perform actions in rooms.
 Usually, you'll be moving between rooms, picking up items, making items, or attack monsters.
->say isn't that right, Dave?
->wait Dave say that's right, Carl.
+isn't that right, Dave?
+wait Dave say that's right, Carl.
 Commands all have different names and different parameters.
 If you type something that isn't recognized as a command, you will "say" it out loud in the room.
->say isn't that right, Dave?
->wait Dave say that's right, Carl.
+isn't that right, Dave?
+wait Dave say that's right, Carl.
 You can see the full list of commands at any time by typing "help".
 You can learn about each command by typing "explain COMMAND-NAME", where COMMAND-NAME is the name of a command.
 Are you ready? Type "ok" when you're ready to continue.
->wait USERID say ok
+wait USERID say ok
 The first thing you need to learn is how to pick things up.
 I'm going to have Dave drop an item, and then you pick it up.
 To pick up an item, type "take ITEM-NAME", where ITEM-NAME is the name of the thing you want to pick up.
->say isn't that right, Dave?
->wait Dave say that's right, Carl.
+isn't that right, Dave?
+wait Dave say that's right, Carl.
 Are you ready? Type "ok" when you're ready to continue.
->wait USERID say ok
->tell Dave drop egg
->wait Dave drop egg
+wait USERID say ok
+tell Dave drop egg
+wait Dave drop egg
 Dave just dropped an egg on the ground.
 You can see the egg in the room if you type "look".
 Go ahead and pick it up. Type "take egg".
->wait USERID take egg
+wait USERID take egg
 Good. You now have an egg in your inventory. Type "inv" to see it. Type "ok" when you're ready to continue.
->wait USERID say ok
+wait USERID say ok
 Try eating the egg. It will increase your health a little bit. Type "ok" when you're ready to continue.
->wait USERID say ok
+wait USERID say ok
 OK! Now I'll teach you how to equip items.
 I'm going to give you a hat to put on your head
 When you receive the hat, just type "equip hat".
 You can then see the equipped hat in your inventory under the equipment section.
 Let's give it a try. Here is the hat.
->give USERID hat
+give USERID hat
 Now put it on. Say "ok" when you're ready to go on.
->wait USERID say ok
-That's it for now. You can go on to the next room now. 
+wait USERID say ok
+That's it for now. You can go on to the next room now.
 The exit was hidden while I talked to you.
 I'm going to give you the secret key that you need to see the exit.
 Once you have the key, you can type "look" to see the room description.
 The exits will be listed, and you can leave by just typing the name of the exit.
 The name of the exit is the word that appears before the word "to" in the exit line.
->give USERID key-welcome
+give USERID user-key
 Have fun!
->done USERID
+done USERID

@@ -118,5 +118,5 @@ else
     }
 
     app.listen(8080);
-    setInterval(loop, 100);
+    setInterval(loop, 10);
 }
