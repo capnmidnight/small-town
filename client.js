@@ -34,6 +34,7 @@ var client = (function () {
                 data.payload.unshift(data.fromId);
             text = data.payload.join(" ");
         }
+        text = text.replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
         this.lines = this.lines.concat(text.split("\n"));
     };
 

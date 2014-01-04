@@ -31,7 +31,7 @@ Room.prototype.describe = function(user, t){
     var people = this.db.getPeopleIn(this.id, user.id)
         .map(function(u){
             return format(
-                "%s%s",
+                "\t%s%s",
                 u.id,
                 u.hp > 0 ? "" : " (KNOCKED OUT)");
         });
