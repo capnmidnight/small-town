@@ -18,17 +18,14 @@ I'm going to have Dave drop an item, and then you pick it up.
 To pick up an item, type "take ITEM-NAME", where ITEM-NAME is the name of the thing you want to pick up.
 isn't that right, Dave?
 wait Dave say that's right, Carl.
-Are you ready? Type "ok" when you're ready to continue.
-wait USERID say ok
+Dave is going to drop an egg on the ground.
+You can pick it up by typing "take egg"
 tell Dave drop egg
-wait Dave drop egg
-Dave just dropped an egg on the ground.
-You can see the egg in the room if you type "look".
-Go ahead and pick it up. Type "take egg".
 wait USERID take egg
-Good. You now have an egg in your inventory. Type "inv" to see it. Type "ok" when you're ready to continue.
-wait USERID say ok
-Try eating the egg. It will increase your health a little bit. Type "ok" when you're ready to continue.
+Good. You now have an egg in your inventory. Type "inv" to see it.
+You can also try eating the egg with "eat egg".
+It will increase your health a little bit.
+Type "ok" when you're ready to continue.
 wait USERID say ok
 OK! Now I'll teach you how to equip items.
 I'm going to give you a hat to put on your head
