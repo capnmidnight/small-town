@@ -44,6 +44,7 @@ I'm going to give you the secret key that you need to see the exit.
 Once you have the key, you can type "look" to see the room description.
 The exits will be listed, and you can leave by just typing the name of the exit.
 The name of the exit is the word that appears before the word "to" in the exit line.
+In this case, it's "leave". Just type "leave" to move on.
 give USERID user-key
 Have fun!
 done USERID
