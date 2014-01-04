@@ -31,8 +31,7 @@ ScriptedBot.prototype.doForEveryone = function (thunk){
         var stepNo = this.users[userId];
         if (stepNo < this.tutorial.length) {
             var step = this.tutorial[stepNo]
-                .replace(/USERID/g, userId)
-                .toLowerCase();
+                .replace(/USERID/g, userId);
             var delta = thunk.call(this, userId, step);
             if (delta > 0)
                 this.users[userId] += delta;
@@ -56,8 +55,8 @@ ScriptedBot.prototype.react = function (msg) {
         if (this.users[msg.fromId] === undefined)
             this.users[msg.fromId] = 0;
 
-        var cmd = "wait " + msg.fromId + " " + msg.message + " " + msg.payload.join(" ");
-        cmd = cmd.trim().toLowerCase();
+        var cmd = format("wait %s %s %s", msg.fromId, msg.message, msg.payload.join(" "));
+        cmd = cmd.trim();
         this.doForEveryone(function (userId, step) {
             return (step === cmd ? 1 : 0);
         });
