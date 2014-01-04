@@ -1,13 +1,13 @@
 ﻿{"egg": 9001}
->wait USERID say hi Carl
->wait Carl say isn't that right, Dave?
->say that's right, Carl.
->wait Carl say isn't that right, Dave?
->say that's right, Carl.
->wait Carl say isn't that right, Dave?
->say that's right, Carl.
->wait Carl tell drop egg
->drop egg
->wait USERID take egg
->tell USERID that be a mighty fine egg you got there.
->done USERID
+wait USERID say hi Carl
+wait Carl say isn't that right, Dave?
+that's right, Carl.
+wait Carl say isn't that right, Dave?
+that's right, Carl.
+wait Carl say isn't that right, Dave?
+that's right, Carl.
+wait Carl tell drop egg
+drop egg
+wait USERID take egg
+tell USERID that be a mighty fine egg you got there.
+done USERID
