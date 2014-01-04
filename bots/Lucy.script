@@ -1,39 +1,31 @@
 {"hammer": 9001, "sharpening-stone": 9001, "stick": 9001, "scrap-metal": 9001}
 wait USERID say hi Lucy
-Hey there, USERID. I see you're new to these realms.
-You should know, it's kind of dangerous to go into the wilderness.
-We better get you setup with a weapon.
-So let's teach you how to make one.
-If you're ready, say "yes".
-wait USERID say yes
-Let's make a basic hunting-knife.
-(say "ok" to continue)
-wait USERID say ok
-The first thing you need to do is make a sharp-blade.
-Take this scrap-metal
+tell USERID Hey there, USERID. I see you're new to these realms.
+tell USERID Let's teach you how to make a basic hunting-knife.
+tell USERID Take this scrap-metal
 give USERID scrap-metal
-And this sharpening-stone
+tell USERID And this sharpening-stone
 give USERID sharpening-stone
-And use them to "make sharp-blade".
-When you're ready to continue, say "ok".
+tell USERID And use them to "make sharp-blade".
+tell USERID When you're ready to continue, say "ok".
 wait USERID say ok
-Now that you have the sharp-blade, you can take this stick
+tell USERID Now that you have the sharp-blade, you can take this stick
 give USERID stick
-and this hammer
+tell USERID and this hammer
 give USERID hammer
-and type "make hunting-knife".
-When you're ready to continue, say "ok".
+tell USERID and type "make hunting-knife".
+tell USERID When you're ready to continue, say "ok".
 wait USERID say ok
-Know that you have your hunting-knife, you can equip it,
-just like you did the hat before. Type "equip hunting-knife".
-You can now attack things by typeing "attack <user-id", where
-user-id is the name of the thing you want to attack.
-(say "ok" to continue)
+tell USERID Know that you have your hunting-knife, you can equip it,
+tell USERID just like you did the hat before. Type "equip hunting-knife".
+tell USERID You can now attack things by typeing "attack <user-id", where
+tell USERID user-id is the name of the thing you want to attack.
+tell USERID (say "ok" to continue)
 wait USERID say ok
-Now, DEFEND YOURSELF!
+tell USERID Now, DEFEND YOURSELF!
 spawn goblin
-Attack Lucy's-goblin! Once you're done, loot its body.
+tell USERID Attack Lucy's-goblin! Once you're done, loot its body.
 cleanup USERID
-Also notice, with the hunting-knife, the exit from this room
-is unlocked. Have fun!
+tell USERID Also notice, with the hunting-knife, the exit from this room
+tell USERID is unlocked. Have fun!
 done USERID

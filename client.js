@@ -24,8 +24,12 @@ var client = (function () {
             text = data;
         else {
             if(data.message === "say")
-                data.message = ":";
-            data.payload.unshift(data.message);
+                data.payload.unshift(":");
+            else if (data.message === "tell")
+                data.payload.unshift(": &lt;whisper&gt;");
+            else
+                data.payload.unshift(data.message);
+
             if(data.fromId != "server")
                 data.payload.unshift(data.fromId);
             text = data.payload.join(" ");
