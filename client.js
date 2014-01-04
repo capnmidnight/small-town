@@ -1,14 +1,11 @@
 var client = (function () {
     var input, userStatus, socket, listeners = {};
 
-    function SocketListener(boxId, socket) {
+    function BoxQueue(boxId) {
         this.box = document.getElementById(boxId);
         listeners[boxId] = this;
         this.lines = [];
         var b = this;
-        socket.on(boxId, function(data) {
-            b.enq(data);
-        });
         var resizer = function () {
             b.box.style.width = (window.innerWidth - 10) + "px";
             b.box.style.height = (window.innerHeight - 30) + "px";
@@ -17,14 +14,26 @@ var client = (function () {
         window.addEventListener("resize", resizer);
     }
 
-    SocketListener.prototype.enq = function(data) {
+    BoxQueue.prototype.enq = function(data) {
+        var text = "";
         for(var boxId in listeners)
             listeners[boxId].box.style.opacity = 0.25;
         this.box.style.opacity = 1;
-        this.lines = this.lines.concat(data.split("\n\n"));
+
+        if(typeof(data) === "string")
+            text = data;
+        else {
+            if(data.message === "say")
+                data.message = ":";
+            data.payload.unshift(data.message);
+            if(data.fromId != "server")
+                data.payload.unshift(data.fromId);
+            text = data.payload.join(" ");
+        }
+        this.lines = this.lines.concat(text.split("\n"));
     };
 
-    SocketListener.prototype.next = function() {
+    BoxQueue.prototype.next = function() {
         if(this.lines.length > 0) {
             var elem = document.createElement("div");
             var line = this.lines.shift();
@@ -94,14 +103,21 @@ var client = (function () {
 
     this.run = function () {
         try {
+            new BoxQueue("news");
+            new BoxQueue("chat");
             socket = io.connect(document.location.hostname,
             {
                 "reconnect": true,
                 "reconnection delay": 1000,
                 "max reconnection attempts": 60
             });
-            new SocketListener("chat", socket);
-            new SocketListener("news", socket);
+            socket.on("news", function(data){
+                console.log(JSON.stringify(data));
+                listeners[data.type].enq(data);
+            });
+            socket.on("userStatus", function(data){
+                userStatus.innerHTML = data;
+            });
             socket.on("connect", function () {
                 listeners.news.enq("Connected.");
                 listeners.news.enq("Enter name.");
@@ -125,9 +141,6 @@ var client = (function () {
                 listeners.news.enq("Password accepted.");
                 input.placeholder = "<enter command>";
                 input.type = "text";
-            });
-            socket.on("userStatus", function(data){
-                userStatus.innerHTML = data;
             });
             socket.on("disconnect", function () {
                 listeners.news.enq("Disconnected.");

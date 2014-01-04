@@ -106,18 +106,12 @@ Body.prototype.update = function ()
 
 Body.prototype.react = function(msg)
 {
-    this.socket.emit(
-        msg.type,
-        format(
-            "%s %s %s",
-            msg.fromId,
-            msg.message,
-            msg.payload.join(" ")));
+    this.socket.emit("news", msg);
 }
 
 Body.prototype.sysMsg = function (msg)
 {
-    this.informUser(new Message(msg));
+    this.informUser(new Message("server", msg));
 }
 
 Body.prototype.doCommand = function (str)
@@ -305,7 +299,7 @@ Body.prototype.cmd_look = function ()
     else
     {
         var description = rm.describe(this, Date.now() / 1000);
-        this.informUser(new Message(this.id, description, null, "news"));
+        this.informUser(new Message("server", description, null, "news"));
     }
 }
 

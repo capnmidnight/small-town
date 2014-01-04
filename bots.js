@@ -8,19 +8,19 @@ var ScriptedBot = require("./bots/ScriptedBot.js");
 module.exports = function (db) {
     new ShopKeep(db, "General-Store", 9000,
         {
-          "scrap-metal": 100, "crucible": 10, "bird":100,
-          "towel":15, "blanket":10,
-          "wool-coat":5, "brown-cloak":5,
-          "green-cloak":5, "red-cape":2,
-          "fur-coat":1,
-          "rope":15, "braided-belt":10,
-          "leather-belt":5, "work-belt":5,
-          "utility-belt":2,
-          "t-shirt":15, "hawaiian":10,
-          "dress-shirt":5, "flannel":5,
-          "under-armor":5, "puffy-shirt":2,
-          "leather-shirt":2,
-          "gold":1000
+            "scrap-metal": 100, "crucible": 10, "bird":100,
+            "towel":15, "blanket":10,
+            "wool-coat":5, "brown-cloak":5,
+            "green-cloak":5, "red-cape":2,
+            "fur-coat":1,
+            "rope":15, "braided-belt":10,
+            "leather-belt":5, "work-belt":5,
+            "utility-belt":2,
+            "t-shirt":15, "hawaiian":10,
+            "dress-shirt":5, "flannel":5,
+            "under-armor":5, "puffy-shirt":2,
+            "leather-shirt":2,
+            "gold":1000
         },
         {
             "scrap-metal": {"gold":1},
