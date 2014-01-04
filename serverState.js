@@ -14,7 +14,7 @@ function ServerState() {
     this.exits = {};
     this.recipes = {};
     this.lastSpawn = 0;
-    this.respawnRate = 1 * 60 * 1000;
+    this.respawnRate = 5 * 60 * 1000;
 
     loadItems(this, "data/items.txt");
     loadRecipes(this, "data/recipes.txt");

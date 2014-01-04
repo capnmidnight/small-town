@@ -3,15 +3,17 @@ var Message = require("../message.js");
 var core = require("../core.js");
 var format = require("util").format;
 
-// Mule class
-//  An NPC for following the player and carrying things.
-// players.
-//  - roomId: the name of the room in which the Mule starts.
-//  - hp: how much health the Mule starts with.
-//  - items (optional): an associative array of item IDs to counts,
-//          representing the stuff in the character's pockets.
-//  - equipment (optional): an associative array of item IDs to
-//          counts, representing the stuff in use by the character.
+/*
+ * Mule class
+ *  An NPC for following the player and carrying things.
+ * players.
+ *  - roomId: the name of the room in which the Mule starts.
+ *  - hp: how much health the Mule starts with.
+ *  - items (optional): an associative array of item IDs to counts,
+ *          representing the stuff in the character's pockets.
+ *  - equipment (optional): an associative array of item IDs to
+ *          counts, representing the stuff in use by the character.
+ */
 
 function Mule(db, roomId, hp, speak, items, equipment, targetId, id) {
     AIBody.call(this, db, roomId, hp, items, equipment, id);

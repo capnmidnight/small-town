@@ -454,7 +454,11 @@ Body.prototype.cmd_make = function (recipeId)
     }
 }
 
-explain.make = "Use: \"inv\"\n\n"
+explain.ls = "Use: \"ls\"\n\n"
++"View what you have in your inventory";
+Body.prototype.cmd_ls = Body.prototype.cmd_inv;
+
+explain.inv = "Use: \"inv\"\n\n"
 +"View what you have in your inventory";
 Body.prototype.cmd_inv = function ()
 {
