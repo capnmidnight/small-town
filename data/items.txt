@@ -136,6 +136,10 @@ food
     large-potion 50 recovers 50 health
 
 none
+	scrap-metal pieces scavenged from machines and tools
+	sharpening-stone used to hone blades
+	sharp-blade precursor to a knife
+	goblin-pill used to make goblins. Just add a little water!
     bird worth two in the shrubbery
     dead-bird maybe he's pining for the fjords?
     feather bird-hair

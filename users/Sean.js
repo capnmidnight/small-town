@@ -1,1 +1,1 @@
-{"password":"password","roomId":"Market","hp":110,"items":{"gold":8,"bird":1},"equipment":{"tool":"sword"}}
+{"password":"password","roomId":"Main-Square","hp":100,"items":{"gold":30,"egg":1,"key-welcome":1,"sharpening-stone":2,"hammer":1},"equipment":{"head":"hat","tool":"hunting-knife"}}

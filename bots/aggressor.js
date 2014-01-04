@@ -25,13 +25,14 @@ Aggressor.prototype.idleAction = function ()
     var rm = this.db.rooms[this.roomId];
     if(rm)
     {
-		var people = this.db.getPeopleIn(this.roomId);
-		var targetId = core.selectRandom(core.keys(rm.users));
+		var people = this.db.getPeopleIn(this.roomId, this.id);
+		var realUsers = people.filter(function(p){return !(p instanceof AIBody);});
+		var target = core.selectRandom(realUsers);
 		var exit = core.selectRandom(core.keys(rm.exits));
-		if(!this.moving && targetId)
+		if((!this.moving || !exit) && target)
 		{
 			this.cmd("say RAAAARGH!");
-			this.cmd("attack " + targetId);
+			this.cmd("attack " + target.id);
 		}
 		else if(exit)
 			this.cmd(exit);

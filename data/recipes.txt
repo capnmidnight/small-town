@@ -5,6 +5,7 @@ leather from hide; to leather.
 glass from sand 5; to glass; using crucible.
 bottle from glass; to bottle; using crucible, glass-blower.
 pie-plate from ingot; to pie-plate; using hammer.
+sharp-blade from scrap-metal; to sharp-blade; using sharpening-stone.
 
 small-potion from bottle, herbs 3; to small-potion.
 apple-pie from apple 5; to apple-pie; using pie-plate.
@@ -19,8 +20,8 @@ handsaw from plank, ingot; to handsaw 2; using hammer.
 rusty-metal from ingot, water; to rusty-metal.
 shovel from stick 3, ingot; to shovel 3; using hammer.
 pickaxe from stick 3, ingot; to shovel 3.
-butcher-knife from stick 7, ingot; to butcher-knife 7; using hammer.
-hunting-knife from stick 7, ingot; to hunting-knife 7; using hammer.
+butcher-knife from stick, sharp-blade; to butcher-knife; using hammer.
+hunting-knife from stick, sharp-blade; to hunting-knife; using hammer.
 sword from stick 5, ingot 2; to sword; using hammer.
 axe from plank, stick, ingot 2; to axe; using hammer.
 steel-sword from stick 10, ingot 5; to steel-sword; using hammer.
