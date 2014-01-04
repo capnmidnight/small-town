@@ -298,7 +298,7 @@ Body.prototype.cmd_look = function ()
         this.sysMsg("What have you done!?");
     else
     {
-        var description = rm.describe(this, Date.now() / 1000);
+        var description = rm.describe(this);
         this.informUser(new Message("server", description, null, "news"));
     }
 }
@@ -310,7 +310,7 @@ Body.prototype.move = function (dir)
     var exitRoom = exit && this.db.rooms[exit.toRoomId];
     if (!exit || !exitRoom)
         this.sysMsg(format("You can't go %s. There is no exit that way", dir));
-    else if(exit.isLocked(this, Date.now() / 1000))
+    else if(exit.isLocked(this))
         this.sysMsg(format("You can't go %s. %s.", dir, exit.lockMessage));
     else
     {

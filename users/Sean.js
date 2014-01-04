@@ -1,1 +1,1 @@
-{"password":"password","roomId":"Winter's-Tale","hp":100,"items":{"gold":29,"egg":1,"user-key":1,"sharpening-stone":1,"hammer":1,"sewer-key":1,"hide":5},"equipment":{"head":"hat","tool":"hunting-knife","boots":"chucks"}}
+{"password":"password","roomId":"Theater","hp":100,"items":{"gold":29,"egg":1,"user-key":1,"sharpening-stone":1,"hammer":1,"sewer-key":1,"hide":5},"equipment":{"head":"hat","tool":"hunting-knife","boots":"chucks"}}

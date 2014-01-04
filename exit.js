@@ -2,7 +2,7 @@ var Thing = require("./thing.js");
 var assert = require("assert");
 var format = require("util").format;
 var core = require("./core.js");
-/* 
+/*
  * Exit class:
  *  A doorway from one room to the other, with an optional lock.
  *  Exits are uni-directional. An exit from Room A to Room B does
@@ -12,7 +12,7 @@ var core = require("./core.js");
  *  - direction: the name to use for this Exit.
  *  - fromRoomId: the room from which this Exit starts
  *  - toRoomId: the room to which this Exit links
- *  - options (optional): a hash of the following options 
+ *  - options (optional): a hash of the following options
  *      - cloak (optional): an itemId that must be in the user's
  *          inventory for them to be allowed to *see* the door.
  *      - lock (optional): an itemId that must be the user's inventory
@@ -21,20 +21,20 @@ var core = require("./core.js");
  *          they try to go through the exit but don't have the
  *          key item. Use this to create puzzle hints.
  *      - oneWay (optional): if truish, don't create the reverse link.
- * 		- timeCloak (optional): a structure that defines a time period
- * 			on which the exit is cloaked or visible:
- * 			- period: the total time the visibility cycle takes.
- * 			- shift (optional): an offset of time to push the start
- * 				of the phase away. Defaults to 0.
- * 			- width (optional): the proportion of time of the cycle that
- * 				the phase is "on". Defaults to 0.5.
- * 		- timeLocked (optional): a structure that defines a time period
- * 			on which the exit is locked or unlocked:
- * 			- period: the total time the lock cycle takes.
- * 			- shift (optional): an offset of time to push the start
- * 				of the phase away. Defaults to 0.
- * 			- width (optional): the proportion of time of the cycle that
- * 				the phase is "on". Defaults to 0.5.
+ *      - timeCloak (optional): a structure that defines a time period
+ *          on which the exit is cloaked or visible:
+ *          - period: the total time the visibility cycle takes.
+ *          - shift (optional): an offset of time to push the start
+ *              of the phase away. Defaults to 0.
+ *          - width (optional): the proportion of time of the cycle that
+ *              the phase is "on". Defaults to 0.5.
+ *      - timeLocked (optional): a structure that defines a time period
+ *          on which the exit is locked or unlocked:
+ *          - period: the total time the lock cycle takes.
+ *          - shift (optional): an offset of time to push the start
+ *              of the phase away. Defaults to 0.
+ *          - width (optional): the proportion of time of the cycle that
+ *              the phase is "on". Defaults to 0.5.
  */
 function Exit(db, direction, fromRoomId, toRoomId, options)
 {
@@ -42,25 +42,25 @@ function Exit(db, direction, fromRoomId, toRoomId, options)
     var fromRoom = db.rooms[this.fromRoomId];
     this.toRoomId = checkRoomId(db.rooms, toRoomId, "to");
     var id = direction && format(
-		"exit-%s-from-%s-to-%s", 
-		direction, 
-		this.fromRoomId, 
-		this.toRoomId);
-		
+        "exit-%s-from-%s-to-%s",
+        direction,
+        this.fromRoomId,
+        this.toRoomId);
+
     Thing.call(this, db, "exits", id, direction);
     fromRoom.exits[direction] = this;
     options = options || {};
-    
+
     this.cloak = checkLockSet(this.db, options.cloak);
-	this.lock = checkLockSet(this.db, options.lock);
+    this.lock = checkLockSet(this.db, options.lock);
     this.lockMessage = options.lockMessage || "You need a key to get through this exit.";
-    
+
     this.timeCloak = checkTimerSet(options.timeCloak);
     this.timeLock = checkTimerSet(options.timeLock);
-    
+
     if(!options.oneWay)
     {
-		options.oneWay = true;
+        options.oneWay = true;
         var reverse = new Exit(this.db, reverseDirection[direction], toRoomId, fromRoomId, options);
         this.reverseId = reverse.id;
     }
@@ -71,69 +71,69 @@ module.exports = Exit;
 
 function parseLocker(part, options, name)
 {
-	if(part === "with")
-	{
-		name = name.toLowerCase();
-		options[name] = [];
-	}
-	else if(part === "when")
-	{
-		name = "time" + name;
-		options[name] = {};
-	}
-	else if(part[0] === '"')
-	{
-		name = name.toLowerCase() + "Message";
-		options[name] = part.substring(1);
-	}
-	else
-		name = part;
-		
-	return name;
+    if(part === "with")
+    {
+        name = name.toLowerCase();
+        options[name] = [];
+    }
+    else if(part === "when")
+    {
+        name = "time" + name;
+        options[name] = {};
+    }
+    else if(part[0] === '"')
+    {
+        name = name.toLowerCase() + "Message";
+        options[name] = part.substring(1);
+    }
+    else
+        name = part;
+
+    return name;
 }
 
-var parsers = 
+var parsers =
 {
-	none: function(part, options)
-	{
-		return part;
-	},
+    none: function(part, options)
+    {
+        return part;
+    },
 
-	to: function(part, options)
-	{
-		options.toRoomId = part;
-		return "none";
-	},
-	
-	cloaked: function(part, options)
-	{
-		return parseLocker(part, options, "Cloak");
-	},
-	
-	locked: function (part, options)
-	{
-		return parseLocker(part, options, "Lock");
-	},
+    to: function(part, options)
+    {
+        options.toRoomId = part;
+        return "none";
+    },
 
-	cloak: function(itemId, options)
-	{
-	    return collectItemList(itemId, options, "cloak");
-	},
+    cloaked: function(part, options)
+    {
+        return parseLocker(part, options, "Cloak");
+    },
 
-	lock: function(itemId, options)
-	{
-	    return collectItemList(itemId, options, "lock");
-	},
+    locked: function (part, options)
+    {
+        return parseLocker(part, options, "Lock");
+    },
 
-	timeLock: function(number, options)
-	{
-	    return collectTimeConstraints(number, options, "Lock");
-	},
+    cloak: function(itemId, options)
+    {
+        return collectItemList(itemId, options, "cloak");
+    },
 
-	timeCloak: function(number, options)
-	{
-	    return collectTimeConstraints(number, options, "Cloak");
-	},
+    lock: function(itemId, options)
+    {
+        return collectItemList(itemId, options, "lock");
+    },
+
+    timeLock: function(number, options)
+    {
+        return collectTimeConstraints(number, options, "Lock");
+    },
+
+    timeCloak: function(number, options)
+    {
+        return collectTimeConstraints(number, options, "Cloak");
+    },
 
     lockMessage: function(part, options)
     {
@@ -182,35 +182,35 @@ function collectTimeConstraints(number, options, name)
 
 Exit.parse = function(db, fromRoomId, text)
 {
-	var options = {
-		oneWay: (text[0] == '-')
-	};
-	
-	if(options.oneWay)
-		text = text.substring(1);
-		
-	var parts = text.split(" ");
-	var direction = parts[0];
-	var state = "none";
-	for(var i = 1; i < parts.length; ++i)
-		state = parsers[state](parts[i], options);
-		
-	return new Exit(db, direction, fromRoomId, options.toRoomId, options);
+    var options = {
+        oneWay: (text[0] == '-')
+    };
+
+    if(options.oneWay)
+        text = text.substring(1);
+
+    var parts = text.split(" ");
+    var direction = parts[0];
+    var state = "none";
+    for(var i = 1; i < parts.length; ++i)
+        state = parsers[state](parts[i], options);
+
+    return new Exit(db, direction, fromRoomId, options.toRoomId, options);
 };
 
 function checkLockSet(db, lock)
 {
-	if(!(lock instanceof Array))
-		lock = lock ? [lock] : [];
-	return lock.map(function(itemId){
-		if(itemId.id)
-			itemId = itemId.id;
-		assert.ok(db.items[itemId], itemId + " is not an item.");
-		return itemId;
-	});
-}	
+    if(!(lock instanceof Array))
+        lock = lock ? [lock] : [];
+    return lock.map(function(itemId){
+        if(itemId.id)
+            itemId = itemId.id;
+        assert.ok(db.items[itemId], itemId + " is not an item.");
+        return itemId;
+    });
+}
 
-var reverseDirection = 
+var reverseDirection =
 {
     "north": "south",
     "east": "west",
@@ -224,97 +224,99 @@ var reverseDirection =
 
 function checkRoomId(table, roomId, name)
 {
-	if(roomId.id)
-		roomId = roomId.id;
-		
+    if(roomId.id)
+        roomId = roomId.id;
+
     assert.ok(roomId, name + "RoomId required");
-    assert.ok(table[roomId], 
+    assert.ok(table[roomId],
         "room \"" + roomId + "\" must exist before exit can be created.");
-        
+
     return roomId;
 }
 
 function checkLockClosed (db, lock, user)
 {
-	if(user instanceof String)
-		user = db.users[user];
-	equip = core.values(user.equipment);
-	return !lock.reduce(function(prev, itemId){
-		return prev && (user.items[itemId] || equip.indexOf(itemId) > -1);
-	}, true);
+    if(user instanceof String)
+        user = db.users[user];
+    equip = core.values(user.equipment);
+    return !lock.reduce(function(prev, itemId){
+        return prev && (user.items[itemId] || equip.indexOf(itemId) > -1);
+    }, true);
 }
 
 Exit.prototype.isCloakedTo = function (user)
 {
-	return checkLockClosed(this.db, this.cloak, user);
+    return checkLockClosed(this.db, this.cloak, user);
 };
 
 Exit.prototype.isLockedTo = function (user)
 {
-	return this.isCloakedTo(user)
-		|| checkLockClosed(this.db, this.lock, user);
+    return this.isCloakedTo(user)
+        || checkLockClosed(this.db, this.lock, user);
 };
 
 function checkTimerSet(timer)
 {
-	timer = timer || {};
-	timer.period = timer.period || 1;
-	assert(timer.period > 0, "timer period must be greater than 0");
-	timer.shift = timer.shift || 0;
-	timer.width = timer.width || 0.5;
-	assert(timer.width > 0, "timer width must be > 0");
-	assert(timer.width <= 1, "timer width must be <= 1");
-	if(timer.period == 1)
-	{
-		timer.mid = 1;
-		timer.shift = 0;
-		timer.width = 0;
-	}
-	timer.mid = Math.floor(timer.period * timer.width);
-	return timer;
+    timer = timer || {};
+    timer.period = timer.period || 1;
+    assert(timer.period > 0, "timer period must be greater than 0");
+    timer.shift = timer.shift || 0;
+    timer.width = timer.width || 0.5;
+    assert(timer.width > 0, "timer width must be > 0");
+    assert(timer.width <= 1, "timer width must be <= 1");
+    if(timer.period == 1)
+    {
+        timer.mid = 1;
+        timer.shift = 0;
+        timer.width = 0;
+    }
+    timer.mid = Math.floor(timer.period * timer.width);
+    return timer;
 }
 
 function checkTimerOn(timer, t)
 {
-	t -= timer.shift;
-	
-	// javascript's modulus operator doesn't work well for
-	// negative values.
-	while(t < 0) t += timer.period;
-	
-	return (t % timer.period) < timer.mid;
+    t = t || core.time();
+    t -= timer.shift;
+    while(t < 0) t += timer.period;
+    return (t % timer.period) < timer.mid;
 }
 
 Exit.prototype.isCloakedAt = function(t)
 {
-	return checkTimerOn(this.timeCloak, t);
+    t = t || core.time();
+    return checkTimerOn(this.timeCloak, t);
 };
 
 Exit.prototype.isLockedAt = function(t)
 {
-	return this.isCloakedAt(t)
-		|| checkTimerOn(this.timeLock, t);
+    t = t || core.time();
+    return this.isCloakedAt(t)
+        || checkTimerOn(this.timeLock, t);
 };
 
 Exit.prototype.isCloaked = function(user, t)
 {
-	return this.isCloakedTo(user)
-		|| this.isCloakedAt(t);
+    t = t || core.time();
+    return this.isCloakedTo(user)
+        || this.isCloakedAt(t);
 };
 
 Exit.prototype.isLocked = function(user, t)
 {
-	return this.isLockedTo(user)
-		|| this.isLockedAt(t);
+    t = t || core.time();
+    return this.isLockedTo(user)
+        || this.isLockedAt(t);
 };
 
-Exit.prototype.describe = function (user, t)
+Exit.prototype.describe = function (user)
 {
-	if(this.isCloaked(user, t))
-		return "";
-	else
-		return format("%s to %s%s",
-			this.description,
-			this.toRoomId,
-			this.isLocked(user, t) ? " (LOCKED)" : "");
+    var t = core.time();
+    if(this.isCloaked(user, t))
+        return "";
+    else
+        return format("%s to %s%s",
+            this.description,
+            this.toRoomId,
+            this.isLocked(user, t) ? " (LOCKED)" : "");
 };

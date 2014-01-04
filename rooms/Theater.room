@@ -1,7 +1,7 @@
 exits
-    north to Comedies
-    east to Histories
-    west to Tragedies
+    north to Comedies cloaked when 180, 0.667
+    east to Histories cloaked when 180, 0.667, 60
+    west to Tragedies cloaked when 180, 0.667, 120
 
 The Theater
 

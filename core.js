@@ -105,6 +105,11 @@ exports.transfer = function(itm, from, to, amt)
     return false;
 }
 
+exports.time = function(){
+    var d = new Date();
+    return (d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds();
+};
+
 if (process.argv.indexOf("--headless") == -1) {
     exports.log = console.log;
 }
