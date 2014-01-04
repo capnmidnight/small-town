@@ -315,7 +315,7 @@ Exit.prototype.describe = function (user)
     if(this.isCloaked(user, t))
         return "";
     else
-        return format("%s to %s%s",
+        return format("\t%s to %s%s",
             this.description,
             this.toRoomId,
             this.isLocked(user, t) ? " (LOCKED)" : "");

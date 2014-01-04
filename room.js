@@ -47,7 +47,7 @@ Room.prototype.describe = function(user, t){
             return format("\t%d %s - %s", v, k,
                 (itemCatalogue[k] ? itemCatalogue[k].description : "(UNKNOWN)"));
         });
-    return format("ROOM: %s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
+    return format("%s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
         this.description,
         itemList,
         people.join("\n\n"),
