@@ -45,7 +45,7 @@ var Body = function(db, id, roomId, hp, items, equipment, socket, password)
         var body = this;
         this.socket.on("cmd", function(data) { body.inputQ.push(data); });
         this.socket.on("disconnect", function () { body.cmd_quit(); });
-        this.db.inform(new Message(this.id, "join", null, "chat"), this.roomId, this.id);
+        this.db.inform(new Message(this.id, "join", null, "chat"));
     }
     else{
         this.socket = {
