@@ -263,7 +263,7 @@ Body.prototype.cmd_help = function ()
     var lines = [];
     for (var cmd in this)
     {
-        if(cmd.indexOf("cmd_") >= 0)
+        if(cmd.indexOf("cmd_") >= 0 && this[cmd])
         {
             var src = this[cmd].toString();
             var j = src.indexOf(")");
