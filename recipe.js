@@ -22,9 +22,9 @@ var fs = require("fs");
 function Recipe(db, id, description, ingredients, results, tools)
 {
     Thing.call(this, db, "recipes", id, description);
-    this.ingredients = ingredients;
-    this.results = results;
-    this.tools = tools;
+    this.ingredients = ingredients || {};
+    this.results = results || {};
+    this.tools = tools || {};
 }
 Recipe.prototype = Object.create(Thing.prototype);
 module.exports = Recipe;
