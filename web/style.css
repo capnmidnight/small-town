@@ -10,7 +10,8 @@ html, body, #input
 {
     padding: 0;
     margin: 0;
-    font-family: "Eagle Lake", Georgia, sans;
+    font-family: "Open Sans", Georgia, sans;
+    font-weight: 400;
     color: #3e3223;
     background-color: #b6d6b6;
 }
