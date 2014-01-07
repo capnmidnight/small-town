@@ -1,9 +1,9 @@
-﻿var ShopKeep = require("./bots/shopkeep.js");
-var Scavenger = require("./bots/scavenger.js");
-var Aggressor = require("./bots/aggressor.js");
-var AIBody = require("./bots/aibody.js");
-var Mule = require("./bots/mule.js");
-var loadBots = require("./bots/ScriptedBot.js").loadFromDir;
+﻿var ShopKeep = require("./shopkeep.js");
+var Scavenger = require("./scavenger.js");
+var Aggressor = require("./aggressor.js");
+var AIBody = require("./aibody.js");
+var Mule = require("./mule.js");
+var loadBots = require("./ScriptedBot.js").loadFromDir;
 
 module.exports = function (db) {
     new ShopKeep(db, "General-Store", 9000,

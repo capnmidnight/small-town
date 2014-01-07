@@ -1,5 +1,5 @@
-var Body = require("../body.js");
-var core = require("../core.js");
+var Body = require("./body.js");
+var core = require("./core.js");
 var format = require("util").format;
 
 //  AIBody class

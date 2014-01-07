@@ -1,7 +1,7 @@
 ﻿var AIBody = require("./aibody.js");
-var Message = require("../message.js");
+var Message = require("./message.js");
 var Aggressor = require("./aggressor.js");
-var core = require("../core.js");
+var core = require("./core.js");
 var format = require("util").format;
 var fs = require("fs");
 

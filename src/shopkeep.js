@@ -1,5 +1,5 @@
 var AIBody = require("./aibody.js");
-var core = require("../core.js");
+var core = require("./core.js");
 var format = require("util").format;
 
 function ShopKeep(db, roomId, hp, items, prices, equipment, id)

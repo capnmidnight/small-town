@@ -1,5 +1,5 @@
 var AIBody = require("./aibody.js");
-var core = require("../core.js");
+var core = require("./core.js");
 
 /*
  * Aggressor class
