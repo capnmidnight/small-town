@@ -200,6 +200,7 @@ module.exports = function (db) {
     new ScriptedBot(db, "welcome", "Carl");
     new ScriptedBot(db, "welcome", "Dave");
     new ScriptedBot(db, "intro", "Lucy");
+    new ScriptedBot(db, "intro", "Maureen");
     new ScriptedBot(db, "Winter's-Tale", "Archidamus");
     new ScriptedBot(db, "Winter's-Tale", "Camillo");
 };

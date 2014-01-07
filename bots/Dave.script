@@ -1,14 +1,8 @@
-﻿{"egg": 9001}
+﻿{ "user-key": 9001, "hat": 9001, "egg": 9001 }
 wait USERID say hi Carl
-wait Carl tell GO
-tell USERID that's right, Carl.
-tell Carl GO
-wait Carl tell GO
-tell USERID that's right, Carl.
-tell Carl GO
-wait Carl tell GO
-tell USERID that's right, Carl.
-tell Carl GO
-wait Carl tell drop egg
-drop egg
+wait USERID say skip me
+give USERID hat
+give USERID egg
+give USERID user-key
+tell USERID type "leave" to go to the next room.
 done USERID

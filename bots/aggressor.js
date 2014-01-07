@@ -21,33 +21,37 @@ function Aggressor(db, roomId, hp, items, equipment, id) {
 Aggressor.prototype = Object.create(AIBody.prototype);
 module.exports = Aggressor;
 
-Aggressor.prototype.idleAction = function () {
-    var rm = this.db.rooms[this.roomId];
-    if(rm) {
-        if(!this.targetId) {
-            var people = this.db.getPeopleIn(this.roomId, this.id);
-            var realUsers = people.filter(function(p){return p.isPerson;});
-            var target = core.selectRandom(realUsers);
-            this.targetId = target && target.id;
-        }
+Aggressor.prototype.findTarget = function findTarget() {
+    if(!this.targetId || this.targetId.hp <= 0) {
+        var people = this.db.getPeopleIn(this.roomId, this.id);
+        var realUsers = people.filter(function(p){return p.isPerson;});
+        var target = core.selectRandom(realUsers);
+        this.targetId = target && target.id;
+    }
 
-        if(this.targetId) {
-            var target = this.db.getPerson(this.targetId, this.roomId);
-            if(target) {
-                this.cmd("say RAAAARGH!");
-                this.cmd("attack " + this.targetId);
-            }
-            else
-                this.targetId = null;
-        }
-        else{
-            var exit = core.selectRandom(core.keys(rm.exits));
-            if(exit)
-                this.cmd(exit);
-        }
+    var target = this.db.users[this.targetId];
+    if(target && target.roomId != this.roomId){
+        this.targetId = null;
+        target = null;
+    }
+
+    return target;
+};
+
+Aggressor.prototype.idleAction = function idleAction () {
+    var target = this.findTarget();
+    if(target) {
+        this.cmd("say RAAAARGH!");
+        this.cmd("attack " + this.targetId);
+    }
+    else{
+        var rm = this.db.rooms[this.roomId];
+        var exit = core.selectRandom(core.keys(rm.exits));
+        if(exit)
+            this.cmd(exit);
     }
 }
 
-Aggressor.prototype.react_attack = function(m){
+Aggressor.prototype.react_attack = function react_attack(m){
     this.targetId = m.payload[0];
 }

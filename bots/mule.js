@@ -79,14 +79,8 @@ Mule.prototype.react_left = function (m)
 {
     if (this.targetId == m.fromId) {
         var target = this.db.getPerson(m.fromId);
-        if(target){
-            var m = new Message(this.id, "left", m.payload, "chat");
-            this.db.inform(m, this.roomId, this.id);
-            this.roomId = target.roomId;
-            m = new Message(this.id, "entered", null, "chat");
-            this.db.inform(m, this.roomId, this.id);
-            this.cmd_look();
-        }
+        if(target)
+            this.goThrough(m.payload, target.roomId);
     }
 }
 

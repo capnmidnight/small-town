@@ -1,50 +1,43 @@
-﻿{ "user-key": 9001, "hat": 9001 }
+﻿{ "user-key": 9001, "hat": 9001, "egg": 9001 }
 wait USERID say hi Carl
 tell USERID hello USERID! Welcome to the game.
-tell USERID In this game, you type commands to perform actions in rooms.
-tell USERID Usually, you'll be moving between rooms, picking up items, making items, or attack monsters.
-tell USERID isn't that right, Dave?
-tell Dave GO
-wait Dave tell GO
-tell USERID Commands all have different names and different parameters.
-tell USERID If you type something that isn't recognized as a command, you will "say" it out loud in the room.
-tell USERID isn't that right, Dave?
-tell Dave GO
-wait Dave tell GO
-tell USERID You can see the full list of commands at any time by typing "help".
-tell USERID You can learn about each command by typing "explain COMMAND-NAME", where COMMAND-NAME is the name of a command.
-tell USERID Are you ready? Type "ok" when you're ready to continue.
+tell USERID You can skip this tutorial with "skip me".
+tell USERID Otherwise, type "ok" to continue the intro.
 wait USERID say ok
-tell USERID The first thing you need to learn is how to pick things up.
-tell USERID I'm going to have Dave drop an item, and then you pick it up.
-tell USERID To pick up an item, type "take ITEM-NAME", where ITEM-NAME is the name of the thing you want to pick up.
-tell USERID isn't that right, Dave?
-tell Dave GO
-wait Dave tell GO
-tell USERID Dave is going to drop an egg on the ground.
-tell USERID You can pick it up by typing "take egg"
-tell Dave drop egg
+tell USERID In this game, you type commands to perform
+tell USERID actions in rooms. If you type something
+tell USERID that isn't recognized as a command, you will
+tell USERID "say" it out loud, so that other users and
+tell USERID bots in the room can hear you.
+tell USERID say "ok" to continue.
+wait USERID say ok
+tell USERID The first thing you need to learn is how to
+tell USERID pick things up. To pick up an item, type
+tell USERID "take ITEM-NAME", where ITEM-NAME is the name
+tell USERID of the thing you want to pick up. I'll drop
+tell USERID the egg now, then you pick it up right away.
+drop egg
 wait USERID take egg
-tell USERID Good. You now have an egg in your inventory. Type "inv" to see it.
-tell USERID You can also try eating the egg with "eat egg".
-tell USERID It will increase your health a little bit.
-tell USERID Type "ok" when you're ready to continue.
-wait USERID say ok
-tell USERID OK! Now I'll teach you how to equip items.
-tell USERID I'm going to give you a hat to put on your head
-tell USERID When you receive the hat, just type "equip hat".
-tell USERID You can then see the equipped hat in your inventory under the equipment section.
-tell USERID Let's give it a try. Here is the hat.
-give USERID hat
-tell USERID Now put it on. Say "ok" when you're ready to go on.
-wait USERID say ok
-tell USERID That's it for now. You can go on to the next room now.
-tell USERID The exit was hidden while I talked to you.
-tell USERID I'm going to give you the secret key that you need to see the exit.
-tell USERID Once you have the key, you can type "look" to see the room description.
-tell USERID The exits will be listed, and you can leave by just typing the name of the exit.
-tell USERID The name of the exit is the word that appears before the word "to" in the exit line.
-tell USERID In this case, it's "leave". Just type "leave" to move on.
+tell USERID Good. You now have an egg in your inventory.
+tell USERID Type "inv" to see it. The egg is nutritious,
+tell USERID it will increase your health a little bit if
+tell USERID you type "eat egg".
+wait USERID eat egg
+tell USERID That's it for now. You can go on to the next
+tell USERID room now. The exit was hidden while I talked
+tell USERID to you. I'm going to give you the secret key
+tell USERID that you need to see the exit. Once you have
+tell USERID the key, you can type "look" to see the room
+tell USERID description. The exits will be listed, and you
+tell USERID can travel to the next room by just typing the
+tell USERID name of the exit. The name of the exit is the
+tell USERID word that appears before the word "to" in the
 give USERID user-key
+tell USERID exit line. In this case, it's "leave". Just
+tell USERID type "leave" to move on.
+tell USERID You can see the full list of commands at any
+tell USERID time by typing "help". You can learn about
+tell USERID each command by typing "explain COMMAND-NAME",
+tell USERID where COMMAND-NAME is the name of a command.
 tell USERID Have fun!
 done USERID

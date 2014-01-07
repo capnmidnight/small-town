@@ -45,7 +45,7 @@ var Body = function(db, id, roomId, hp, items, equipment, socket, password)
         var body = this;
         this.socket.on("cmd", function(data) { body.inputQ.push(data); });
         this.socket.on("disconnect", function () { body.cmd_quit(); });
-        this.db.inform(new Message(this.id, "join", null, "chat"));
+        this.informAll("join");
     }
     else{
         this.socket = {
@@ -59,6 +59,25 @@ var Body = function(db, id, roomId, hp, items, equipment, socket, password)
 
 Body.prototype = Object.create(Thing.prototype);
 module.exports = Body;
+
+
+Body.prototype.inf = function inf(args, roomId, excludeUserId){
+    args = Array.prototype.slice.call(args);
+    var msg = args.shift();
+    this.db.inform(new Message(this.id, msg, args), roomId, excludeUserId);
+};
+
+Body.prototype.informAll = function informAll() {
+    this.inf(arguments);
+};
+
+Body.prototype.informHere = function informHere() {
+    this.inf(arguments, this.roomId);
+}
+
+Body.prototype.informOthers = function informOthers() {
+    this.inf(arguments, this.roomId, this.id);
+}
 
 Body.prototype.saveDirectory = function(){
     return "users";
@@ -199,8 +218,7 @@ explain.yell = "Use: \"yell &lt;message&gt;\"\n\n"
 +"&lt; carlos yell SHADDAP!";
 Body.prototype.cmd_yell = function (msg)
 {
-    var m = new Message(this.id, "yell", [msg], "chat");
-    this.db.inform(m);
+    this.informAll("yell", msg);
 }
 
 explain.say = "Use: \"say &lt;message&gt;\"\n\n"
@@ -210,8 +228,7 @@ explain.say = "Use: \"say &lt;message&gt;\"\n\n"
 +"&lt; carlos say Hi!";
 Body.prototype.cmd_say = function (msg)
 {
-    var m = new Message(this.id, "say", [msg], "chat");
-    this.db.inform(m, this.roomId, this.id);
+    this.informOthers("say", msg);
 }
 
 explain.tell = "Use: \"tell &lt;target name&gt; &lt;message&gt;\"\n\n"
@@ -249,8 +266,7 @@ explain.quit = "Use: \"quit\"\n\n"
 +"&lt; player quit";
 Body.prototype.cmd_quit = function ()
 {
-    var m = new Message(this.id, "quit", null, "chat");
-    this.db.inform(m);
+    this.informAll("quit");
     this.quit = true;
 }
 
@@ -313,17 +329,15 @@ Body.prototype.move = function (dir)
     else if(exit.isLocked(this))
         this.sysMsg(format("You can't go %s. %s.", dir, exit.lockMessage));
     else
-    {
-        var m = new Message(this.id, "left", [dir], "chat");
-        this.db.inform(m, this.roomId);
-
-        this.roomId = exit.toRoomId;
-        m = new Message(this.id, "entered", null, "chat");
-        this.db.inform(m, this.roomId);
-
-        this.cmd_look();
-    }
+        this.goThrough(dir, exit.toRoomId);
 }
+
+Body.prototype.goThrough = function goThrough(dir, toRoomId){
+    this.informOthers("left", dir);
+    this.roomId = toRoomId;
+    this.informOthers("entered");
+    this.cmd_look();
+};
 
 function direxplain(dir){
     return format("Use: \"%s\"\n\n"
@@ -357,21 +371,21 @@ explain.take = "Use: \"take &lt;item name&gt;\"\n\n"
 Body.prototype.cmd_take = function (itemId)
 {
     var rm = this.db.rooms[this.roomId];
-    var items = rm.items;
+    var items;
     if (itemId == "all")
     {
-        for (itemId in items)
-        {
-            var m = new Message(this.id, "take", [itemId], "chat");
-            this.db.inform(m, this.roomId, this.id);
-            this.moveItem(itemId, items, this.items, "picked up", "here", items[itemId]);
-        }
+        items = rm.items;
     }
     else
     {
-        var m = new Message(this.id, "take", [itemId], "chat");
-        this.db.inform(m, this.roomId, this.id);
-        this.moveItem(itemId, items, this.items, "picked up", "here");
+        items = {};
+        items[itemId] = 1;
+    }
+
+    for (itemId in items)
+    {
+        this.moveItem(itemId, items, this.items, "picked up", "here", items[itemId]);
+        this.informHere("take", itemId);
     }
 }
 
@@ -385,8 +399,7 @@ Body.prototype.cmd_drop = function (itemId)
 {
     var rm = this.db.rooms[this.roomId];
     this.moveItem(itemId, this.items, rm.items, "dropped", "in your inventory");
-    var m = new Message(this.id, "drop", [itemId], "chat");
-    this.db.inform(m, this.roomId);
+    this.informHere("drop", itemId);
 }
 
 Body.prototype.moveItem = function (itm, from, to, actName, locName, amt)
@@ -411,8 +424,7 @@ Body.prototype.cmd_give = function (targetId, itemId)
     else
     {
         this.moveItem(itemId, this.items, target.items, format("gave to %s", targetId), "in your inventory");
-        var m = new Message(this.id, "give", [targetId, itemId], "chat");
-        this.db.inform(m, this.roomId);
+        this.informHere("give", targetId, itemId);
     }
 }
 
@@ -444,8 +456,7 @@ Body.prototype.cmd_make = function (recipeId)
             core.inc(this.items, itemId, recipe.results[itemId]);
             this.sysMsg(format("You created %d %s(s).", recipe.results[itemId], itemId));
         }
-        var m = new Message(this.id, "make", [recipeId], "chat");
-        this.db.inform(m, this.roomId);
+        this.informHere("make", recipeId);
     }
 }
 
@@ -505,6 +516,7 @@ Body.prototype.consume = function(itemId, name){
         core.dec(this.items, itemId);
         this.hp += item.strength;
         this.sysMsg(format("Health restored by %d points.", item.strength));
+        this.informOthers(name, itemId);
     }
 }
 
@@ -530,6 +542,7 @@ Body.prototype.cmd_equip = function (itemId)
         this.equipment[itm.equipType] = itemId;
         core.dec(this.items, itemId);
         this.sysMsg(format("You equiped the %s as a %s.", itemId, itm.equipType));
+        this.informOthers("equip", itemId);
     }
 }
 
@@ -601,10 +614,11 @@ Body.prototype.cmd_attack = function (targetId)
         }
         atk = Math.max(atk - def, 0);
         target.hp -= atk;
-        var m = new Message(this.id, "attack", [targetId], "chat");
-        this.db.inform(m, this.roomId);
+        this.informOthers("attack", targetId);
         target.informUser(new Message(this.id, "damage", [atk], "chat"));
         this.sysMsg(format("You attacked %s with %s for %d damage.", targetId, wpnId, atk));
+        if(target.hp <= 0)
+            this.informHere("knockout", targetId);
     }
 }
 
@@ -628,5 +642,7 @@ Body.prototype.cmd_loot = function(targetId)
 
         for(var itemId in target.items)
             this.moveItem(itemId, target.items, this.items, "looted", "from " + targetId, target.items[itemId]);
+
+        this.informHere("loot", targetId);
     }
 }

@@ -56,9 +56,9 @@ ScriptedBot.prototype.react = function (msg) {
             this.users[msg.fromId] = 0;
 
         var cmd = format("wait %s %s %s", msg.fromId, msg.message, msg.payload.join(" "));
-        cmd = cmd.trim();
+        cmd = cmd.trim().toLowerCase();
         this.doForEveryone(function (userId, step) {
-            return (step === cmd ? 1 : 0);
+            return (step.toLowerCase() === cmd ? 1 : 0);
         });
     }
 };
@@ -78,16 +78,4 @@ ScriptedBot.prototype.cmd_spawn = function(monsterName) {
             {"gold": 10},
             null,
             name);
-};
-
-ScriptedBot.prototype.cmd_cleanup = function(userId){
-    if(this.monster) {
-        if(!this.monster.items.gold) {
-            this.cmd("say good shot!");
-            delete this.db.users[this.monster.id];
-            this.monster = null;
-        }
-        else
-            this.users[userId]--;
-    }
 };
