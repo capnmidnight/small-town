@@ -1,6 +1,7 @@
 compiled/
 users/
 node_modules/
+test/
 *.bak
 *~
 #data

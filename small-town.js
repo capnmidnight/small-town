@@ -18,7 +18,7 @@ if (process.argv.indexOf("--test") > -1)
         serverState.pump();
     }
 
-    var data = fs.readFileSync("script.txt", {encoding:"utf8"});
+    var data = fs.readFileSync("./test/script.txt", {encoding:"utf8"});
     var commands = data.split("\n");
     while(commands.length > 0)
         doIt(commands.shift().trim());
