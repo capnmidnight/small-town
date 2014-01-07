@@ -3,7 +3,7 @@ var Scavenger = require("./bots/scavenger.js");
 var Aggressor = require("./bots/aggressor.js");
 var AIBody = require("./bots/aibody.js");
 var Mule = require("./bots/mule.js");
-var ScriptedBot = require("./bots/ScriptedBot.js");
+var loadBots = require("./bots/ScriptedBot.js").loadFromDir;
 
 module.exports = function (db) {
     new ShopKeep(db, "General-Store", 9000,
@@ -197,10 +197,5 @@ module.exports = function (db) {
     new Aggressor(db, "Sewer-2", 10, {"hide":1}, null, "rat-4");
     new Aggressor(db, "Sewer-2", 10, {"hide":1}, null, "rat-5");
 
-    new ScriptedBot(db, "welcome", "Carl");
-    new ScriptedBot(db, "welcome", "Dave");
-    new ScriptedBot(db, "intro", "Lucy");
-    new ScriptedBot(db, "intro", "Maureen");
-    new ScriptedBot(db, "Winter's-Tale", "Archidamus");
-    new ScriptedBot(db, "Winter's-Tale", "Camillo");
+    loadBots(db, "./data/bots/");
 };

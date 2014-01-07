@@ -116,21 +116,24 @@ Room.parse = function (db, roomId, text) {
     return options.exits;
 };
 
-Room.loadAll = function (db, roomIds) {
-    var exits = {};
+Room.loadAll = function (db, dir, roomFiles) {
+    var exits = {}, i, roomFile, roomId, test;
 
-    for (var i = 0; i < roomIds.length; ++i) {
-        var roomId = roomIds[i];
-        exits[roomId] = Room.parse(db, roomId, fs.readFileSync("rooms/" + roomId + ".room", { encoding: "utf8" }));
+    for (i = 0; i < roomFiles.length; ++i) {
+        roomFile = roomFiles[i];
+        test = roomFile.match(/([^\\/]+).room/);
+        if(test && test.length >= 2) {
+            roomId = test[1];
+            exits[roomId] = Room.parse(db, roomId, fs.readFileSync(dir + roomFile, { encoding: "utf8" }));
+        }
     }
 
-    for (var roomId in exits)
-        for (var i = 0; i < exits[roomId].length; ++i)
+    for (roomId in exits)
+        for (i = 0; i < exits[roomId].length; ++i)
             Exit.parse(db, roomId, exits[roomId][i]);
 };
 
 Room.loadFromDir = function (db, dirName) {
-    Room.loadAll(db, fs.readdirSync(dirName)
-        .filter(function (f) { return f.match(/\.room$/); })
-        .map(function (f) { return f.replace(".room", ""); }));
+    Room.loadAll(db, dirName, fs.readdirSync(dirName)
+        .filter(function (f) { return f.match(/\.room$/); }));
 };

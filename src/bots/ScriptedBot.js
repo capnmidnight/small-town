@@ -7,13 +7,14 @@ var fs = require("fs");
 
 // ScriptedBot class
 //  A bot that can do things in reaction to user actions
-function ScriptedBot(db, roomId, id) {
+function ScriptedBot(db, fileName) {
     this.tutorial = fs
-        .readFileSync("./bots/" + id + ".script", { encoding: "utf8" })
+        .readFileSync(fileName, { encoding: "utf8" })
         .split("\n")
         .map(function(l){return l.trim();})
         .filter(function(l){return l.length > 0;});
-
+    var id = fileName.match(/([^\\/]+).script$/)[1];
+    var roomId = this.tutorial.shift();
     var initialItems = JSON.parse(this.tutorial.shift());
 
     AIBody.call(this, db, roomId, Number.MAX_VALUE, initialItems, {"tool": "katana", "torso": "imperial-breastplate"}, id);
@@ -78,4 +79,10 @@ ScriptedBot.prototype.cmd_spawn = function(monsterName) {
             {"gold": 10},
             null,
             name);
+};
+
+ScriptedBot.loadFromDir = function loadFromDir(db, dirName){
+    fs.readdirSync(dirName)
+      .filter(function (f) { return f.match(/\.script$/); })
+      .forEach(function(f) { new ScriptedBot(db, dirName + f); });
 };

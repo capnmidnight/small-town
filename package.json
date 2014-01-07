@@ -7,7 +7,7 @@
         "socket.io": "latest",
         "mime": "latest"
     },
-    
+
     "devDependencies": {
         "mocha": "latest"
     },
@@ -24,7 +24,7 @@
     "bugs": "https://github.com/capnmidnight/philly_mud/issues",
     "author": "Sean T. McBeth <sean.mcbeth@gmail.com> (http://www.seanmcbeth.com)",
 
-    "main": "./server.js",
+    "main": "./small-town.js",
     "scripts": {
         "start": "node server",
         "test": "mocha"
