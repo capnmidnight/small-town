@@ -22,15 +22,17 @@ Aggressor.prototype = Object.create(AIBody.prototype);
 module.exports = Aggressor;
 
 Aggressor.prototype.findTarget = function findTarget() {
-    if(!this.targetId || this.targetId.hp <= 0) {
+    var target;
+    if(this.targetId)
+        target = this.db.users[this.targetId];
+    else {
         var people = this.db.getPeopleIn(this.roomId, this.id);
         var realUsers = people.filter(function(p){return p.isPerson;});
-        var target = core.selectRandom(realUsers);
+        target = core.selectRandom(realUsers);
         this.targetId = target && target.id;
     }
 
-    var target = this.db.users[this.targetId];
-    if(target && target.roomId != this.roomId){
+    if(!target || target.roomId != this.roomId || target.hp <= 0){
         this.targetId = null;
         target = null;
     }
