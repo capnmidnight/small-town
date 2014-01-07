@@ -52,37 +52,36 @@ else
         socket.on("password", function(password) {
             socket.get("userName", function(err, name){
                 var fileName = "users/" + name + ".js";
-                var roomId = "welcome";
-                var hp = 100;
-                var items = { "gold": 10 };
-                var equipment = null;
-                var passwordMessage = "";
-                if(fs.existsSync(fileName))
-                {
-                    var jsn = fs.readFileSync(fileName, {encoding:"utf8"});
-                    var obj = JSON.parse(jsn);
-                    if(password != obj.password)
-                        passwordMessage = "Incorrect password";
-                    else{
-                        passwordMessage = "Success!";
-                        roomId = obj.roomId;
-                        hp = obj.hp;
-                        items = obj.items;
-                        equipment = obj.equipment;
+                fs.readFile(fileName, {encoding:"utf8"}, function(err, jsn){
+                    var roomId = "welcome";
+                    var hp = 100;
+                    var items = { "gold": 10 };
+                    var equipment = null;
+                    var passwordMessage = "";
+                    if(!err){
+                        var obj = JSON.parse(jsn);
+                        if(password != obj.password)
+                            passwordMessage = "Incorrect password";
+                        else{
+                            passwordMessage = "Success!";
+                            roomId = obj.roomId;
+                            hp = obj.hp;
+                            items = obj.items;
+                            equipment = obj.equipment;
+                        }
                     }
-                }
-                else if(password.length < 8)
-                    passwordMessage = "Password must be at least 8 characters long";
-                else
-                    passwordMessage = "Success!";
+                    else if(password.length < 8)
+                        passwordMessage = "Password must be at least 8 characters long";
+                    else
+                        passwordMessage = "Success!";
 
-                if(passwordMessage != "Success!")
-                    socket.emit("bad password", passwordMessage);
-                else
-                {
-                    socket.emit("good password", passwordMessage);
-                    serverState.users[name] = new Body(serverState, name, roomId, hp, items, equipment, socket, password);
-                }
+                    if(passwordMessage != "Success!")
+                        socket.emit("bad password", passwordMessage);
+                    else {
+                        socket.emit("good password", passwordMessage);
+                        serverState.users[name] = new Body(serverState, name, roomId, hp, items, equipment, socket, password);
+                    }
+                });
             });
         });
     });
