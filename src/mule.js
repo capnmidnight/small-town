@@ -1,7 +1,8 @@
-﻿var AIBody = require("./aibody.js");
-var Message = require("./message.js");
-var core = require("./core.js");
-var format = require("util").format;
+/* global require, module, exports */
+﻿var AIBody = require( "./aibody.js" );
+var Message = require( "./message.js" );
+var core = require( "./core.js" );
+var format = require( "util" ).format;
 
 /*
  * Mule class
@@ -15,90 +16,90 @@ var format = require("util").format;
  *          counts, representing the stuff in use by the character.
  */
 
-function Mule(db, roomId, hp, speak, items, equipment, targetId, id) {
-    AIBody.call(this, db, roomId, hp, items, equipment, id);
-    this.speak = speak;
-    this.targetId = targetId;
+function Mule ( db, roomId, hp, speak, items, equipment, targetId, id ) {
+  AIBody.call( this, db, roomId, hp, items, equipment, id );
+  this.speak = speak;
+  this.targetId = targetId;
 }
 
-Mule.prototype = Object.create(AIBody.prototype);
+Mule.prototype = Object.create( AIBody.prototype );
 module.exports = Mule;
 
 Mule.prototype.idleAction = function () {
-    if(Math.random() * 100 <= 10)
-        this.cmd(format("say %s.", this.speak));
-}
+  if ( Math.random() * 100 <= 10 )
+    this.cmd( format( "say %s.", this.speak ) );
+};
 
-Mule.prototype.saySomething = function(targetId){
-    if(this.speak)
-        this.cmd(format("tell %s %s", targetId, this.speak));
-}
+Mule.prototype.saySomething = function ( targetId ) {
+  if ( this.speak )
+    this.cmd( format( "tell %s %s", targetId, this.speak ) );
+};
 
-Mule.prototype.react_tell = function (m){
-    if(m.payload.length > 0){
-        var msg = m.payload[0];
-        if(!this.targetId)
-        {
-            if(msg == "follow")
-            {
-                this.cmd(format("follow %s", m.fromId));
-                this.targetId = m.fromId;
-                this.saySomething(m.fromId);
-            }
-        }
-        else
-        {
-            if(msg == "heel")
-            {
-                delete this.targetId;
-                this.saySomething(m.fromId);
-            }
-            else if(msg.indexOf("drop") == 0)
-            {
-                this.cmd(msg);
-                this.saySomething(m.fromId);
-            }
-            else if(msg == "inv")
-            {
-                var output = "";
-                for(var itemId in this.items)
-                    output += format("\t%s (%d)\n\n", itemId, this.items[itemId]);
-                if (output.length == 0)
-                    output = " nothing";
-                else
-                    output = "\n\n" + output;
-                this.cmd(format("tell %s %s:%s", m.fromId, this.say, output));
-            }
-        }
+Mule.prototype.react_tell = function ( m ) {
+  if ( m.payload.length > 0 ) {
+    var msg = m.payload[0];
+    if ( !this.targetId )
+    {
+      if ( msg === "follow" )
+      {
+        this.cmd( format( "follow %s", m.fromId ) );
+        this.targetId = m.fromId;
+        this.saySomething( m.fromId );
+      }
     }
-    else
-        AIBody.prototype.react_tell.call(this, m);
-}
-
-Mule.prototype.react_left = function (m)
-{
-    if (this.targetId == m.fromId) {
-        var target = this.db.getPerson(m.fromId);
-        if(target)
-            this.goThrough(m.payload, target.roomId);
-    }
-}
-
-Mule.prototype.react_retrieve = function (m)
-{
-    if(m.fromId != this.targetId)
-        this.saySomething(m.fromId);
     else
     {
-        var target = this.db.getPerson(this.targetId, this.roomId);
-        if (target)
-        {
-            var itemId = m.payload[0];
-            var item = this.items[itemId];
-            if (!item)
-                this.cmd(format("tell %s I don't have that item", m.fromId));
-            else
-                this.cmd(format("give %s %s", m.fromId, itemId));
-        }
+      if ( msg === "heel" )
+      {
+        delete this.targetId;
+        this.saySomething( m.fromId );
+      }
+      else if ( msg.indexOf( "drop" ) === 0 )
+      {
+        this.cmd( msg );
+        this.saySomething( m.fromId );
+      }
+      else if ( msg === "inv" )
+      {
+        var output = "";
+        for ( var itemId in this.items )
+          output += format( "\t%s (%d)\n\n", itemId, this.items[itemId] );
+        if ( output.length === 0 )
+          output = " nothing";
+        else
+          output = "\n\n" + output;
+        this.cmd( format( "tell %s %s:%s", m.fromId, this.say, output ) );
+      }
     }
-}
+  }
+  else
+    AIBody.prototype.react_tell.call( this, m );
+};
+
+Mule.prototype.react_left = function ( m )
+{
+  if ( this.targetId === m.fromId ) {
+    var target = this.db.getPerson( m.fromId );
+    if ( target )
+      this.goThrough( m.payload, target.roomId );
+  }
+};
+
+Mule.prototype.react_retrieve = function ( m )
+{
+  if ( m.fromId !== this.targetId )
+    this.saySomething( m.fromId );
+  else
+  {
+    var target = this.db.getPerson( this.targetId, this.roomId );
+    if ( target )
+    {
+      var itemId = m.payload[0];
+      var item = this.items[itemId];
+      if ( !item )
+        this.cmd( format( "tell %s I don't have that item", m.fromId ) );
+      else
+        this.cmd( format( "give %s %s", m.fromId, itemId ) );
+    }
+  }
+};

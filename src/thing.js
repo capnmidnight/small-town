@@ -1,5 +1,6 @@
-var assert = require('assert');
-var ServerState = require("./serverState.js");
+/* global require, module, exports */
+var assert = require( 'assert' );
+var ServerState = require( "./serverState.js" );
 /*
  * Thing class:
  *  All in-game objects eventually extend Thing. Things is an object a
@@ -15,18 +16,18 @@ var ServerState = require("./serverState.js");
  *      that is expressed through a description. For now, this is just
  *      prose text. One day, it might be more.
  */
-function Thing(db, table, id, description) {
-    assert(db, "Need a database object");
-    assert(db.users && db.recipes, "DB has to be a ServerState object.");
-    assert(table, "Need a table name");
-    assert(db[table], "Table needs to exist: " + table);
-    assert(id, "Need an object ID.");
-    assert.ok(!db[table][id], "Can't reuse a Thing's ID: " + id);
+function Thing ( db, table, id, description ) {
+  assert( db, "Need a database object" );
+  assert( db.users && db.recipes, "DB has to be a ServerState object." );
+  assert( table, "Need a table name" );
+  assert( db[table], "Table needs to exist: " + table );
+  assert( id, "Need an object ID." );
+  assert.ok( !db[table][id], "Can't reuse a Thing's ID: " + id );
 
-    this.db = db;
-    this.id = id;
-    this.db[table][this.id] = this;
-    this.description = description || "(UNKNOWN)";
+  this.db = db;
+  this.id = id;
+  this.db[table][this.id] = this;
+  this.description = description || "(UNKNOWN)";
 }
 
 //satisfy Node.js' odd module system.
@@ -37,25 +38,25 @@ module.exports = Thing;
  *  Creates a deep-copy of a this object. The copy should have the same
  *  prototype as this object, and should satisfy assert.deepEqual
  */
-Thing.prototype.copyTo = function(db, table) {
-    var oldDb = this.db;
-    var oldTable = this.table;
-    var oldSocket = this.socket;
+Thing.prototype.copyTo = function ( db, table ) {
+  var oldDb = this.db;
+  var oldTable = this.table;
+  var oldSocket = this.socket;
 
-    this.db = null;
-    this.table = null;
-    this.socket = null;
+  this.db = null;
+  this.table = null;
+  this.socket = null;
 
-    var obj = Object.create(this.__proto__);
-    var dat = JSON.parse(JSON.stringify(this));
-    for(var key in dat)
-        obj[key] = dat[key];
+  var obj = Object.create( this.__proto__ );
+  var dat = JSON.parse( JSON.stringify( this ) );
+  for ( var key in dat )
+    obj[key] = dat[key];
 
-    this.db = oldDb;
-    this.table = oldTable;
-    this.socket = oldSocket;
+  this.db = oldDb;
+  this.table = oldTable;
+  this.socket = oldSocket;
 
-    obj.db = db;
-    obj.table = table;
-    return obj;
+  obj.db = db;
+  obj.table = table;
+  return obj;
 };

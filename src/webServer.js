@@ -1,3 +1,4 @@
+/* global require, module, exports, process */
 var fs = require("fs");
 var mime = require("mime");
 var core = require("./core.js");
@@ -5,7 +6,7 @@ var core = require("./core.js");
 module.exports = function(dirName){
     return function(req, res) {
         if (req.method === "GET" && req.url[0] === "/") {
-            if (req.url.length == 1)
+            if (req.url.length === 1)
                 req.url += "index.html";
             var path = dirName + req.url;
             fs.readFile(path,
@@ -22,7 +23,7 @@ module.exports = function(dirName){
         else {
             serverError(res);
         }
-    }
+    };
 };
 
 function serverError(res, path) {

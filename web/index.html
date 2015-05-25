@@ -1,6 +1,6 @@
 ﻿<!DOCTYPE html>
 <html>
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" />
     <title>JSMUD</title>
@@ -8,24 +8,23 @@
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/client.js"></script>
     <script type="text/javascript">
-        function load(i, u) {
-            client.setup(i, u);
-            client.run();
-            input.focus();
-        }
-        function focuser() { input.focus(); }
-        addEventListener("keypress", focuser);
-        addEventListener("touchup", focuser);
-        addEventListener("mouseup", focuser);
+      function load ( i, u ) {
+        var client = new Client( i, u );
+        client.focus();
+        var focuser = client.focus.bind( client );
+        addEventListener( "keypress", focuser );
+        addEventListener( "touchup", focuser );
+        addEventListener( "mouseup", focuser );
+      }
     </script>
     <link type="text/css" rel="stylesheet" href="style.css">
     <style type="text/css">
 
     </style>
-</head>
-<body onload="load('input', 'playerStatus')">
+  </head>
+  <body onload="load( 'input', 'playerStatus' )">
     <div id="news"></div>
     <span id="playerStatus"></span><input type="text" id="input" autocomplete="off" placeholder="<disconnected>">
     <div id="chat"></div><a href="https://github.com/capnmidnight/small-town"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
-</body>
+  </body>
 </html>

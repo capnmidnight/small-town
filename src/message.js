@@ -1,3 +1,4 @@
+/* global require, module, exports */
 // Message class
 //  All messages to the player are communicated through Messages.
 //  The Message is structured such that the AI system can figure
@@ -8,12 +9,12 @@
 //  - msg: the actual message, what happened.
 //  - payload (optional): an array that provides detailed information
 //          about the message.
-function Message(fromId, msg, payload, type)
+function Message ( fromId, msg, payload, type )
 {
-    this.fromId = fromId;
-    this.message = msg || "";
-    this.payload = payload || [""];
-    this.type = type || "chat";
+  this.fromId = fromId;
+  this.message = msg || "";
+  this.payload = payload || [ "" ];
+  this.type = type || "chat";
 }
 
 module.exports = Message;

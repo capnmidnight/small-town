@@ -7,20 +7,20 @@ head
     pot 8 usually for sauces
     steel-helm 18 not good in a thunderstorm
     viking-helm 27 with ram's horn technology
-    spartan-helm 41 plummage ftw
+    spartan-helm 41 plumage ftw
     crystal-helm 62 extremely hard
     winged-helm 93 does not grant flight
 
 eyes
-    sunglasses 1 cheap, platic things
-    monocole 2 ready for the opera
+    sunglasses 1 cheap, plastic things
+    monocle 2 ready for the opera
     glasses 3 glass lenses, metal frames
     goggles 5 protects the eyes
     welding-goggles 8 with smoked lenses
     visor 18 full eye protection
 
 shoulders
-    towel number three of fourty two
+    towel number three of forty two
     blanket a little better than a towel
     wool-coat very warm
     brown-cloak totally not a blanket you can wear all the time
@@ -39,10 +39,10 @@ torso
     imperial-breastplate 128 adorned with prancing ponies
 
 pants
-    coarse-pants 1 made of sackclothe
+    coarse-pants 1 made of sackcloth
     slacks 2 made of fine cotton
     jeans 4 sturdy work pants
-    leather-pants 8 for rockstars
+    leather-pants 8 for rock-stars
     action-pants 32 strong canvas pants with great mobility
     speedo 64 european-style swimsuit
     silk-pants 128 extremely elegant
@@ -61,7 +61,7 @@ shirt
     flannel helps keep you warm
     under-armor feel like a superhero
     puffy-shirt feel like a PIRATE
-    leather-shirt for rockstars
+    leather-shirt for rock-stars
 
 forearms
     sleeve 1 cotton sleeve, to protect from minor cuts
@@ -83,8 +83,8 @@ gloves
 shins
     shin-guards 1 worn during certain sporting events
     big-lobster-tail 2 it is said that chitin promotes healing
-    catalogues 4 kind of like magazines, but bigger
-    leather-shins 8 good for deflecting kicks from todlers
+    catalogs 4 kind of like magazines, but bigger
+    leather-shins 8 good for deflecting kicks from toddlers
     split-muffler 16 thin metal recovered from a vehicle
     bronze-leggings 32 made popular during the Roman Empire
     steel-guards 64 snakes adorn the front
@@ -112,7 +112,7 @@ tool
     sword 10 a basic sword
     axe 15 cuts wood
     steel-sword 20 it glistens in the sun
-    cutlas 40 a curved blade for pirates
+    cutlass 40 a curved blade for pirates
     excalibur 80 doesn't make you King Arthur
     katana 150 a great weapon for a great warrior
 

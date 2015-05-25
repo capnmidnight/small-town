@@ -25,7 +25,7 @@ hunting-knife from stick, sharp-blade; to hunting-knife; using hammer.
 sword from stick 5, ingot 2; to sword; using hammer.
 axe from plank, stick, ingot 2; to axe; using hammer.
 steel-sword from stick 10, ingot 5; to steel-sword; using hammer.
-cutlas from stick 10, ingot 5, coal 5; to cutlas; using hammer.
+cutlass from stick 10, ingot 5, coal 5; to cutlass; using hammer.
 excalibur from stick 10, ingot 5, jewel, coal 5; to excalibur; using hammer.
 katana from stick 10, ingot 10, leather, coal 5; to katana; using hammer.
 

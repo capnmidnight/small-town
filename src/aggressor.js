@@ -1,5 +1,6 @@
-var AIBody = require("./aibody.js");
-var core = require("./core.js");
+/* global require, module, exports */
+var AIBody = require( "./aibody.js" );
+var core = require( "./core.js" );
 
 /*
  * Aggressor class
@@ -13,47 +14,49 @@ var core = require("./core.js");
  *  - equipment (optional): an associative array of item IDs to
  *      counts, representing the stuff in use by the character.
  */
-function Aggressor(db, roomId, hp, items, equipment, id) {
-    AIBody.call(this, db, roomId, hp, items, equipment, id);
-    this.targetId = null;
+function Aggressor ( db, roomId, hp, items, equipment, id ) {
+  AIBody.call( this, db, roomId, hp, items, equipment, id );
+  this.targetId = null;
 }
 
-Aggressor.prototype = Object.create(AIBody.prototype);
+Aggressor.prototype = Object.create( AIBody.prototype );
 module.exports = Aggressor;
 
-Aggressor.prototype.findTarget = function findTarget() {
-    var target;
-    if(this.targetId)
-        target = this.db.users[this.targetId];
-    else {
-        var people = this.db.getPeopleIn(this.roomId, this.id);
-        var realUsers = people.filter(function(p){return p.isPerson;});
-        target = core.selectRandom(realUsers);
-        this.targetId = target && target.id;
-    }
+Aggressor.prototype.findTarget = function findTarget () {
+  var target;
+  if ( this.targetId )
+    target = this.db.users[this.targetId];
+  else {
+    var people = this.db.getPeopleIn( this.roomId, this.id );
+    var realUsers = people.filter( function ( p ) {
+      return p.isPerson;
+    } );
+    target = core.selectRandom( realUsers );
+    this.targetId = target && target.id;
+  }
 
-    if(!target || target.roomId != this.roomId || target.hp <= 0){
-        this.targetId = null;
-        target = null;
-    }
+  if ( !target || target.roomId !== this.roomId || target.hp <= 0 ) {
+    this.targetId = null;
+    target = null;
+  }
 
-    return target;
+  return target;
 };
 
 Aggressor.prototype.idleAction = function idleAction () {
-    var target = this.findTarget();
-    if(target) {
-        this.cmd("say RAAAARGH!");
-        this.cmd("attack " + this.targetId);
-    }
-    else{
-        var rm = this.db.rooms[this.roomId];
-        var exit = core.selectRandom(core.keys(rm.exits));
-        if(exit)
-            this.cmd(exit);
-    }
-}
+  var target = this.findTarget();
+  if ( target ) {
+    this.cmd( "say RAAAARGH!" );
+    this.cmd( "attack " + this.targetId );
+  }
+  else {
+    var rm = this.db.rooms[this.roomId];
+    var exit = core.selectRandom( core.keys( rm.exits ) );
+    if ( exit )
+      this.cmd( exit );
+  }
+};
 
-Aggressor.prototype.react_attack = function react_attack(m){
-    this.targetId = m.payload[0];
-}
+Aggressor.prototype.react_attack = function react_attack ( m ) {
+  this.targetId = m.payload[0];
+};
