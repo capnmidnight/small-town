@@ -1,6 +1,6 @@
 Introduction
 ============
-Play the game live here: http://seanmcbeth.com:8081/
+Play the game live here: https://smalltown.azurewebsites.net/
 
 This is a basic Multi-User Dungeon written in Node.JS. The goal is to use this as a test-bed for works in interactive fiction.
 
