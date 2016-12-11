@@ -65,6 +65,9 @@ function Client ( iId, usId ) {
 
   setInterval( display, 50 );
 
+  var commandQueue = [],
+    commandIndex = -1;
+
   function submitCommand ( evt ) {
     if ( evt.keyCode === 13 ) {
       enterCommand();
@@ -90,12 +93,37 @@ function Client ( iId, usId ) {
           type = "cmd";
           break;
       }
+      if(type === "cmd") {
+        commandQueue.push(val);
+        commandIndex = commandQueue.length;
+      }
       socket.emit( type, val );
       input.value = "";
       input.focus();
     }
     catch ( exp ) {
       console.log( exp.message );
+    }
+  }
+
+  function moveCommandQueue(di){
+    commandIndex += di;
+    input.value = commandQueue[commandIndex];
+    input.selectionStart = input.selectionEnd = input.value.length;
+  }
+
+  function keyDown(evt){
+    if(input.placeholder === "<enter command>") {
+      if ( evt.keyCode === 38) {
+        if(commandIndex > 0 && commandQueue.length > 0){
+          moveCommandQueue(-1);
+        }
+      }
+      else if ( evt.keyCode === 40) {
+        if(commandIndex < commandQueue.length){
+          moveCommandQueue(+1);
+        }
+      }
     }
   }
 
@@ -106,6 +134,7 @@ function Client ( iId, usId ) {
   try {
     input = document.getElementById( iId );
     input.addEventListener( "keypress", submitCommand, false );
+    input.addEventListener( "keydown", keyDown, false );
     userStatus = document.getElementById( usId );
     curHeight = window.innerHeight;
     new BoxQueue( "news" );

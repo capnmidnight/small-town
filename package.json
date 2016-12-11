@@ -34,7 +34,7 @@
   "author": "Sean T. McBeth <sean.mcbeth@gmail.com> (http://www.seanmcbeth.com)",
   "main": "./small-town.js",
   "scripts": {
-    "start": "node server",
+    "start": "node server --path=web/",
     "test": "mocha"
   }
 }
