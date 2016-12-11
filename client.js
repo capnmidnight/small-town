@@ -141,12 +141,7 @@ function Client ( iId, usId ) {
     new BoxQueue( "chat" );
     var protocol = location.protocol.replace("http", "ws"),
       serverPath = protocol + "//" + location.hostname;
-    socket = io( serverPath,
-        {
-          "reconnect": true,
-          "reconnection delay": 1000,
-          "max reconnection attempts": 60
-        } );
+    socket = io( serverPath );
     socket.on( "news", function ( data ) {
       console.log( JSON.stringify( data ) );
       listeners[data.type].enq( data );
