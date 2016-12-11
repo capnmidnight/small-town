@@ -32,15 +32,16 @@ notion(null, null, null, null, function ( socket ) {
     }
   } );
   socket.on( "password", function ( password ) {
-    var fileName = "users/" + userName + ".js";
-    fs.readFile( fileName, { encoding: "utf8" }, function ( err, jsn ) {
+    fs.readFile( "users/users.js", { encoding: "utf8" }, function ( err, jsn ) {
       var roomId = "welcome";
       var hp = 100;
       var items = { "gold": 10 };
       var equipment = null;
       var passwordMessage = "";
-      if ( !err ) {
-        var obj = JSON.parse( jsn );
+        var users = JSON.parse( jsn ),
+          obj = users[userName];
+
+      if ( obj ) {
         if ( password != obj.password ){
           passwordMessage = "Incorrect password";
         }

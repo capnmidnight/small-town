@@ -98,8 +98,11 @@ Body.prototype.save = function () {
       items: this.items,
       equipment: this.equipment
     };
-    var data = JSON.stringify( obj );
-    fs.writeFileSync( fileName, data );
+    var jsn = fs.readFileSync( "users/users.json", { encoding: "utf8" });
+    var users = JSON.parse( jsn );
+    users[this.id] = obj;
+    var data = JSON.stringify(users);
+    fs.writeFileSync( "users/users.json", data);
     this.dirty = false;
   }
 };
