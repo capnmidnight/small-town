@@ -139,7 +139,9 @@ function Client ( iId, usId ) {
     curHeight = window.innerHeight;
     new BoxQueue( "news" );
     new BoxQueue( "chat" );
-    socket = io.connect( document.location.hostname,
+    var protocol = location.protocol.replace("http", "ws"),
+      serverPath = protocol + "//" + location.hostname;
+    socket = io( serverPath,
         {
           "reconnect": true,
           "reconnection delay": 1000,
