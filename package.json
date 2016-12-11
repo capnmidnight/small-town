@@ -1,32 +1,40 @@
 {
-    "name": "funfic",
-    "version": "0.0.1",
-    "license": "Simplified BSD License",
-    "readme": "./README.md",
-    "dependencies": {
-        "socket.io": "latest",
-        "mime": "latest"
-    },
-
-    "devDependencies": {
-        "mocha": "latest"
-    },
-
-    "description": "A Multi-User Dungeon.",
-    "keywords": ["MUD", "game", "dungeon","RPG", "dragon", "orc",
-        "wizard", "warrior", "sword", "shield", "armor"],
-
-    "homepage": "http://www.seanmcbeth.com:8080",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/capnmidnight/philly_mud"
-    },
-    "bugs": "https://github.com/capnmidnight/philly_mud/issues",
-    "author": "Sean T. McBeth <sean.mcbeth@gmail.com> (http://www.seanmcbeth.com)",
-
-    "main": "./small-town.js",
-    "scripts": {
-        "start": "node server",
-        "test": "mocha"
-    }
+  "name": "funfic",
+  "version": "0.0.1",
+  "license": "Simplified BSD License",
+  "readme": "./README.md",
+  "dependencies": {
+    "mime": "latest",
+    "notion-node": "0.0.4",
+    "socket.io": "latest"
+  },
+  "devDependencies": {
+    "mocha": "latest"
+  },
+  "description": "A Multi-User Dungeon.",
+  "keywords": [
+    "MUD",
+    "game",
+    "dungeon",
+    "RPG",
+    "dragon",
+    "orc",
+    "wizard",
+    "warrior",
+    "sword",
+    "shield",
+    "armor"
+  ],
+  "homepage": "http://www.seanmcbeth.com:8080",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/capnmidnight/philly_mud"
+  },
+  "bugs": "https://github.com/capnmidnight/philly_mud/issues",
+  "author": "Sean T. McBeth <sean.mcbeth@gmail.com> (http://www.seanmcbeth.com)",
+  "main": "./small-town.js",
+  "scripts": {
+    "start": "node server",
+    "test": "mocha"
+  }
 }
