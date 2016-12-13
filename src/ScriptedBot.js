@@ -19,7 +19,7 @@ function ScriptedBot ( db, fileName ) {
         return l.length > 0;
       } );
   var id = fileName.match( /([^\\/]+).script$/ )[1];
-  var roomId = this.tutorial.shift();
+  var roomId = this.tutorial.shift().toLocaleLowerCase();
   var initialItems = JSON.parse( this.tutorial.shift() );
 
   AIBody.call( this, db, roomId, Number.MAX_VALUE, initialItems, {
@@ -86,7 +86,7 @@ ScriptedBot.prototype.cmd_spawn = function ( monsterName ) {
   if ( !this.db.getPerson(name) )
     this.monster = new Aggressor(
         this.db,
-        this.roomId,
+        this.roomId.toLocaleLowerCase(),
         10,
         { "gold": 10 },
     null,
@@ -99,6 +99,7 @@ ScriptedBot.loadFromDir = function loadFromDir ( db, dirName ) {
         return f.match( /\.script$/ );
       } )
       .forEach( function ( f ) {
+        console.log(f);
         new ScriptedBot( db, dirName + f );
       } );
 };

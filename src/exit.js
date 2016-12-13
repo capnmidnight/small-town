@@ -220,12 +220,13 @@ var reverseDirection =
       "enter": "exit"
     };
 
-function checkRoomId ( db, roomId, name )
-{
-  if ( roomId.id )
+function checkRoomId ( db, roomId, name ) {
+  if ( roomId.id ) {
     roomId = roomId.id;
+  }
 
   assert.ok( roomId, name + "RoomId required" );
+  roomId = roomId.toLocaleLowerCase();
   assert.ok( db.getRoom(roomId),
       "room \"" + roomId + "\" must exist before exit can be created." );
 

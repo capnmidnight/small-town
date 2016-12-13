@@ -22,7 +22,7 @@ var explain = { };
  */
 var Body = function ( db, id, roomId, hp, items, equipment, password ) {
   Thing.call( this, db, "users", id, "" );
-  this.roomId = roomId;
+  this.roomId = roomId.toLocaleLowerCase();
   this.hp = hp;
   this.items = { };
   this.equipment = { };
@@ -331,7 +331,7 @@ Body.prototype.move = function ( dir ) {
 
 Body.prototype.goThrough = function goThrough ( dir, toRoomId ) {
   this.informOthers( "left", dir );
-  this.roomId = toRoomId;
+  this.roomId = toRoomId.toLocaleLowerCase();
   this.informOthers( "entered" );
   this.cmd_look();
 };

@@ -30,9 +30,10 @@ ServerState.prototype.isNameInUse = function ( name ) {
 };
 
 ServerState.prototype.getPeopleIn = function ( roomId, excludeUserId ) {
+  roomId = roomId.toLocaleLowerCase();
   return core.values( this.users )
       .filter( function ( user ) {
-        return user.roomId === roomId
+        return user.roomId.toLocaleLowerCase() === roomId
             && user.id !== excludeUserId;
       } );
 };
@@ -42,6 +43,7 @@ function from(name, id){
 }
 
 ServerState.prototype.getPerson = function ( userId, roomId ) {
+  roomId = roomId && roomId.toLocaleLowerCase();
   var user = from.call(this, "users", userId);
   if ( !roomId || ( user && user.roomId === roomId ) )
     return user;

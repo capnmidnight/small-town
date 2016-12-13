@@ -24,8 +24,9 @@ module.exports = Aggressor;
 
 Aggressor.prototype.findTarget = function findTarget () {
   var target;
-  if ( this.targetId )
+  if ( this.targetId ) {
     target = this.db.getPerson(this.targetId);
+  }
   else {
     var people = this.db.getPeopleIn( this.roomId, this.id );
     var realUsers = people.filter( function ( p ) {
@@ -35,7 +36,7 @@ Aggressor.prototype.findTarget = function findTarget () {
     this.targetId = target && target.id;
   }
 
-  if ( !target || target.roomId !== this.roomId || target.hp <= 0 ) {
+  if ( !target || target.roomId.toLocaleLowerCase() !== this.roomId.toLocaleLowerCase() || target.hp <= 0 ) {
     this.targetId = null;
     target = null;
   }
@@ -52,8 +53,9 @@ Aggressor.prototype.idleAction = function idleAction () {
   else {
     var rm = this.db.getRoom(this.roomId);
     var exit = core.selectRandom( core.keys( rm.exits ) );
-    if ( exit )
+    if ( exit ) {
       this.cmd( exit );
+    }
   }
 };
 
