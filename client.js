@@ -6,13 +6,12 @@ function Client ( iId, usId ) {
       curHeight,
       listeners = { };
 
-  function BoxQueue ( boxId ) {
-    this.box = document.getElementById( boxId );
+  function BoxQueue ( boxId, overrideId ) {
+    this.box = document.getElementById( overrideId || boxId );
     listeners[boxId] = this;
     this.lines = [ ];
     var b = this;
     var resizer = function () {
-      b.box.style.width = ( window.innerWidth - 10 ) + "px";
       b.box.style.height = ( window.innerHeight - 30 ) + "px";
     };
     resizer();
@@ -21,9 +20,6 @@ function Client ( iId, usId ) {
 
   BoxQueue.prototype.enq = function ( data ) {
     var text = "";
-    for ( var boxId in listeners )
-      listeners[boxId].box.style.opacity = 0.25;
-    this.box.style.opacity = 1;
 
     if ( typeof ( data ) === "string" )
       text = data;
@@ -47,11 +43,8 @@ function Client ( iId, usId ) {
     if ( this.lines.length > 0 ) {
       var elem = document.createElement( "div" );
       var line = this.lines.shift();
-      elem.className = "fadeIn line";
+      elem.className = "line";
       this.box.appendChild( elem );
-      setTimeout( function () {
-        elem.style.opacity = 1.0;
-      }, 1 );
       elem.innerHTML = line;
       this.box.scrollTop = this.box.scrollHeight;
     }
@@ -138,7 +131,6 @@ function Client ( iId, usId ) {
     userStatus = document.getElementById( usId );
     curHeight = window.innerHeight;
     new BoxQueue( "news" );
-    new BoxQueue( "chat" );
     var protocol = location.protocol.replace("http", "ws"),
       serverPath = protocol + "//" + location.hostname;
     socket = io( serverPath );

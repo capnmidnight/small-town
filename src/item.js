@@ -31,10 +31,11 @@ Item.consumeTypes = [ "food", "scroll" ];
 
 Item.prototype.copy = function () {
   var itm = Thing.prototype.copy.call( this );
-  var stub = itm.id + "-";
+  var stub = itm.id.toLocaleLowerCase() + "-";
   var i = 0;
-  while ( this.db[stub + i] )
+  while ( this.db[stub + i] ) {
     ++i;
+  }
   itm.id += stub + i;
   itm.name = this.name;
   this.db[itm.id] = itm;
@@ -49,7 +50,7 @@ Item.parse = function ( db, type, text ) {
     parts.shift();
   var description = parts.join( " " );
   var itm = new Item( db, id, description, type, strength );
-  db[itm.id] = itm;
+  db[itm.id.toLocaleLowerCase()] = itm;
 };
 
 Item.process = function ( db, text ) {
@@ -75,9 +76,9 @@ Item.load = function ( db, filename ) {
 
 Item.loadIntoRoom = function ( db, roomId, text ) {
   var parts = text.split( " " );
-  var itemName = parts[0];
+  var itemName = parts[0].toLocaleLowerCase();
   var count = parts[1] * 1;
   assert( db[itemName], "Item " + itemName + " doesn't exist." );
   for ( var i = 0; i < count; ++i )
-    db.rooms[roomId].addChild( db.items[itemName].copy() );
+    db.getRoom(roomId).addChild( db.getItem(itemName).copy() );
 };

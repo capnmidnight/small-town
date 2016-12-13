@@ -14,7 +14,7 @@ module.exports = Scavenger;
 
 Scavenger.prototype.idleAction = function ()
 {
-  var rm = this.db.rooms[this.roomId];
+  var rm = this.db.getRoom(this.roomId);
   var items = core.hashMap( rm.items, core.key );
   var item = core.selectRandom( items );
   var exits = core.hashMap( rm.exits, core.key );

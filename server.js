@@ -1,20 +1,18 @@
 /* global require, module, exports, process */
 
 var format = require( "util" ).format,
-fs = require( "fs" ),
-ServerState = require( "./src/serverState.js" ),
-Body = require( "./src/body.js" ),
-core = require( './src/core.js' ),
-serverState = new ServerState(),
-notion = require( "notion-node" );
+  fs = require( "fs" ),
+  ServerState = require( "./src/serverState.js" ),
+  Body = require( "./src/body.js" ),
+  core = require( './src/core.js' ),
+  serverState = new ServerState(),
+  notion = require( "notion-node" );
 
 notion(null, null, null, null, function ( socket ) {
   var userName = null;
   socket.on( "name", function ( name ) {
-    if ( serverState.isNameInUse( name ) ) {
-      socket.emit( "bad name", "Name is already in use, try another one." );
-    }
-    else if ( !name.match( /^[a-zA-Z][a-zA-Z0-9\-]{3,}$/ ) ){
+    name = name.toLocaleLowerCase();
+    if ( !name.match( /^[a-z][a-z0-9\-]{3,}$/ ) ){
       socket.emit( "bad name", "Bad name.\n\n"
         +
         "Name must be at least 4 characters long and it can only be composed of letters,"
@@ -22,53 +20,68 @@ notion(null, null, null, null, function ( socket ) {
         "numbers, or dash '-'. The first character may not be a number." );
     }
     else {
-      fs.exists( "users/" + name + ".js", function(yes){
-        var message = yes
-          ? "User account found:"
-          : "Create a new user account:";
+      var exists = serverState.isNameInUse( name ),
+        quit = exists && serverState.users[name].quit,
+        message = null,
+        op = null;
+
+      if(exists){
+        if(quit) {
+          op = "good name";
+          message = "User account found";
+        }
+        else {
+          op = "bad name";
+          message = "Name is already in use, try another one.";
+        }
+      }
+      else{
+        op = "good name";
+        message = "Create a new user account"
+      }
+
+      if(op === "good name"){
         userName = name;
-        socket.emit( "good name", message );
-      } );
+      }
+      socket.emit( op, message );
     }
   } );
   socket.on( "password", function ( password ) {
-    fs.readFile( "users/users.js", { encoding: "utf8" }, function ( err, jsn ) {
-      var roomId = "welcome";
-      var hp = 100;
-      var items = { "gold": 10 };
-      var equipment = null;
-      var passwordMessage = "";
-        var users = JSON.parse( jsn ),
-          obj = users[userName];
+    var roomId = "welcome";
+    var hp = 100;
+    var items = { "gold": 10 };
+    var equipment = null;
+    var passwordMessage = "";
+    var obj = serverState.users[userName];
 
-      if ( obj ) {
-        if ( password != obj.password ){
-          passwordMessage = "Incorrect password";
-        }
-        else {
-          passwordMessage = "Success!";
-          roomId = obj.roomId;
-          hp = obj.hp;
-          items = obj.items;
-          equipment = obj.equipment;
-        }
-      }
-      else if ( password.length < 8 ){
-        passwordMessage = "Password must be at least 8 characters long";
-      }
-      else{
-        passwordMessage = "Success!";
-      }
-
-      if ( passwordMessage != "Success!" ){
-        socket.emit( "bad password", passwordMessage );
+    if ( obj ) {
+      if ( password != obj.password ){
+        passwordMessage = "Incorrect password";
       }
       else {
-        socket.emit( "good password", passwordMessage );
-        serverState.users[userName] = new Body( serverState, userName, roomId, hp,
-          items, equipment, socket, password );
+        passwordMessage = "Success!";
+        roomId = obj.roomId;
+        hp = obj.hp;
+        items = obj.items;
+        equipment = obj.equipment;
       }
-    } );
+    }
+    else if ( password.length < 8 ){
+      passwordMessage = "Password must be at least 8 characters long";
+    }
+    else{
+      passwordMessage = "Success!";
+    }
+
+    if ( passwordMessage != "Success!" ){
+      socket.emit( "bad password", passwordMessage );
+    }
+    else {
+      socket.emit( "good password", passwordMessage );
+      var user = serverState.users[userName] = serverState.users[userName] || new Body( serverState, userName, roomId, hp,
+        items, equipment, password );
+      user.setSocket(socket);
+    }
   } );
 } );
 

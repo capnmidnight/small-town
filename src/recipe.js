@@ -32,6 +32,7 @@ module.exports = Recipe;
 
 function parseItemList ( part, options, state, name )
 {
+  name = name.toLocaleLowerCase();
   if ( part[part.length - 1] === ',' )
     part = part.substring( 0, part.length - 1 );
   else if ( part[part.length - 1] === '.' ) {

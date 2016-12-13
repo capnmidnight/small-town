@@ -35,6 +35,7 @@ module.exports = ScriptedBot;
 
 ScriptedBot.prototype.doForEveryone = function ( thunk ) {
   for ( var userId in this.users ) {
+    userId = userId.toLocaleLowerCase();
     var stepNo = this.users[userId];
     if ( stepNo < this.tutorial.length ) {
       var step = this.tutorial[stepNo]
@@ -58,9 +59,10 @@ ScriptedBot.prototype.idleAction = function () {
 };
 
 ScriptedBot.prototype.react = function ( msg ) {
-  if ( this.db.users[msg.fromId] && msg.fromId !== this.id ) {
-    if ( this.users[msg.fromId] === undefined )
-      this.users[msg.fromId] = 0;
+  if ( this.db.getPerson(msg.fromId) && msg.fromId !== this.id ) {
+    var fromId = msg.fromId.toLocaleLowerCase();
+    if ( this.users[fromId] === undefined )
+      this.users[fromId] = 0;
 
     var cmd = format( "wait %s %s %s", msg.fromId, msg.message,
         msg.payload.join( " " ) );
@@ -73,13 +75,15 @@ ScriptedBot.prototype.react = function ( msg ) {
 };
 
 ScriptedBot.prototype.cmd_done = function ( userId ) {
-  if ( this.users[userId] )
+  if ( this.users[userId] ) {
+    userId = userId.toLocaleLowerCase();
     delete this.users[userId];
+  }
 };
 
 ScriptedBot.prototype.cmd_spawn = function ( monsterName ) {
   var name = this.id + "'s-" + monsterName;
-  if ( !this.db.users[name] )
+  if ( !this.db.getPerson(name) )
     this.monster = new Aggressor(
         this.db,
         this.roomId,

@@ -20,8 +20,7 @@ var explain = { };
  *  - equipment (optional): an associative array of item IDs to
  *          counts, representing the stuff in use by the character.
  */
-var Body = function ( db, id, roomId, hp, items, equipment, socket, password )
-{
+var Body = function ( db, id, roomId, hp, items, equipment, password ) {
   Thing.call( this, db, "users", id, "" );
   this.roomId = roomId;
   this.hp = hp;
@@ -29,20 +28,27 @@ var Body = function ( db, id, roomId, hp, items, equipment, socket, password )
   this.equipment = { };
   this.inputQ = [ "look" ];
   this.msgQ = [ ];
-  this.socket = socket;
   this.password = password;
   this.dirty = false;
   this.quit = false;
   this.isPerson = true;
 
-  for ( var itemId in items )
-    this.items[itemId] = items[itemId];
+  for ( var itemId in items ) {
+    this.items[itemId.toLocaleLowerCase()] = items[itemId];
+  }
 
-  for ( var slot in equipment )
-    this.equipment[slot] = equipment[slot];
+  for ( var slot in equipment ) {
+    this.equipment[slot.toLocaleLowerCase()] = equipment[slot];
+  }
+};
 
-  if ( this.socket )
-  {
+Body.prototype = Object.create( Thing.prototype );
+module.exports = Body;
+
+Body.prototype.setSocket = function(socket) {
+  this.quit = false;
+  this.socket = socket;
+  if ( this.socket ) {
     var body = this;
     this.socket.on( "cmd", function ( data ) {
       body.inputQ.push( data );
@@ -61,9 +67,6 @@ var Body = function ( db, id, roomId, hp, items, equipment, socket, password )
     };
   }
 };
-
-Body.prototype = Object.create( Thing.prototype );
-module.exports = Body;
 
 
 Body.prototype.inf = function inf ( args, roomId, excludeUserId ) {
@@ -84,77 +87,52 @@ Body.prototype.informOthers = function informOthers () {
   this.inf( arguments, this.roomId, this.id );
 };
 
-Body.prototype.saveDirectory = function () {
-  return "users";
-};
-
-Body.prototype.save = function () {
-  if ( this.password && this.dirty ) {
-    var fileName = format( "%s/%s.js", this.saveDirectory(), this.id );
-    var obj = {
-      password: this.password,
-      roomId: this.roomId,
-      hp: this.hp,
-      items: this.items,
-      equipment: this.equipment
-    };
-    var jsn = fs.readFileSync( "users/users.json", { encoding: "utf8" });
-    var users = JSON.parse( jsn );
-    users[this.id] = obj;
-    var data = JSON.stringify(users);
-    fs.writeFileSync( "users/users.json", data);
-    this.dirty = false;
-  }
-};
-
-Body.prototype.informUser = function ( msg )
-{
+Body.prototype.informUser = function ( msg ) {
   this.msgQ.push( msg );
 };
 
 Body.prototype.dumpMessageQueue = function () {
   this.dirty |= this.msgQ.length > 0;
-  while ( this.msgQ.length > 0 )
+  while ( this.msgQ.length > 0 ) {
     this.react( this.msgQ.shift() );
+  }
 };
 
 Body.prototype.dumpInputQueue = function () {
   this.dirty |= this.inputQ.length > 0;
-  while ( this.inputQ.length > 0 )
+  while ( this.inputQ.length > 0 ) {
     this.doCommand( this.inputQ.shift() );
+  }
 };
 
-Body.prototype.update = function ()
-{
+Body.prototype.update = function () {
   this.dumpMessageQueue();
   this.socket.emit( "userStatus", format( "%s (%d) :>", this.id, this.hp ) );
   this.dumpInputQueue();
 };
 
-Body.prototype.react = function ( msg )
-{
+Body.prototype.react = function ( msg ) {
   this.socket.emit( "news", msg );
 };
 
-Body.prototype.sysMsg = function ( msg )
-{
+Body.prototype.sysMsg = function ( msg ) {
   this.informUser( new Message( "server", msg ) );
 };
 
-Body.prototype.doCommand = function ( str )
-{
+Body.prototype.doCommand = function ( str ) {
   this.sysMsg( str );
-  if ( str.length > 0 )
-  {
+  if ( str.length > 0 ) {
     var tokens = str.split( " " );
 
-    var cmd = tokens[0];
+    var cmd = tokens[0].toLocaleLowerCase();
     var params = tokens.slice( 1 );
-    if ( cmd === "say" || cmd === "yell" )
+    if ( cmd === "say" || cmd === "yell" ) {
       params = [ params.join( " " ) ];
-    else if ( ( cmd === "tell" || cmd === "msg" ) && params.length > 0 )
-      params = [ params[0], params.slice( 1 )
+    }
+    else if ( ( cmd === "tell" || cmd === "msg" ) && params.length > 0 ) {
+      params = [ params[0].toLocaleLowerCase(), params.slice( 1 )
             .join( " " ) ];
+    }
 
     var proc = this["cmd_" + cmd];
     if ( !proc ) {
@@ -162,26 +140,31 @@ Body.prototype.doCommand = function ( str )
       params = [ str ];
     }
 
-    if ( params.length < proc.length )
+    if ( params.length < proc.length ) {
       this.sysMsg( "not enough parameters" );
-    else if ( params.length > proc.length )
+    }
+    else if ( params.length > proc.length ) {
       this.sysMsg( "too many parameters" );
+    }
     else if ( this instanceof Body
         && this.hp <= 0
-        && cmd !== "quit" )
+        && cmd !== "quit" ) {
       this.sysMsg( "knocked out!" );
-    else
+    }
+    else{
       proc.apply( this, params );
+    }
   }
 };
 
-Body.prototype.exchange = function ( targetId, itemId, verb, dir )
-{
+Body.prototype.exchange = function ( targetId, itemId, verb, dir ) {
   var target = this.db.getPerson( targetId, this.roomId );
-  if ( !target )
+  if ( !target ) {
     this.sysMsg( format( "%s is not here to %s %s.", targetId, verb, dir ) );
-  else
-    target.informUser( new Message( this.id, verb, [ itemId ], "chat" ) );
+  }
+  else {
+    target.informUser( new Message( this.id, verb, [ itemId ], "news" ) );
+  }
 };
 
 explain.buy = "Use: \"buy &lt;target name&gt; &lt;item name&gt;\"\n\n"
@@ -193,8 +176,7 @@ explain.buy = "Use: \"buy &lt;target name&gt; &lt;item name&gt;\"\n\n"
     + "&gt; buy carlos hat\n\n"
     + "&lt; carlos take player 5 gold\n\n"
     + "&lt; carlos give player hat";
-Body.prototype.cmd_buy = function ( targetId, itemId )
-{
+Body.prototype.cmd_buy = function ( targetId, itemId ) {
   this.exchange( targetId, itemId, "buy", "from" );
 };
 
@@ -207,8 +189,7 @@ explain.sell = "Use: \"sell &lt;target name&gt; &lt;item name&gt;\"\n\n"
     + "&gt; sell carlos hat\n\n"
     + "&lt; carlos give player 5 gold\n\n"
     + "&lt; carlos take player hat";
-Body.prototype.cmd_sell = function ( targetId, itemId )
-{
+Body.prototype.cmd_sell = function ( targetId, itemId ) {
   this.exchange( targetId, itemId, "sell", "to" );
 };
 
@@ -223,8 +204,7 @@ explain.retrieve =
     + "Example:\n\n"
     + "&gt; retrieve carlos hat\n\n"
     + "&lt; carlos give player hat";
-Body.prototype.cmd_retrieve = function ( targetId, itemId )
-{
+Body.prototype.cmd_retrieve = function ( targetId, itemId ) {
   this.exchange( targetId, itemId, "retrieve", "from" );
 };
 
@@ -233,8 +213,7 @@ explain.yell = "Use: \"yell &lt;message&gt;\"\n\n"
     + "Example:\n\n"
     + "&gt; yell Hello, how are you doing?\n\n"
     + "&lt; carlos yell SHADDAP!";
-Body.prototype.cmd_yell = function ( msg )
-{
+Body.prototype.cmd_yell = function ( msg ) {
   this.informAll( "yell", msg );
 };
 
@@ -244,8 +223,7 @@ explain.say = "Use: \"say &lt;message&gt;\"\n\n"
     + "Example:\n\n"
     + "&gt; say Hello\n\n"
     + "&lt; carlos say Hi!";
-Body.prototype.cmd_say = function ( msg )
-{
+Body.prototype.cmd_say = function ( msg ) {
   this.informOthers( "say", msg );
 };
 
@@ -254,13 +232,14 @@ explain.tell = "Use: \"tell &lt;target name&gt; &lt;message&gt;\"\n\n"
     + "Example:\n\n"
     + "&gt; tell carlos follow\n\n"
     + "&lt; carlos tell player naaaay!";
-Body.prototype.cmd_tell = function ( targetId, msg )
-{
+Body.prototype.cmd_tell = function ( targetId, msg ) {
   var target = this.db.getPerson( targetId, this.roomId );
-  if ( target )
-    target.informUser( new Message( this.id, "tell", [ msg ], "chat" ) );
-  else
+  if ( target ) {
+    target.informUser( new Message( this.id, "tell", [ msg ], "news" ) );
+  }
+  else {
     this.sysMsg( format( "%s is not here to tell anything to.", targetId ) );
+  }
 };
 
 explain.msg = "Use: \"msg &lt;target name&gt; &lt;message&gt;\"\n\n"
@@ -271,10 +250,12 @@ explain.msg = "Use: \"msg &lt;target name&gt; &lt;message&gt;\"\n\n"
 Body.prototype.cmd_msg = function ( targetId, msg ) {
   var target = this.db.getPerson( targetId );
   core.test( ">>>> MSG", targetId, !!target, msg );
-  if ( target )
-    target.informUser( new Message( this.id, "msg", [ msg ], "chat" ) );
-  else
+  if ( target ) {
+    target.informUser( new Message( this.id, "msg", [ msg ], "news" ) );
+  }
+  else {
     this.sysMsg( format( "%s is not logged in to msg to.", targetId ) );
+  }
 };
 
 explain.quit = "Use: \"quit\"\n\n"
@@ -282,22 +263,18 @@ explain.quit = "Use: \"quit\"\n\n"
     + "Example:\n\n"
     + "&gt; quit\n\n"
     + "&lt; player quit";
-Body.prototype.cmd_quit = function ()
-{
+Body.prototype.cmd_quit = function () {
   this.informAll( "quit" );
   this.quit = true;
 };
 
 explain.help = "Use: \"help\"\n\n"
     + "Show all of the commands available to the user.";
-Body.prototype.cmd_help = function ()
-{
+Body.prototype.cmd_help = function () {
   var msg = "Available commands:\n\n";
   var lines = [ ];
-  for ( var cmd in this )
-  {
-    if ( cmd.indexOf( "cmd_" ) >= 0 && this[cmd] )
-    {
+  for ( var cmd in this ) {
+    if ( cmd.indexOf( "cmd_" ) >= 0 && this[cmd] ) {
       var src = this[cmd].toString();
       var j = src.indexOf( ")" );
       src = src.substring( 0, j )
@@ -315,8 +292,7 @@ Body.prototype.cmd_help = function ()
   this.sysMsg( msg );
 };
 
-function roomPeopledescription ( k, v )
-{
+function roomPeopledescription ( k, v ) {
   return format( "\t%s%s", k, ( v.hp > 0 ? "" : " (KNOCKED OUT)" ) );
 }
 
@@ -328,27 +304,29 @@ explain.look = "Use: \"look\"\n\n"
     + "See a description of the current room.";
 Body.prototype.cmd_look = function ()
 {
-  var rm = this.db.rooms[this.roomId];
-  if ( !rm )
+  var rm = this.db.getRoom(this.roomId);
+  if ( !rm ) {
     this.sysMsg( "What have you done!?" );
-  else
-  {
+  }
+  else {
     var description = rm.describe( this );
     this.informUser( new Message( "server", description, null, "news" ) );
   }
 };
 
-Body.prototype.move = function ( dir )
-{
-  var rm = this.db.rooms[this.roomId];
-  var exit = rm.exits[dir];
-  var exitRoom = exit && this.db.rooms[exit.toRoomId];
-  if ( !exit || !exitRoom )
+Body.prototype.move = function ( dir ) {
+  var rm = this.db.getRoom(this.roomId);
+  var exit = rm.exits[dir.toLocaleLowerCase()];
+  var exitRoom = exit && this.db.getRoom(exit.toRoomId);
+  if ( !exit || !exitRoom ) {
     this.sysMsg( format( "You can't go %s. There is no exit that way", dir ) );
-  else if ( exit.isLocked( this ) )
+  }
+  else if ( exit.isLocked( this ) ) {
     this.sysMsg( format( "You can't go %s. %s.", dir, exit.lockMessage ) );
-  else
+  }
+  else {
     this.goThrough( dir, exit.toRoomId );
+  }
 };
 
 Body.prototype.goThrough = function goThrough ( dir, toRoomId ) {
@@ -370,19 +348,20 @@ function movedir ( dir ) {
 }
 var dirs = [ "north", "east", "south", "west", "leave", "up", "down", "enter",
   "exit" ];
-for ( var i = 0; i < dirs.length; ++i )
-{
+for ( var i = 0; i < dirs.length; ++i ) {
   explain[dirs[i]] = direxplain( dirs[i] );
   Body.prototype["cmd_" + dirs[i]] = movedir( dirs[i] );
 }
 
 explain.explain = "I think you've figured it out by now.";
-Body.prototype.cmd_explain = function ( cmd )
-{
-  if ( explain[cmd] )
+Body.prototype.cmd_explain = function ( cmd ) {
+  cmd = cmd.toLocaleLowerCase();
+  if ( explain[cmd] ) {
     this.sysMsg( format( "%s: %s", cmd, explain[cmd] ) );
-  else
+  }
+  else {
     this.sysMsg( format( "There is no command \"%s\"", cmd ) );
+  }
 };
 
 explain.take = "Use: \"take &lt;item name&gt;\"\n\n"
@@ -391,24 +370,20 @@ explain.take = "Use: \"take &lt;item name&gt;\"\n\n"
     + "Example:\n\n"
     + "&gt; take hat\n\n"
     + "&lt; player take hat";
-Body.prototype.cmd_take = function ( itemId )
-{
-  var rm = this.db.rooms[this.roomId];
+Body.prototype.cmd_take = function ( itemId ) {
+  var rm = this.db.getRoom(this.roomId);
   var items;
-  if ( itemId === "all" )
-  {
+  if ( itemId === "all" ) {
     items = rm.items;
   }
-  else
-  {
+  else {
     items = { };
-    items[itemId] = 1;
+    items[itemId.toLocaleLowerCase()] = 1;
   }
 
-  for ( itemId in items )
-  {
+  for ( itemId in items ) {
     this.moveItem( itemId, items, this.items, "picked up", "here",
-        items[itemId] );
+        items[itemId.toLocaleLowerCase()] );
     this.informHere( "take", itemId );
   }
 };
@@ -419,20 +394,20 @@ explain.drop = "Use: \"drop &lt;item name&gt;\"\n\n"
     + "Example:\n\n"
     + "&gt; drop hat\n\n"
     + "&lt; player drop hat";
-Body.prototype.cmd_drop = function ( itemId )
-{
-  var rm = this.db.rooms[this.roomId];
+Body.prototype.cmd_drop = function ( itemId ) {
+  var rm = this.db.getRoom(this.roomId);
   this.moveItem( itemId, this.items, rm.items, "dropped",
       "in your inventory" );
   this.informHere( "drop", itemId );
 };
 
-Body.prototype.moveItem = function ( itm, from, to, actName, locName, amt )
-{
-  if ( core.transfer( itm, from, to, amt ) )
+Body.prototype.moveItem = function ( itm, from, to, actName, locName, amt ) {
+  if ( core.transfer( itm, from, to, amt ) ) {
     this.sysMsg( format( "You %s the %s.", actName, itm ) );
-  else
+  }
+  else {
     this.sysMsg( format( "There is no %s %s", itm, locName ) );
+  }
 };
 
 explain.give = "Use: \"give &lt;target name&gt; &lt;item name&gt;\"\n\n"
@@ -441,13 +416,12 @@ explain.give = "Use: \"give &lt;target name&gt; &lt;item name&gt;\"\n\n"
     + "Example:\n\n"
     + "&gt; give carlos hat\n\n"
     + "&lt; player give carlos hat";
-Body.prototype.cmd_give = function ( targetId, itemId )
-{
+Body.prototype.cmd_give = function ( targetId, itemId ) {
   var target = this.db.getPerson( targetId, this.roomId );
-  if ( !target )
+  if ( !target ) {
     this.sysMsg( format( "%s is not here", targetId ) );
-  else
-  {
+  }
+  else {
     this.moveItem( itemId, this.items, target.items, format( "gave to %s",
         targetId ), "in your inventory" );
     this.informHere( "give", targetId, itemId );
@@ -461,26 +435,27 @@ explain.make = "Use: \"make &lt;item name&gt;\"\n\n"
     + "&gt; make hat\n\n"
     + "&lt; player lose leather\n\n"
     + "&lt; player receive hat";
-Body.prototype.cmd_make = function ( recipeId )
-{
-  var recipe = this.db.recipes[recipeId];
-  if ( !recipe )
+Body.prototype.cmd_make = function ( recipeId ) {
+  var recipe = this.db.getRecipe(recipeId);
+  if ( !recipe ) {
     this.sysMsg( format( "%s isn't a recipe.", recipeId ) );
-  if ( !core.hashSatisfies( this.items, recipe.tools ) )
+  }
+  if ( !core.hashSatisfies( this.items, recipe.tools ) ) {
     this.sysMsg( "You don't have all of the tools." );
-  else if ( !core.hashSatisfies( this.items, recipe.ingredients ) )
+  }
+  else if ( !core.hashSatisfies( this.items, recipe.ingredients ) ) {
     this.sysMsg( "You don't have all of the ingredients" );
-  else
-  {
-    for ( var itemId in recipe.ingredients )
-    {
+  }
+  else {
+    for ( var itemId in recipe.ingredients ) {
+      itemId = itemId.toLocaleLowerCase();
       core.dec( this.items, itemId, recipe.ingredients[itemId] );
       this.sysMsg( format( "%d %s(s) removed from inventory.",
           recipe.ingredients[itemId], itemId ) );
     }
 
-    for ( var itemId in recipe.results )
-    {
+    for ( var itemId in recipe.results ) {
+      itemId = itemId.toLocaleLowerCase();
       core.inc( this.items, itemId, recipe.results[itemId] );
       this.sysMsg( format( "You created %d %s(s).", recipe.results[itemId],
           itemId ) );
@@ -495,21 +470,18 @@ Body.prototype.cmd_ls = Body.prototype.cmd_inv;
 
 explain.inv = "Use: \"inv\"\n\n"
     + "View what you have in your inventory";
-Body.prototype.cmd_inv = function ()
-{
+Body.prototype.cmd_inv = function () {
   var db = this.db;
   this.sysMsg( format( "Equipped:\n\n%s\n\nUnequipped:\n\n%s\n\n<hr>",
       core.formatHash( this.equipment,
-          function ( k, v )
-          {
+          function ( k, v ) {
             return format( "\t(%s) %s - %s", k, v,
-                ( db.items[v] ? db.items[v].description : "(UNKNOWN)" ) );
+                ( db.getItem(v) ? db.getItem(v).description : "(UNKNOWN)" ) );
           } ),
       core.formatHash( this.items,
-          function ( k, v )
-          {
+          function ( k, v ) {
             return format( "\t%d %s - %s", v, k,
-                ( db.items[k] ? db.items[k].description : "(UNKNOWN)" ) );
+                ( db.getItem(k) ? db.getItem(k).description : "(UNKNOWN)" ) );
           } ) ) );
 };
 
@@ -520,8 +492,7 @@ explain.drink = "Use: \"drink &lt;item name&gt;\"\n\n"
     + "&gt; drink potion\n\n"
     + "&lt; player drink potion\n\n"
     + "&lt; Health restored by 10 points.";
-Body.prototype.cmd_drink = function ( itemId )
-{
+Body.prototype.cmd_drink = function ( itemId ) {
   this.consume( itemId, "drink" );
 };
 
@@ -536,12 +507,15 @@ Body.prototype.cmd_eat = function ( itemId ) {
 };
 
 Body.prototype.consume = function ( itemId, name ) {
-  var item = this.db.items[itemId];
-  if ( !this.items[itemId] )
+  itemId = itemId.toLocaleLowerCase();
+  var item = this.db.getItem(itemId);
+  if ( !this.items[itemId] ) {
     this.sysMsg( format( "You don't have a %s to %s.", itemId, name ) );
-  else if ( item.equipType !== "food" )
+  }
+  else if ( item.equipType !== "food" ) {
     this.sysMsg( format( "You can't %s a %s, for it is a %s.", name, itemId,
         item.equipType ) );
+  }
   else {
     core.dec( this.items, itemId );
     this.hp += item.strength;
@@ -558,16 +532,17 @@ explain.equip = "Use: \"equip &lt;item name&gt;\"\n\n"
     + "Example:\n\n"
     + "&gt; equip hat\n\n"
     + "&lt; player equiped the hat as a helmet";
-Body.prototype.cmd_equip = function ( itemId )
-{
+Body.prototype.cmd_equip = function ( itemId ) {
+  itemId = itemId.toLocaleLowerCase();
   var itmCount = this.items[itemId];
-  var itm = this.db.items[itemId];
-  if ( itmCount === undefined || itmCount <= 0 )
+  var itm = this.db.getItem(itemId);
+  if ( itmCount === undefined || itmCount <= 0 ) {
     this.sysMsg( format( "You don't have the %s.", itemId ) );
-  else if ( Item.equipTypes.indexOf( itm.equipType ) < 0 )
+  }
+  else if ( Item.equipTypes.indexOf( itm.equipType ) < 0 ) {
     this.sysMsg( format( "You can't equip the %s.", itemId ) );
-  else
-  {
+  }
+  else {
     var current = this.equipment[itm.equipType];
     if ( current )
       core.inc( this.items, current );
@@ -584,12 +559,10 @@ explain.remove = "Use: \"remove &lt;item name&gt;\"\n\n"
     + "Example:\n\n"
     + "&gt; remove hat\n\n"
     + "&lt; player removed the hat as a helmet";
-Body.prototype.cmd_remove = function ( itemId )
-{
-  for ( var slot in this.equipment )
-  {
-    if ( this.equipment[slot] === itemId )
-    {
+Body.prototype.cmd_remove = function ( itemId ) {
+  itemId = itemId.toLocaleLowerCase();
+  for ( var slot in this.equipment ) {
+    if ( this.equipment[slot] === itemId ) {
       core.inc( this.items, itemId );
       delete this.equipment[slot];
       this.sysMsg( format( "You removed the %s as your %s.", itemId, slot ) );
@@ -601,8 +574,7 @@ Body.prototype.cmd_remove = function ( itemId )
 
 explain.who = "Use: \"who\"\n\n"
     + "List all users who are online, and where they are located.";
-Body.prototype.cmd_who = function ()
-{
+Body.prototype.cmd_who = function () {
   var msg = "People online:\n\n"
       + core.values( this.db.users )
       .filter( function ( u ) {
@@ -623,31 +595,29 @@ explain.attack = "Use: \"attack &lt;target name&gt;\"\n\n"
     + "Strikes the target once in combat.\n\n"
     + "Equipped weapons make the attacks perform more damage.\n\n"
     + "Targets with armor equipped take less damage.";
-Body.prototype.cmd_attack = function ( targetId )
-{
+Body.prototype.cmd_attack = function ( targetId ) {
   var target = this.db.getPerson( targetId, this.roomId );
-  if ( !target )
+  if ( !target ) {
     this.sysMsg( format( "%s is not here to attack.", targetId ) );
-  else
-  {
+  }
+  else {
     var atk = 1;
     var wpnId = this.equipment["tool"];
-    if ( wpnId )
-    {
-      var wpn = this.db.items[wpnId];
-      if ( wpn )
+    if ( wpnId ) {
+      var wpn = this.db.getItem(wpnId);
+      if ( wpn ) {
         atk += wpn.strength;
+      }
     }
-    else
+    else {
       wpnId = "bare fists";
+    }
 
     var def = 0;
-    for ( var i = 0; i < Item.armorTypes.length; ++i )
-    {
+    for ( var i = 0; i < Item.armorTypes.length; ++i ) {
       var armId = target.equipment[Item.armorTypes[i]];
-      if ( armId )
-      {
-        var arm = this.db.items[armId];
+      if ( armId ) {
+        var arm = this.db.getItem(armId);
         if ( arm )
           def += arm.strength;
       }
@@ -655,11 +625,12 @@ Body.prototype.cmd_attack = function ( targetId )
     atk = Math.max( atk - def, 0 );
     target.hp -= atk;
     this.informOthers( "attack", targetId );
-    target.informUser( new Message( this.id, "damage", [ atk ], "chat" ) );
+    target.informUser( new Message( this.id, "damage", [ atk ], "news" ) );
     this.sysMsg( format( "You attacked %s with %s for %d damage.", targetId,
         wpnId, atk ) );
-    if ( target.hp <= 0 )
+    if ( target.hp <= 0 ) {
       this.informHere( "knockout", targetId );
+    }
   }
 };
 
@@ -670,22 +641,25 @@ explain.loot = "Use: \"loot &lt;target name&gt;\"\n\n"
     + "&gt; loot carlos\n\n"
     + "&lt; player looted a hat\n\n"
     + "&lt; player looted a bird";
-Body.prototype.cmd_loot = function ( targetId )
-{
+Body.prototype.cmd_loot = function ( targetId ) {
   var target = this.db.getPerson( targetId, this.roomId );
-  if ( !target )
+  if ( !target ) {
     this.sysMsg( format( "%s is not here to loot.", targetId ) );
-  else if ( target.hp > 0 )
-    this.sysMsg( format( "%s knocks your hand away from his pockets.",
-        targetId ) );
-  else
-  {
-    for ( var slot in target.equipment )
+  }
+  else if ( target.hp > 0 ) {
+    this.sysMsg( format( "%s knocks your hand away from his pockets.", targetId ) );
+  }
+  else {
+    for ( var slot in target.equipment ) {
+      slot = slot.toLocaleLowerCase();
       target.cmd_remove( target.equipment[slot] );
+    }
 
-    for ( var itemId in target.items )
+    for ( var itemId in target.items ) {
+      itemId = itemId.toLocaleLowerCase();
       this.moveItem( itemId, target.items, this.items, "looted", "from " +
           targetId, target.items[itemId] );
+    }
 
     this.informHere( "loot", targetId );
   }

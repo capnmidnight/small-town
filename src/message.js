@@ -14,7 +14,7 @@ function Message ( fromId, msg, payload, type )
   this.fromId = fromId;
   this.message = msg || "";
   this.payload = payload || [ "" ];
-  this.type = type || "chat";
+  this.type = type || "news";
 }
 
 module.exports = Message;

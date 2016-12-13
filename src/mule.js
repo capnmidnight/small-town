@@ -26,48 +26,48 @@ Mule.prototype = Object.create( AIBody.prototype );
 module.exports = Mule;
 
 Mule.prototype.idleAction = function () {
-  if ( Math.random() * 100 <= 10 )
+  if ( Math.random() * 100 <= 10 ) {
     this.cmd( format( "say %s.", this.speak ) );
+  }
 };
 
 Mule.prototype.saySomething = function ( targetId ) {
-  if ( this.speak )
+  if ( this.speak ) {
     this.cmd( format( "tell %s %s", targetId, this.speak ) );
+  }
 };
 
 Mule.prototype.react_tell = function ( m ) {
   if ( m.payload.length > 0 ) {
     var msg = m.payload[0];
-    if ( !this.targetId )
-    {
-      if ( msg === "follow" )
-      {
+    if ( !this.targetId ) {
+      if ( msg === "follow" ) {
         this.cmd( format( "follow %s", m.fromId ) );
         this.targetId = m.fromId;
         this.saySomething( m.fromId );
       }
     }
-    else
-    {
-      if ( msg === "heel" )
-      {
+    else {
+      if ( msg === "heel" ) {
         delete this.targetId;
         this.saySomething( m.fromId );
       }
-      else if ( msg.indexOf( "drop" ) === 0 )
-      {
+      else if ( msg.indexOf( "drop" ) === 0 ) {
         this.cmd( msg );
         this.saySomething( m.fromId );
       }
-      else if ( msg === "inv" )
-      {
+      else if ( msg === "inv" ) {
         var output = "";
-        for ( var itemId in this.items )
+        for ( var itemId in this.items ) {
+          itemId = itemId.toLocaleLowerCase();
           output += format( "\t%s (%d)\n\n", itemId, this.items[itemId] );
-        if ( output.length === 0 )
+        }
+        if ( output.length === 0 ) {
           output = " nothing";
-        else
+        }
+        else {
           output = "\n\n" + output;
+        }
         this.cmd( format( "tell %s %s:%s", m.fromId, this.say, output ) );
       }
     }
@@ -80,8 +80,9 @@ Mule.prototype.react_left = function ( m )
 {
   if ( this.targetId === m.fromId ) {
     var target = this.db.getPerson( m.fromId );
-    if ( target )
+    if ( target ) {
       this.goThrough( m.payload, target.roomId );
+    }
   }
 };
 
@@ -94,12 +95,14 @@ Mule.prototype.react_retrieve = function ( m )
     var target = this.db.getPerson( this.targetId, this.roomId );
     if ( target )
     {
-      var itemId = m.payload[0];
+      var itemId = m.payload[0].toLocaleLowerCase();
       var item = this.items[itemId];
-      if ( !item )
+      if ( !item ) {
         this.cmd( format( "tell %s I don't have that item", m.fromId ) );
-      else
+      }
+      else {
         this.cmd( format( "give %s %s", m.fromId, itemId ) );
+      }
     }
   }
 };

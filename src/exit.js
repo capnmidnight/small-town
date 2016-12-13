@@ -39,9 +39,11 @@ var core = require( "./core.js" );
  */
 function Exit ( db, direction, fromRoomId, toRoomId, options )
 {
-  this.fromRoomId = checkRoomId( db.rooms, fromRoomId, "from" );
-  var fromRoom = db.rooms[this.fromRoomId];
-  this.toRoomId = checkRoomId( db.rooms, toRoomId, "to" );
+  this.fromRoomId = checkRoomId( db, fromRoomId, "from" );
+  var fromRoom = db.getRoom(this.fromRoomId);
+  this.toRoomId = checkRoomId( db, toRoomId, "to" );
+
+  direction = direction.toLocaleLowerCase();
   var id = direction && format(
       "exit-%s-from-%s-to-%s",
       direction,
@@ -74,9 +76,9 @@ module.exports = Exit;
 
 function parseLocker ( part, options, name )
 {
+    name = name.toLowerCase();
   if ( part === "with" )
   {
-    name = name.toLowerCase();
     options[name] = [ ];
   }
   else if ( part === "when" )
@@ -86,7 +88,7 @@ function parseLocker ( part, options, name )
   }
   else if ( part[0] === '"' )
   {
-    name = name.toLowerCase() + "Message";
+    name = name + "message";
     options[name] = part.substring( 1 );
   }
   else
@@ -108,11 +110,11 @@ var parsers =
       },
       cloaked: function ( part, options )
       {
-        return parseLocker( part, options, "Cloak" );
+        return parseLocker( part, options, "cloak" );
       },
       locked: function ( part, options )
       {
-        return parseLocker( part, options, "Lock" );
+        return parseLocker( part, options, "lock" );
       },
       cloak: function ( itemId, options )
       {
@@ -122,17 +124,17 @@ var parsers =
       {
         return collectItemList( itemId, options, "lock" );
       },
-      timeLock: function ( number, options )
+      timelock: function ( number, options )
       {
-        return collectTimeConstraints( number, options, "Lock" );
+        return collectTimeConstraints( number, options, "lock" );
       },
-      timeCloak: function ( number, options )
+      timecloak: function ( number, options )
       {
-        return collectTimeConstraints( number, options, "Cloak" );
+        return collectTimeConstraints( number, options, "cloak" );
       },
-      lockMessage: function ( part, options )
+      lockmessage: function ( part, options )
       {
-        var state = "lockMessage";
+        var state = "lockmessage";
         if ( part[part.length - 2] !== '\\'
             && part[part.length - 1] === '"' )
         {
@@ -187,8 +189,9 @@ Exit.parse = function ( db, fromRoomId, text )
   var parts = text.split( " " );
   var direction = parts[0];
   var state = "none";
-  for ( var i = 1; i < parts.length; ++i )
+  for ( var i = 1; i < parts.length; ++i ) {
     state = parsers[state]( parts[i], options );
+  }
 
   return new Exit( db, direction, fromRoomId, options.toRoomId, options );
 };
@@ -200,7 +203,7 @@ function checkLockSet ( db, lock )
   return lock.map( function ( itemId ) {
     if ( itemId.id )
       itemId = itemId.id;
-    assert.ok( db.items[itemId], itemId + " is not an item." );
+    assert.ok( db.getItem(itemId), itemId + " is not an item." );
     return itemId;
   } );
 }
@@ -217,13 +220,13 @@ var reverseDirection =
       "enter": "exit"
     };
 
-function checkRoomId ( table, roomId, name )
+function checkRoomId ( db, roomId, name )
 {
   if ( roomId.id )
     roomId = roomId.id;
 
   assert.ok( roomId, name + "RoomId required" );
-  assert.ok( table[roomId],
+  assert.ok( db.getRoom(roomId),
       "room \"" + roomId + "\" must exist before exit can be created." );
 
   return roomId;
@@ -231,8 +234,9 @@ function checkRoomId ( table, roomId, name )
 
 function checkLockClosed ( db, lock, user )
 {
-  if ( user instanceof String )
-    user = db.users[user];
+  if ( typeof user === "string" || user instanceof String ){
+    user = db.getPerson(user);
+  }
   equip = core.values( user.equipment );
   return !lock.reduce( function ( prev, itemId ) {
     return prev && ( user.items[itemId] || equip.indexOf( itemId ) > -1 );

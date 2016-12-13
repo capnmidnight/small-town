@@ -26,7 +26,7 @@ function ServerState () {
 module.exports = ServerState;
 
 ServerState.prototype.isNameInUse = function ( name ) {
-  return this.users[name];
+  return !!this.getPerson(name);
 };
 
 ServerState.prototype.getPeopleIn = function ( roomId, excludeUserId ) {
@@ -37,18 +37,39 @@ ServerState.prototype.getPeopleIn = function ( roomId, excludeUserId ) {
       } );
 };
 
+function from(name, id){
+  return this[name][id.toLocaleLowerCase()];
+}
+
 ServerState.prototype.getPerson = function ( userId, roomId ) {
-  var user = this.users[userId];
+  var user = from.call(this, "users", userId);
   if ( !roomId || ( user && user.roomId === roomId ) )
     return user;
 };
 
+ServerState.prototype.getItem = function ( itemId ) {
+  return from.call(this, "items", itemId);
+};
+
+ServerState.prototype.getRoom = function ( roomId ) {
+  return from.call(this, "rooms", roomId);
+};
+
+ServerState.prototype.getExit = function ( exitId ) {
+  return from.call(this, "exits", exitId);
+};
+
+
+ServerState.prototype.getRecipe = function ( recipeId ) {
+  return from.call(this, "recipes", recipeId);
+};
 ServerState.prototype.inform = function ( message, roomId, excludeUserId ) {
   for ( var userId in this.users ) {
     if ( userId !== excludeUserId ) {
-      var user = this.users[userId];
-      if ( !roomId || user.roomId === roomId )
+      var user = this.getPerson(userId, roomId);
+      if ( user ) {
         user.informUser( message );
+      }
     }
   }
 };
@@ -56,41 +77,36 @@ ServerState.prototype.inform = function ( message, roomId, excludeUserId ) {
 ServerState.prototype.pump = function () {
   this.respawn();
   this.updateUsers();
-  this.saveUsers();
 };
 
 ServerState.prototype.respawn = function () {
   var now = Date.now();
   if ( ( now - this.lastSpawn ) > this.respawnRate ) {
-    for ( var userId in this.users )
+    for ( var userId in this.users ) {
       this.spawnNPC( userId );
+    }
 
-    for ( var roomId in this.rooms )
-      this.rooms[roomId].spawnItems();
+    for ( var roomId in this.rooms ) {
+      this.getRoom(roomId).spawnItems();
+    }
 
     this.lastSpawn = now;
   }
 };
 
 ServerState.prototype.spawnNPC = function ( userId ) {
-  var user = this.users[userId];
+  var user = this.getPerson(userId);
   user.hp = user.startHP || user.hp;
 };
 
 ServerState.prototype.updateUsers = function () {
   for ( var bodyId in this.users ) {
-    var body = this.users[bodyId];
+    var body = this.getPerson(bodyId);
     if ( body.quit ) {
       body.socket.disconnect();
-      delete this.users[bodyId];
     }
     else {
       body.update();
     }
   }
-};
-
-ServerState.prototype.saveUsers = function () {
-  for ( var bodyId in this.users )
-    this.users[bodyId].save();
 };

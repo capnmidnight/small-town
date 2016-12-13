@@ -25,7 +25,7 @@ module.exports = Aggressor;
 Aggressor.prototype.findTarget = function findTarget () {
   var target;
   if ( this.targetId )
-    target = this.db.users[this.targetId];
+    target = this.db.getPerson(this.targetId);
   else {
     var people = this.db.getPeopleIn( this.roomId, this.id );
     var realUsers = people.filter( function ( p ) {
@@ -50,7 +50,7 @@ Aggressor.prototype.idleAction = function idleAction () {
     this.cmd( "attack " + this.targetId );
   }
   else {
-    var rm = this.db.rooms[this.roomId];
+    var rm = this.db.getRoom(this.roomId);
     var exit = core.selectRandom( core.keys( rm.exits ) );
     if ( exit )
       this.cmd( exit );

@@ -22,8 +22,10 @@ module.exports = Room;
 
 Room.prototype.spawnItems = function () {
   for ( var itemId in this.startItems ) {
-    if ( !this.items[itemId] )
+    itemId = itemId.toLocaleLowerCase();
+    if ( !this.items[itemId] ) {
       this.items[itemId] = 0;
+    }
     this.items[itemId] = Math.max( this.items[itemId],
         this.startItems[itemId] );
   }
@@ -45,14 +47,13 @@ Room.prototype.describe = function ( user, t ) {
         return s.trim().length > 0;
       } );
 
-  var itemCatalogue = this.db.items;
+  var _this = this;
   var itemList = core.formatHash(
       this.items,
-      function ( k, v )
-      {
+      function ( k, v ) {
+        var item = _this.db.getItem(k);
         return format( "\t%d %s - %s", v, k,
-            ( itemCatalogue[k] ? itemCatalogue[k].description :
-            "(UNKNOWN)" ) );
+            ( item && item.description || "(UNKNOWN)" ) );
       } );
   return format( "%s\n\nITEMS:\n\n%s\n\nPEOPLE:\n\n%s\n\nEXITS:\n\n%s\n\n<hr>",
       this.description,
@@ -77,11 +78,13 @@ var parsers = {
 };
 
 function collectLines ( line, options, name ) {
-  if ( line.length === 0 )
+  if ( line.length === 0 ) {
     return "none";
+  }
   else {
-    if ( !options[name] )
+    if ( !options[name] ) {
       options[name] = [ ];
+    }
     options[name].push( line );
     return name;
   }
@@ -104,16 +107,18 @@ Room.parse = function ( db, roomId, text ) {
   while ( lines.length > 0 && state !== "quit" ) {
     var line = lines.shift();
     state = parsers[state]( line, options );
-    if ( state === "quit" )
+    if ( state === "quit" ) {
       lines.unshift( line );
+    }
   }
   var description = lines.join( "\r\n" );
   var startItems = { };
   for ( var i = 0; i < options.items.length; ++i ) {
     var parts = options.items[i].split( ' ' );
     var count = 1;
-    if ( parts.length === 2 )
+    if ( parts.length === 2 ) {
       count = parts[1] * 1;
+    }
     startItems[parts[0]] = count;
   }
   new Room( db, roomId, description, startItems );
@@ -132,15 +137,18 @@ Room.loadAll = function ( db, dir, roomFiles ) {
     roomFile = roomFiles[i];
     test = roomFile.match( /([^\\/]+).room/ );
     if ( test && test.length >= 2 ) {
-      roomId = test[1];
+      roomId = test[1].toLocaleLowerCase();
       exits[roomId] = Room.parse( db, roomId, fs.readFileSync( dir + roomFile,
           { encoding: "utf8" } ) );
     }
   }
 
-  for ( roomId in exits )
-    for ( i = 0; i < exits[roomId].length; ++i )
+  for ( roomId in exits ){
+    roomId = roomId.toLocaleLowerCase()
+    for ( i = 0; i < exits[roomId].length; ++i ) {
       Exit.parse( db, roomId, exits[roomId][i] );
+    }
+  }
 };
 
 Room.loadFromDir = function ( db, dirName ) {

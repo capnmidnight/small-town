@@ -23,10 +23,6 @@ function AIBody ( db, roomId, hp, items, equipment, id ) {
 AIBody.prototype = Object.create( Body.prototype );
 module.exports = AIBody;
 
-AIBody.prototype.saveDirectory = function saveDirectory () {
-  return "npcs";
-};
-
 
 // simplifies adding commands to the command queue.
 AIBody.prototype.cmd = function cmd ( msg ) {
@@ -60,7 +56,7 @@ AIBody.prototype.generateCommand = function generateCommand () {
 };
 
 AIBody.prototype.idleAction = function idleAction () {
-  var rm = this.db.rooms[this.roomId];
+  var rm = this.db.getRoom(this.roomId);
   var exit = core.selectRandom( rm.exits );
   if ( exit )
     this.cmd( exit.description );
