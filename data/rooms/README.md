@@ -23,12 +23,12 @@ Example
 ````
 exits
     south to Main-Square
-	north to Hidden-Room cloaked with mystical-jewel
-	east to Armory locked with armory-key "The way is locked."
-	west to East-Gate locked when 3600
-	enter to Guard-Shack with shack-key, guard-crest "Only guards are allowed in the guard shack."
-	-down to Sewer
-	-up to Heaven cloaked when 3600, 0.25
+    north to Hidden-Room cloaked with mystical-jewel
+    east to Armory locked with armory-key "The way is locked."
+    west to East-Gate locked when 3600
+    enter to Guard-Shack with shack-key, guard-crest "Only guards are allowed in the guard shack."
+    -down to Sewer
+    -up to Heaven cloaked when 3600, 0.25
 
 items
     red-flower 10
@@ -83,10 +83,10 @@ ITEMS:
 
 EXITS:
     south to Main-Square
-	east to Armory (LOCKED)
-	west to East-Gate (LOCKED)
-	enter to Guard-Shack (LOCKED)
-	down to Sewer
+    east to Armory (LOCKED)
+    west to East-Gate (LOCKED)
+    enter to Guard-Shack (LOCKED)
+    down to Sewer
 ````
 
 Items
