@@ -1,7 +1,5 @@
 Introduction
 ============
-Play the game live here: https://smalltown.azurewebsites.net/
-
 This is a basic Multi-User Dungeon written in Node.JS. The goal is to use this as a test-bed for works in interactive fiction.
 
 It runs a WebSockets server that serves up a basic HTML page that is used as a client to connect to the game. The game runs off of simple text-file formats defining the items and rooms that the user can interact with. AI bots are a little difficult to define right now, but technically can be any level of complexity.
